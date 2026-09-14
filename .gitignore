@@ -1,0 +1,59 @@
+# Virtual envs
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+pip-wheel-metadata/
+
+# Local data outputs (per category)
+*/json/
+*/detail/
+*/summary/
+json/
+detail/
+summary/
+
+# Logs & env
+*.log
+.env
+.env.*
+.python-version
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# SQLite databases & dumps
+*.db
+*.dump
+backend/*.db
+
+# Scratch / Temp Files
+scratch/
+scratch_*
+reconstructed_App.jsx
+
+# Agent / AI Helper artifacts
+brain/
+logs/
+implementation_plan.md
+kickoff_cost_estimation.md
+scaling_proposal.md
+server_architecture_plan.md
+task.md
+walkthrough.md
