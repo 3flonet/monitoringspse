@@ -256,6 +256,9 @@ const PremiumFooter = ({ adminSettings, onNavigate }) => {
 const CrawlLogsHealthMonitor = ({ userToken }) => {
     const [logs, setLogs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
+    const [flashMsg, setFlashMsg] = useState(null);
 
     const fetchLogs = async () => {
         setIsLoading(true);
@@ -276,6 +279,34 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
         }
     };
 
+    const handleConfirmClearLogs = async () => {
+        setIsClearing(true);
+        setFlashMsg(null);
+        try {
+            const res = await fetch('/api/admin/crawl-logs', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setLogs([]);
+                setShowConfirmModal(false);
+                setFlashMsg({ type: 'success', text: data.message || 'Log kesehatan penarikan & pemblokiran berhasil dibersihkan!' });
+                setTimeout(() => setFlashMsg(null), 5000);
+            } else {
+                setShowConfirmModal(false);
+                setFlashMsg({ type: 'error', text: data.detail || 'Gagal membersihkan log.' });
+            }
+        } catch (e) {
+            setShowConfirmModal(false);
+            setFlashMsg({ type: 'error', text: 'Kesalahan jaringan saat membersihkan log.' });
+        } finally {
+            setIsClearing(false);
+        }
+    };
+
     useEffect(() => {
         if (userToken) fetchLogs();
     }, [userToken]);
@@ -291,8 +322,98 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             borderRadius: '16px',
             padding: '24px',
             marginBottom: '32px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+            position: 'relative'
         }}>
+            {/* SWEETALERT STYLED CONFIRMATION MODAL */}
+            {showConfirmModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 99999,
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        borderRadius: '20px',
+                        padding: '28px',
+                        maxWidth: '440px',
+                        width: '100%',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(239, 68, 68, 0.2)'
+                    }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            border: '2px solid rgba(239, 68, 68, 0.4)',
+                            color: '#f87171',
+                            fontSize: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 16px',
+                            boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)'
+                        }}>
+                            🗑️
+                        </div>
+
+                        <h3 style={{ margin: '0 0 10px', fontSize: '18px', fontWeight: '800', color: '#ffffff' }}>
+                            Bersihkan Semua Log Penarikan?
+                        </h3>
+
+                        <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+                            Apakah Anda yakin ingin menghapus seluruh riwayat status kesehatan penarikan &amp; indikasi IP terblokir? Tindakan ini <strong style={{ color: '#f87171' }}>tidak dapat dibatalkan</strong>.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={isClearing}
+                                style={{
+                                    flex: 1,
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                    color: '#cbd5e1',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleConfirmClearLogs}
+                                disabled={isClearing}
+                                style={{
+                                    flex: 1,
+                                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    fontSize: '13px',
+                                    fontWeight: '700',
+                                    cursor: isClearing ? 'wait' : 'pointer',
+                                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                                }}
+                            >
+                                {isClearing ? 'Memproses...' : 'Ya, Bersihkan Log'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                 <div>
                     <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -303,26 +424,69 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                     </p>
                 </div>
 
-                <button
-                    onClick={fetchLogs}
-                    disabled={isLoading}
-                    style={{
-                        background: 'rgba(99, 102, 241, 0.2)',
-                        color: '#a5b4fc',
-                        border: '1px solid rgba(99, 102, 241, 0.4)',
-                        padding: '8px 16px',
-                        borderRadius: '10px',
-                        fontWeight: '700',
-                        fontSize: '12px',
-                        cursor: isLoading ? 'wait' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                    }}
-                >
-                    <span>🔄</span> {isLoading ? 'Memuat Log...' : 'Refresh Logs'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={fetchLogs}
+                        disabled={isLoading}
+                        style={{
+                            background: 'rgba(99, 102, 241, 0.2)',
+                            color: '#a5b4fc',
+                            border: '1px solid rgba(99, 102, 241, 0.4)',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
+                            fontWeight: '700',
+                            fontSize: '12px',
+                            cursor: isLoading ? 'wait' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}
+                    >
+                        <span>🔄</span> {isLoading ? 'Memuat Log...' : 'Refresh Logs'}
+                    </button>
+
+                    <button
+                        onClick={() => setShowConfirmModal(true)}
+                        disabled={logs.length === 0 || isLoading}
+                        style={{
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            color: '#f87171',
+                            border: '1px solid rgba(239, 68, 68, 0.35)',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
+                            fontWeight: '700',
+                            fontSize: '12px',
+                            cursor: (logs.length === 0 || isLoading) ? 'not-allowed' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            opacity: logs.length === 0 ? 0.6 : 1
+                        }}
+                    >
+                        <span>🗑️</span> Bersihkan Log
+                    </button>
+                </div>
             </div>
+
+            {/* FLASH MESSAGE BANNER */}
+            {flashMsg && (
+                <div style={{
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    marginBottom: '16px',
+                    background: flashMsg.type === 'success' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                    border: `1px solid ${flashMsg.type === 'success' ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                    color: flashMsg.type === 'success' ? '#4ade80' : '#f87171',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <span>{flashMsg.type === 'success' ? '✅' : '❌'}</span>
+                    {flashMsg.text}
+                </div>
+            )}
 
             {/* Health Indicators */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>

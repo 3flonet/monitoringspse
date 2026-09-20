@@ -644,6 +644,17 @@ def get_admin_crawl_logs(limit: int = 50, current_user: dict = Depends(get_curre
     logs = get_recent_crawl_logs(limit=limit)
     return {"logs": logs}
 
+@app.delete("/api/admin/crawl-logs")
+def clear_admin_crawl_logs(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    from backend.database import clear_all_crawl_logs
+    success = clear_all_crawl_logs()
+    if success:
+        return {"status": "success", "message": "Log kesehatan penarikan & pemblokiran berhasil dibersihkan!"}
+    else:
+        raise HTTPException(status_code=500, detail="Gagal membersihkan log penarikan.")
+
 
 # TENDERS SEARCH & FILTERING
 @app.get("/api/tenders")

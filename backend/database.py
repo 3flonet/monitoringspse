@@ -1341,6 +1341,18 @@ def get_recent_crawl_logs(limit=50):
         logging.error(f"Failed to fetch crawl logs from DB: {e}")
         return []
 
+def clear_all_crawl_logs():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM crawl_logs")
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        logging.error(f"Failed to clear crawl logs from DB: {e}")
+        return False
+
 def upsert_company_contact(company_name, email=None, phone=None, npwp=None):
     company_name_clean = clean_str(company_name)
     if not company_name_clean:
