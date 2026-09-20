@@ -10842,6 +10842,27 @@ function App() {
                                                                         <td data-label="Kategori Slug"><code style={{ color: '#818cf8', background: 'rgba(99,102,241,0.08)', padding: '2px 6px', borderRadius: '4px' }}>{inst.slug}</code></td>
                                                                         <td data-label="Aksi" style={{ whiteSpace: 'nowrap', width: '1%', textAlign: 'right' }}>
                                                                             <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+                                                                                <a
+                                                                                    href={`https://spse.inaproc.id/${inst.slug}/lelang`}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    title={`Buka Link SPSE ${inst.name} (${inst.slug})`}
+                                                                                    style={{
+                                                                                        padding: '4px 8px',
+                                                                                        fontSize: '13px',
+                                                                                        background: 'rgba(99, 102, 241, 0.15)',
+                                                                                        color: '#818cf8',
+                                                                                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                                                        borderRadius: '4px',
+                                                                                        cursor: 'pointer',
+                                                                                        display: 'inline-flex',
+                                                                                        alignItems: 'center',
+                                                                                        justifyContent: 'center',
+                                                                                        textDecoration: 'none'
+                                                                                    }}
+                                                                                >
+                                                                                    👁️
+                                                                                </a>
                                                                                 <button
                                                                                     style={{ padding: '4px 8px', fontSize: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                                                                                     onClick={() => handleEditLpseClick(inst)}
