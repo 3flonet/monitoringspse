@@ -4420,10 +4420,12 @@ function App() {
         }
     }, [lpseInstances, alertInstansi, crawlKategori]);
 
-    // Re-fetch settings/logs when admin tab is opened
+    // Re-fetch settings/logs when admin tabs are opened
     useEffect(() => {
-        if (activeTab === 'admin') {
+        if (currentUser?.role === 'admin') {
             fetchAdminSettings();
+        }
+        if (activeTab === 'admin' && currentUser?.role === 'admin') {
             fetchAdminLogs();
             fetchVouchers();
         }
