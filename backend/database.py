@@ -478,6 +478,17 @@ def init_db():
             created_at TEXT
         )
         """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS company_contacts (
+            id SERIAL PRIMARY KEY,
+            company_name VARCHAR(255) UNIQUE NOT NULL,
+            npwp VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(255),
+            updated_at TEXT
+        )
+        """)
     else:
         try:
             cursor.execute("PRAGMA table_info(alerts)")
@@ -729,6 +740,17 @@ def init_db():
         )
         """)
     
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS company_contacts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_name TEXT UNIQUE NOT NULL,
+            npwp TEXT,
+            email TEXT,
+            phone TEXT,
+            updated_at TEXT
+        )
+        """)
+        
     # Seed default system settings
     default_settings = {
         "premium_price": "150000",
@@ -1319,5 +1341,163 @@ def get_recent_crawl_logs(limit=50):
         logging.error(f"Failed to fetch crawl logs from DB: {e}")
         return []
 
+def upsert_company_contact(company_name, email=None, phone=None, npwp=None):
+    company_name_clean = clean_str(company_name)
+    if not company_name_clean:
+        return False
+    email_clean = clean_str(email) if email else ""
+    phone_clean = clean_str(phone) if phone else ""
+    npwp_clean = clean_str(npwp) if npwp else ""
+    now_str = datetime.now().isoformat()
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    is_pg = hasattr(conn, '_pool')
+    if is_pg:
+        cursor.execute("""
+            INSERT INTO company_contacts (company_name, npwp, email, phone, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (company_name) DO UPDATE SET
+                npwp = CASE WHEN EXCLUDED.npwp != '' THEN EXCLUDED.npwp ELSE company_contacts.npwp END,
+                email = EXCLUDED.email,
+                phone = EXCLUDED.phone,
+                updated_at = EXCLUDED.updated_at
+        """, (company_name_clean, npwp_clean, email_clean, phone_clean, now_str))
+    else:
+        cursor.execute("""
+            INSERT INTO company_contacts (company_name, npwp, email, phone, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(company_name) DO UPDATE SET
+                npwp = CASE WHEN EXCLUDED.npwp != '' THEN EXCLUDED.npwp ELSE company_contacts.npwp END,
+                email = EXCLUDED.email,
+                phone = EXCLUDED.phone,
+                updated_at = EXCLUDED.updated_at
+        """, (company_name_clean, npwp_clean, email_clean, phone_clean, now_str))
+    conn.commit()
+    conn.close()
+    return True
+
+def get_company_leads(search="", filter_status="all", page=1, limit=20):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    search_clean = clean_str(search).strip()
+    search_param = f"%{search_clean}%"
+    
+    query_base = """
+    FROM (
+        SELECT DISTINCT nama_peserta AS company_name FROM competitor_evaluations WHERE nama_peserta IS NOT NULL AND nama_peserta != ''
+        UNION
+        SELECT DISTINCT nama_pemenang AS company_name FROM tender_winners WHERE nama_pemenang IS NOT NULL AND nama_pemenang != ''
+        UNION
+        SELECT DISTINCT nama_peserta AS company_name FROM tender_participants WHERE nama_peserta IS NOT NULL AND nama_peserta != ''
+    ) c
+    LEFT JOIN company_contacts cc ON c.company_name = cc.company_name
+    LEFT JOIN (
+        SELECT nama_pemenang, COUNT(*) AS total_wins, SUM(harga_kontrak) AS total_contract_value, MAX(npwp) AS npwp
+        FROM tender_winners
+        GROUP BY nama_pemenang
+    ) w ON c.company_name = w.nama_pemenang
+    LEFT JOIN (
+        SELECT nama_peserta, COUNT(DISTINCT nomor_pengadaan) AS total_followed, MAX(npwp) AS npwp
+        FROM competitor_evaluations
+        WHERE harga_penawaran > 0 OR harga_terkoreksi > 0 OR is_winner = 1
+        GROUP BY nama_peserta
+    ) e ON c.company_name = e.nama_peserta
+    LEFT JOIN (
+        SELECT nama_peserta, MAX(npwp) AS npwp
+        FROM tender_participants
+        GROUP BY nama_peserta
+    ) p ON c.company_name = p.nama_peserta
+    WHERE 1=1
+    """
+    params = []
+    if search_clean:
+        query_base += " AND (c.company_name LIKE ? OR cc.npwp LIKE ? OR w.npwp LIKE ? OR e.npwp LIKE ? OR p.npwp LIKE ?)"
+        params.extend([search_param, search_param, search_param, search_param, search_param])
+        
+    if filter_status == "has_contact":
+        query_base += " AND ((cc.email IS NOT NULL AND cc.email != '') OR (cc.phone IS NOT NULL AND cc.phone != ''))"
+    elif filter_status == "no_contact":
+        query_base += " AND ((cc.email IS NULL OR cc.email = '') AND (cc.phone IS NULL OR cc.phone = ''))"
+        
+    # Count total matching rows
+    cursor.execute(f"SELECT COUNT(*) {query_base}", params)
+    total_count = cursor.fetchone()[0] or 0
+
+    # Fetch global stats (total unique companies, total with contacts, total without contacts)
+    stats_query = """
+    SELECT 
+        COUNT(*) as total_all,
+        SUM(CASE WHEN (cc.email IS NOT NULL AND cc.email != '') OR (cc.phone IS NOT NULL AND cc.phone != '') THEN 1 ELSE 0 END) as total_has_contact
+    FROM (
+        SELECT DISTINCT nama_peserta AS company_name FROM competitor_evaluations WHERE nama_peserta IS NOT NULL AND nama_peserta != ''
+        UNION
+        SELECT DISTINCT nama_pemenang AS company_name FROM tender_winners WHERE nama_pemenang IS NOT NULL AND nama_pemenang != ''
+        UNION
+        SELECT DISTINCT nama_peserta AS company_name FROM tender_participants WHERE nama_peserta IS NOT NULL AND nama_peserta != ''
+    ) c
+    LEFT JOIN company_contacts cc ON c.company_name = cc.company_name
+    """
+    cursor.execute(stats_query)
+    stats_row = cursor.fetchone()
+    total_all_companies = stats_row[0] if stats_row else 0
+    total_has_contact = stats_row[1] if stats_row else 0
+    total_no_contact = total_all_companies - total_has_contact
+    
+    # Select columns & sort by total_contract_value DESC, total_wins DESC
+    select_query = f"""
+    SELECT 
+        c.company_name,
+        COALESCE(cc.email, '') AS email,
+        COALESCE(cc.phone, '') AS phone,
+        COALESCE(cc.npwp, w.npwp, e.npwp, p.npwp, '-') AS npwp,
+        COALESCE(w.total_wins, 0) AS total_wins,
+        COALESCE(w.total_contract_value, 0.0) AS total_contract_value,
+        COALESCE(e.total_followed, w.total_wins, 0) AS total_followed,
+        cc.updated_at
+    {query_base}
+    ORDER BY total_contract_value DESC, total_wins DESC, c.company_name ASC
+    """
+    
+    if limit and limit > 0:
+        offset = (page - 1) * limit
+        select_query += f" LIMIT {limit} OFFSET {offset}"
+        
+    cursor.execute(select_query, params)
+    rows = cursor.fetchall()
+    
+    results = []
+    for r in rows:
+        r_dict = dict(r)
+        total_followed = r_dict.get("total_followed") or 0
+        total_wins = r_dict.get("total_wins") or 0
+        win_rate = 0
+        if total_followed > 0:
+            win_rate = round((total_wins / total_followed) * 100)
+        elif total_wins > 0:
+            win_rate = 100
+        r_dict["win_rate"] = win_rate
+        results.append(r_dict)
+        
+    conn.close()
+    return {
+        "items": results,
+        "total": total_count,
+        "page": page,
+        "limit": limit,
+        "stats": {
+            "total_companies": total_all_companies,
+            "has_contact": total_has_contact,
+            "no_contact": total_no_contact
+        }
+    }
+
+def get_all_company_leads_for_export(search="", filter_status="all"):
+    res = get_company_leads(search=search, filter_status=filter_status, page=1, limit=100000)
+    return res.get("items", [])
+
 # Initialize DB on import
 init_db()
+

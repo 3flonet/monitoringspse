@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Any
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Depends, Query, UploadFile, File, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -20,7 +20,8 @@ from backend.database import (
     create_voucher, get_voucher, increment_voucher_usage, delete_voucher, get_all_vouchers, get_transaction,
     create_article, get_article_by_slug, get_all_articles, update_article, delete_article, clean_str,
     create_password_reset, get_password_reset_by_hash, mark_password_reset_used, update_user_password,
-    create_contact_submission, get_all_contact_submissions, update_contact_submission_status, delete_contact_submission
+    create_contact_submission, get_all_contact_submissions, update_contact_submission_status, delete_contact_submission,
+    get_company_leads, get_all_company_leads_for_export, upsert_company_contact
 )
 from backend.auth import (
     hash_password, verify_password, create_access_token, get_current_user
@@ -185,6 +186,12 @@ class ArticleCreateReq(BaseModel):
     is_published: Optional[int] = 1
     image_url: Optional[str] = None
     youtube_embed: Optional[str] = None
+
+class CompanyContactUpdate(BaseModel):
+    company_name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    npwp: Optional[str] = None
 
 # AUTH ENDPOINTS
 @app.post("/api/auth/register")
@@ -2296,3 +2303,155 @@ def admin_delete_contact_submission(id: int, current_user: dict = Depends(get_cu
         return {"status": "success", "message": "Data prospek berhasil dihapus."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gagal menghapus prospek: {str(e)}")
+
+# COMPANY LEADS & CAMPAIGN ADMIN ENDPOINTS
+@app.get("/api/admin/company-leads")
+def admin_get_company_leads(
+    search: str = "",
+    filter_status: str = "all",
+    page: int = 1,
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user.get("role") not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    try:
+        data = get_company_leads(search=search, filter_status=filter_status, page=page, limit=limit)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal mengambil data perusahaan: {str(e)}")
+
+@app.put("/api/admin/company-leads/contact")
+def admin_update_company_contact(
+    req: CompanyContactUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user.get("role") not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    if not req.company_name:
+        raise HTTPException(status_code=400, detail="Nama perusahaan wajib diisi.")
+    try:
+        upsert_company_contact(req.company_name, email=req.email, phone=req.phone, npwp=req.npwp)
+        return {"status": "success", "message": "Kontak perusahaan berhasil diperbarui."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal memperbarui kontak: {str(e)}")
+
+@app.get("/api/admin/company-leads/export")
+def admin_export_company_leads(
+    format: str = "xlsx",
+    search: str = "",
+    filter_status: str = "all",
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user.get("role") not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    
+    items = get_all_company_leads_for_export(search=search, filter_status=filter_status)
+    
+    if format.lower() == "csv":
+        import io
+        import csv
+        
+        output = io.StringIO()
+        output.write('\ufeff')  # UTF-8 BOM for Excel
+        writer = csv.writer(output)
+        writer.writerow([
+            "No", "Nama Perusahaan", "NPWP", "Total Tender Diikuti",
+            "Total Menang", "Win Rate (%)", "Total Nilai Kontrak (Rp)",
+            "Email Kontak", "No. Telepon / WA", "Terakhir Diupdate"
+        ])
+        for idx, item in enumerate(items, 1):
+            writer.writerow([
+                idx,
+                item.get("company_name", ""),
+                item.get("npwp", "-"),
+                item.get("total_followed", 0),
+                item.get("total_wins", 0),
+                f"{item.get('win_rate', 0)}%",
+                item.get("total_contract_value", 0.0),
+                item.get("email", ""),
+                item.get("phone", ""),
+                item.get("updated_at", "")
+            ])
+            
+        csv_bytes = output.getvalue().encode('utf-8')
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=daftar_prospek_perusahaan.csv"}
+        )
+    else:
+        import io
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Prospek Perusahaan"
+        
+        headers = [
+            "No", "Nama Perusahaan", "NPWP", "Total Tender Diikuti",
+            "Total Menang", "Win Rate (%)", "Total Nilai Kontrak (Rp)",
+            "Email Kontak", "No. Telepon / WA", "Terakhir Diupdate"
+        ]
+        
+        header_font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid")
+        alignment_center = Alignment(horizontal="center", vertical="center")
+        alignment_left = Alignment(horizontal="left", vertical="center")
+        alignment_right = Alignment(horizontal="right", vertical="center")
+        
+        ws.append(headers)
+        for col_num in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = alignment_center
+            
+        thin_border = Border(
+            left=Side(style='thin', color='D1D5DB'),
+            right=Side(style='thin', color='D1D5DB'),
+            top=Side(style='thin', color='D1D5DB'),
+            bottom=Side(style='thin', color='D1D5DB')
+        )
+        
+        for idx, item in enumerate(items, 1):
+            row_data = [
+                idx,
+                item.get("company_name", ""),
+                item.get("npwp", "-"),
+                item.get("total_followed", 0),
+                item.get("total_wins", 0),
+                f"{item.get('win_rate', 0)}%",
+                item.get("total_contract_value", 0.0),
+                item.get("email", ""),
+                item.get("phone", ""),
+                item.get("updated_at", "")
+            ]
+            ws.append(row_data)
+            row_num = idx + 1
+            for col_num in range(1, len(row_data) + 1):
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.border = thin_border
+                if col_num in [1, 3, 4, 5, 6, 9, 10]:
+                    cell.alignment = alignment_center
+                elif col_num == 7:
+                    cell.alignment = alignment_right
+                    cell.number_format = '#,##0'
+                else:
+                    cell.alignment = alignment_left
+                    
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+            
+        stream = io.BytesIO()
+        wb.save(stream)
+        stream.seek(0)
+        
+        return Response(
+            content=stream.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=daftar_prospek_perusahaan.xlsx"}
+        )

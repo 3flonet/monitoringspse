@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Chatbot from './components/Chatbot';
 import AdminLeadsManager from './components/AdminLeadsManager';
+import CompanyLeadsManager from './components/CompanyLeadsManager';
 
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
@@ -4727,6 +4728,12 @@ function App() {
                     setActiveTab('leads');
                     fetchLeads();
                 }
+            } else if (hash.startsWith('#/admin/company-leads')) {
+                setSelectedArticleSlug(null);
+                setSelectedArticleLpseSlug(null);
+                if (userToken && currentUser?.role === 'admin') {
+                    setActiveTab('company-leads');
+                }
             } else if (hash.startsWith('#/admin/proxy')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
@@ -6989,7 +6996,15 @@ function App() {
                             className={`menu-item ${activeTab === 'leads' ? 'active' : ''}`}
                             onClick={() => { window.location.hash = '#/admin/leads'; setIsMobileMenuOpen(false); }}
                         >
-                            <span>📥</span> Manajer Prospek
+                            <span>📥</span> Form Prospek
+                        </div>
+                    )}
+                    {currentUser?.role === 'admin' && (
+                        <div
+                            className={`menu-item ${activeTab === 'company-leads' ? 'active' : ''}`}
+                            onClick={() => { window.location.hash = '#/admin/company-leads'; setIsMobileMenuOpen(false); }}
+                        >
+                            <span>🏢</span> Prospek Perusahaan
                         </div>
                     )}
                     {currentUser?.role === 'admin' && (
@@ -10928,6 +10943,10 @@ function App() {
                         fetchLeads={fetchLeads}
                         authFetch={authFetch}
                     />
+                )}
+
+                {activeTab === 'company-leads' && currentUser?.role === 'admin' && (
+                    <CompanyLeadsManager token={userToken} />
                 )}
 
                 {/* TAB: IP PROXY MANAGER */}
