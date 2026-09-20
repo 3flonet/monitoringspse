@@ -1430,7 +1430,7 @@ def get_company_leads(search="", filter_status="all", page=1, limit=20):
     stats_query = """
     SELECT 
         COUNT(*) as total_all,
-        SUM(CASE WHEN (cc.email IS NOT NULL AND cc.email != '') OR (cc.phone IS NOT NULL AND cc.phone != '') THEN 1 ELSE 0 END) as total_has_contact
+        COALESCE(SUM(CASE WHEN (cc.email IS NOT NULL AND cc.email != '') OR (cc.phone IS NOT NULL AND cc.phone != '') THEN 1 ELSE 0 END), 0) as total_has_contact
     FROM (
         SELECT DISTINCT nama_peserta AS company_name FROM competitor_evaluations WHERE nama_peserta IS NOT NULL AND nama_peserta != ''
         UNION
@@ -1442,9 +1442,9 @@ def get_company_leads(search="", filter_status="all", page=1, limit=20):
     """
     cursor.execute(stats_query)
     stats_row = cursor.fetchone()
-    total_all_companies = stats_row[0] if stats_row else 0
-    total_has_contact = stats_row[1] if stats_row else 0
-    total_no_contact = total_all_companies - total_has_contact
+    total_all_companies = (stats_row[0] or 0) if stats_row else 0
+    total_has_contact = (stats_row[1] or 0) if stats_row else 0
+    total_no_contact = max(total_all_companies - total_has_contact, 0)
     
     # Select columns & sort by total_contract_value DESC, total_wins DESC
     select_query = f"""
