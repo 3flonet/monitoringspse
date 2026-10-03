@@ -2270,6 +2270,17 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
         return `Rp ${val.toLocaleString('id-ID')}`;
     };
 
+    const formatStatsCount = (val) => {
+        if (!val) return '0';
+        if (val >= 1_000_000) {
+            return `${(val / 1_000_000).toFixed(1).replace(/\.0$/, '')}M+`;
+        }
+        if (val >= 10_000) {
+            return `${(val / 1_000).toFixed(1).replace(/\.0$/, '')}K+`;
+        }
+        return val.toLocaleString('id-ID');
+    };
+
     const timeAgo = (dateString) => {
         if (!dateString) return 'Baru saja';
         const date = new Date(dateString);
@@ -2801,25 +2812,37 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                 {/* Stats Section */}
                 <div style={{ maxWidth: '1200px', margin: '0 auto 40px', padding: '0 20px', display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <div style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div
+                        title={isLoadingStats ? '' : `Total tepat: ${stats.tenders.toLocaleString('id-ID')} tender`}
+                        style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)', cursor: 'default' }}
+                    >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>📄</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Tender Terpantau</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : stats.tenders.toLocaleString('id-ID')}</div>
+                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.tenders)}</div>
                     </div>
-                    <div style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div
+                        title={isLoadingStats ? '' : `Total tepat: Rp ${stats.pagu.toLocaleString('id-ID')}`}
+                        style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)', cursor: 'default' }}
+                    >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>💰</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Pagu Terpantau</div>
                         <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsPagu(stats.pagu)}</div>
                     </div>
-                    <div style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div
+                        title={isLoadingStats ? '' : `Total tepat: ${stats.instansi.toLocaleString('id-ID')} LPSE`}
+                        style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)', cursor: 'default' }}
+                    >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>🏢</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total LPSE Terhubung</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : stats.instansi.toLocaleString('id-ID')}</div>
+                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.instansi)}</div>
                     </div>
-                    <div style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                    <div
+                        title={isLoadingStats ? '' : `Total tepat: ${stats.penyedia.toLocaleString('id-ID')} penyedia`}
+                        style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)', cursor: 'default' }}
+                    >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>👥</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Penyedia Terhubung</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#38bdf8', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : stats.penyedia.toLocaleString('id-ID')}</div>
+                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#38bdf8', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.penyedia)}</div>
                     </div>
                 </div>
 
