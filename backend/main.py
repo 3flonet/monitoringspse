@@ -256,7 +256,9 @@ def forgot_password(req: ForgotPasswordReq):
     create_password_reset(user["id"], token_hash, expires_at)
     
     # Build reset link
-    reset_link = f"http://localhost:5173/#/reset-password?token={plain_token}"
+    from backend.database import get_setting
+    app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
+    reset_link = f"{app_url}/#/reset-password?token={plain_token}"
     
     # Send via Email
     send_password_reset_email(clean_email, reset_link, expire_minutes=15)

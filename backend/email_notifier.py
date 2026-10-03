@@ -24,7 +24,7 @@ def _build_html_email(app_name, keyword, tender):
     """Build HTML email body for a tender alert."""
     from backend.database import get_setting
     app_logo = get_setting("app_logo", "🕵🏼‍♂️")
-    app_url = get_setting("app_url", "http://localhost:5173").rstrip("/")
+    app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
     nomor_pengadaan = tender['nomor_pengadaan']
     public_tender_url = f"{app_url}/#/tender/{nomor_pengadaan}"
 
@@ -309,7 +309,7 @@ def send_credentials_email(to_email: str, password: str = None, role: str = "use
                     <strong>Role:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #6366f1;">{role}</span>
                 </div>
                 <p style="text-align: center; margin-top: 24px;">
-                    <a href="http://localhost:5173/auth" style="display: inline-block; background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Login ke Dashboard</a>
+                    <a href="{get_setting('app_url', 'https://spyspse.com').rstrip('/')}/auth" style="display: inline-block; background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Login ke Dashboard</a>
                 </p>
                 <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;">
                 <p style="color: #94a3b8; font-size: 12px; text-align: center;">Harap simpan informasi akun ini dengan aman.</p>

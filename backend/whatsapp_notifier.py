@@ -178,7 +178,7 @@ def send_whatsapp_alert(to_number: str, keyword: str, tender: dict) -> bool:
     ]
     selected_greeting = random.choice(greetings)
     
-    app_url = get_setting("app_url", "http://localhost:5173").rstrip("/")
+    app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
     nomor_pengadaan = tender['nomor_pengadaan']
     public_tender_url = f"{app_url}/#/tender/{nomor_pengadaan}"
 
@@ -275,7 +275,7 @@ def send_credentials_whatsapp(to_number: str, email: str, password: str = None, 
         f"📧 *Email:* `{email}`\n"
         f"{pass_info}"
         f"👤 *Role:* `{role.upper()}`\n\n"
-        f"🌐 *Link Login:* http://localhost:5173/auth\n\n"
+        f"🌐 *Link Login:* {get_setting('app_url', 'https://spyspse.com').rstrip('/')}/auth\n\n"
         f"Silakan simpan informasi ini dengan aman."
     )
     
