@@ -1697,6 +1697,60 @@ def create_user_admin(req: dict, current_user: dict = Depends(get_current_user))
         conn.close()
         raise HTTPException(status_code=500, detail=f"Gagal membuat user: {str(e)}")
 
+@app.put("/api/admin/users/{user_id}")
+def update_user_admin(user_id: int, req: dict, current_user: dict = Depends(get_current_user)):
+    """Update user profile: email, whatsapp, role, subscription plan, status, duration."""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+
+    new_email = req.get("email", "").strip().lower()
+    new_whatsapp = req.get("whatsapp", "").strip()
+    new_role = req.get("role")
+    new_plan = req.get("plan_type")
+    new_status = req.get("status")
+    duration_days = req.get("duration_days")
+
+    if new_email and "@" not in new_email:
+        raise HTTPException(status_code=400, detail="Alamat email tidak valid.")
+    if new_role and new_role not in ["user", "admin"]:
+        raise HTTPException(status_code=400, detail="Role harus 'user' atau 'admin'.")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if new_email:
+        cursor.execute("SELECT id FROM users WHERE email = ? AND id != ?", (new_email, user_id))
+        if cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=400, detail=f"Email '{new_email}' sudah digunakan user lain.")
+
+    updates = []
+    params = []
+    if new_email:
+        updates.append("email = ?")
+        params.append(new_email)
+    if new_whatsapp is not None:
+        updates.append("whatsapp = ?")
+        params.append(new_whatsapp)
+    if new_role:
+        updates.append("role = ?")
+        params.append(new_role)
+
+    if updates:
+        params.append(user_id)
+        cursor.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
+
+    conn.commit()
+    conn.close()
+
+    if new_plan or new_status or duration_days is not None:
+        plan = new_plan or "premium"
+        status = new_status or "active"
+        days = int(duration_days) if duration_days is not None else 30
+        update_user_subscription(user_id, plan_type=plan, status=status, duration_days=days)
+
+    return {"status": "success", "message": "Data user berhasil diperbarui."}
+
 @app.post("/api/admin/users/{user_id}/role")
 def change_user_role_admin(user_id: int, req: dict, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":

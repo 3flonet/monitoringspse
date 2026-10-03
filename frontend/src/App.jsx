@@ -3881,8 +3881,8 @@ function App() {
     const [smtpTestResult, setSmtpTestResult] = useState(null);
     const [adminDashboard, setAdminDashboard] = useState(null);
     const [adminUsers, setAdminUsers] = useState([]);
-    const [editUserModal, setEditUserModal] = useState(null); // { id, email, plan_type, status }
-    const [editUserForm, setEditUserForm] = useState({ plan_type: 'premium', status: 'active', duration_days: 30 });
+    const [editUserModal, setEditUserModal] = useState(null); // { id, email, whatsapp, role }
+    const [editUserForm, setEditUserForm] = useState({ email: '', whatsapp: '', role: 'user', plan_type: 'premium', status: 'active', duration_days: 30 });
     const [editUserMsg, setEditUserMsg] = useState(null);
     const [deleteUserConfirm, setDeleteUserConfirm] = useState(null); // user object
     const [changePasswordModal, setChangePasswordModal] = useState(null); // { id, email }
@@ -5152,22 +5152,18 @@ function App() {
     const handleUpdateUserSub = async () => {
         if (!editUserModal) return;
         setEditUserMsg(null);
+        if (editUserForm.email && !editUserForm.email.includes('@')) {
+            setEditUserMsg({ type: 'error', text: 'Format email tidak valid.' });
+            return;
+        }
         try {
-            // Update subscription
-            const resSub = await authFetch(`/api/admin/users/${editUserModal.id}/subscription`, {
-                method: 'POST',
+            const res = await authFetch(`/api/admin/users/${editUserModal.id}`, {
+                method: 'PUT',
                 body: JSON.stringify(editUserForm),
             });
-            // Update role if changed
-            if (editUserForm.role && editUserForm.role !== editUserModal.role) {
-                await authFetch(`/api/admin/users/${editUserModal.id}/role`, {
-                    method: 'POST',
-                    body: JSON.stringify({ role: editUserForm.role }),
-                });
-            }
-            const data = await resSub.json();
-            if (resSub.ok) {
-                setEditUserMsg({ type: 'success', text: 'Data user & role berhasil diperbarui!' });
+            const data = await res.json();
+            if (res.ok) {
+                setEditUserMsg({ type: 'success', text: 'Data user berhasil diperbarui!' });
                 fetchAdminUsers();
                 fetchAdminDashboard();
                 setTimeout(() => {
@@ -7794,12 +7790,37 @@ function App() {
                         {editUserModal && (
                             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                                 <div style={{ background: '#0f1322', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '32px', width: '100%', maxWidth: '440px', boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
-                                    <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: '#fff' }}>✏️ Edit User & Role</h3>
+                                    <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: '#fff' }}>✏️ Edit Data User</h3>
                                     <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '24px' }}>
-                                        User: <strong style={{ color: '#818cf8' }}>{editUserModal.email}</strong>
+                                        ID: <strong style={{ color: '#818cf8' }}>#{editUserModal.id}</strong>
                                     </p>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div>
+                                            <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>📧 Email</label>
+                                            <input
+                                                type="email"
+                                                className="form-control"
+                                                placeholder="Email pengguna"
+                                                value={editUserForm.email}
+                                                onChange={e => setEditUserForm(prev => ({ ...prev, email: e.target.value }))}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>📱 Nomor WhatsApp</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Contoh: 6281234567890"
+                                                value={editUserForm.whatsapp}
+                                                onChange={e => setEditUserForm(prev => ({ ...prev, whatsapp: e.target.value }))}
+                                            />
+                                            <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>Format: awali dengan 62 (misal: 6281234567890)</span>
+                                        </div>
+
+                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+
                                         <div>
                                             <label style={{ fontSize: '12px', color: '#9ca3af', display: 'block', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role Pengguna</label>
                                             <select
@@ -7846,7 +7867,7 @@ function App() {
                                                 onChange={e => setEditUserForm(prev => ({ ...prev, duration_days: parseInt(e.target.value) || 0 }))}
                                             />
                                             <span style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
-                                                Masukkan jumlah hari aktif (misal: 30 untuk 1 bulan, 365 untuk 1 tahun). Gunakan 0 jika ingin menonaktifkan durasi manual.
+                                                Masukkan jumlah hari aktif (misal: 30 untuk 1 bulan, 365 untuk 1 tahun).
                                             </span>
                                         </div>
                                     </div>
@@ -8107,8 +8128,8 @@ function App() {
                                                                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                                                                     <button
                                                                         onClick={() => {
-                                                                            setEditUserModal({ id: user.id, email: user.email, role: user.role });
-                                                                            setEditUserForm({ role: user.role || 'user', plan_type: user.plan_type || 'trial', status: user.status || 'active', duration_days: 0 });
+                                                                            setEditUserModal({ id: user.id, email: user.email, whatsapp: user.whatsapp || '', role: user.role });
+                                                                            setEditUserForm({ email: user.email || '', whatsapp: user.whatsapp || '', role: user.role || 'user', plan_type: user.plan_type || 'trial', status: user.status || 'active', duration_days: 0 });
                                                                             setEditUserMsg(null);
                                                                         }}
                                                                         style={{ padding: '4px 10px', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
