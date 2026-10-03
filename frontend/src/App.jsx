@@ -2264,10 +2264,10 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
     const formatStatsPagu = (val) => {
         if (!val) return '0';
-        if (val >= 1_000_000_000_000) return `Rp ${(val / 1_000_000_000_000).toFixed(1).replace('.', ',')} T`;
-        if (val >= 1_000_000_000) return `Rp ${(val / 1_000_000_000).toFixed(1).replace('.', ',')} M`;
-        if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(1).replace('.', ',')} Jt`;
-        return `Rp ${val.toLocaleString('id-ID')}`;
+        if (val >= 1_000_000_000_000) return `${(val / 1_000_000_000_000).toFixed(1).replace('.', ',')} T`;
+        if (val >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(1).replace('.', ',')} M`;
+        if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1).replace('.', ',')} Jt`;
+        return val.toLocaleString('id-ID');
     };
 
     const formatStatsCount = (val) => {
@@ -2825,7 +2825,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         style={{ flex: '1 1 220px', background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', boxShadow: '0 10px 20px rgba(0,0,0,0.2)', cursor: 'default' }}
                     >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>💰</div>
-                        <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Pagu Terpantau</div>
+                        <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Pagu Terpantau (Rp)</div>
                         <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsPagu(stats.pagu)}</div>
                     </div>
                     <div
