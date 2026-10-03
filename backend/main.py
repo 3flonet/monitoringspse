@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 
 from backend.database import (
     get_db_connection, DB_PATH, get_setting, set_setting,
-    create_user, get_user_by_email, get_user_subscription, update_user_subscription,
+    create_user, get_user_by_email, get_user_by_id, get_user_subscription, update_user_subscription,
     create_voucher, get_voucher, increment_voucher_usage, delete_voucher, get_all_vouchers, get_transaction,
     create_article, get_article_by_slug, get_all_articles, update_article, delete_article, clean_str,
     create_password_reset, get_password_reset_by_hash, mark_password_reset_used, update_user_password,
