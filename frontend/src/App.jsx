@@ -3920,6 +3920,7 @@ function App() {
     const [isEditingModalWa, setIsEditingModalWa] = useState(false);
     const [editingModalWaValue, setEditingModalWaValue] = useState('');
     const [isSavingModalWa, setIsSavingModalWa] = useState(false);
+    const [copiedWebhook, setCopiedWebhook] = useState(false);
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -10437,6 +10438,129 @@ function App() {
                                         <div style={{ marginTop: '14px', padding: '10px 14px', background: '#090d16', borderRadius: '8px', fontSize: '11px', color: '#6b7280' }}>
                                             <strong style={{ color: '#9ca3af' }}>ℹ️ Mode Debug:</strong> Jika Token API Fonnte belum dikonfigurasi, pesan uji coba ditulis ke{' '}
                                             <code style={{ color: '#34d399' }}>backend/mock_whatsapp.log</code>.
+                                        </div>
+                                    </div>
+
+                                    {/* PANDUAN & CARA KONFIGURASI WHATSAPP FONNTE & WEBHOOK */}
+                                    <div className="panel" style={{ background: 'rgba(15, 23, 42, 0.45)', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
+                                        <div className="panel-header" style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ fontSize: '20px' }}>📖</span>
+                                            <h3 className="panel-title" style={{ margin: 0, fontSize: '16px' }}>Panduan &amp; Cara Konfigurasi Fonnte Gateway</h3>
+                                        </div>
+
+                                        <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', marginBottom: '16px' }}>
+                                            Ikuti 3 langkah berikut untuk menghubungkan nomor WhatsApp pengirim notifikasi tender otomatis dan mengaktifkan fitur anti-banned dua arah:
+                                        </p>
+
+                                        {/* Box Webhook URL */}
+                                        <div style={{
+                                            background: 'rgba(30, 41, 59, 0.7)',
+                                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                                            borderRadius: '12px',
+                                            padding: '14px 16px',
+                                            marginBottom: '18px'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                                                <span style={{ fontSize: '12px', fontWeight: '700', color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    🔗 Webhook URL Spy SPSE (Wajib dipasang di Fonnte):
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const webhookUrl = `${window.location.origin}/api/fonnte/webhook`;
+                                                        navigator.clipboard.writeText(webhookUrl);
+                                                        setCopiedWebhook(true);
+                                                        setTimeout(() => setCopiedWebhook(false), 2500);
+                                                    }}
+                                                    style={{
+                                                        background: copiedWebhook ? 'rgba(16, 185, 129, 0.25)' : 'rgba(99, 102, 241, 0.2)',
+                                                        border: `1px solid ${copiedWebhook ? '#10b981' : 'rgba(99, 102, 241, 0.4)'}`,
+                                                        color: copiedWebhook ? '#34d399' : '#a5b4fc',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '11px',
+                                                        fontWeight: '600',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {copiedWebhook ? '✔ Tersalin!' : '📋 Salin Webhook URL'}
+                                                </button>
+                                            </div>
+                                            <div style={{
+                                                background: '#090d16',
+                                                padding: '8px 12px',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontFamily: 'monospace',
+                                                color: '#38bdf8',
+                                                wordBreak: 'break-all',
+                                                userSelect: 'all'
+                                            }}>
+                                                {typeof window !== 'undefined' ? `${window.location.origin}/api/fonnte/webhook` : 'https://spyspse.com/api/fonnte/webhook'}
+                                            </div>
+                                        </div>
+
+                                        {/* Step by step list */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '18px' }}>
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                <div style={{
+                                                    width: '24px', height: '24px', borderRadius: '50%',
+                                                    background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '12px', fontWeight: '700', flexShrink: 0, marginTop: '2px'
+                                                }}>1</div>
+                                                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                                                    <strong style={{ color: '#fff' }}>Hubungkan WhatsApp ke Fonnte:</strong> Buka dashboard{' '}
+                                                    <a href="https://md.fonnte.com" target="_blank" rel="noreferrer" style={{ color: '#818cf8', textDecoration: 'underline' }}>md.fonnte.com</a>,{' '}
+                                                    masuk ke menu <strong>Device</strong>, lalu scan QR Code menggunakan aplikasi WhatsApp di nomor bot notifikasi Anda sampai statusnya <em>Connected</em>.
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                <div style={{
+                                                    width: '24px', height: '24px', borderRadius: '50%',
+                                                    background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '12px', fontWeight: '700', flexShrink: 0, marginTop: '2px'
+                                                }}>2</div>
+                                                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                                                    <strong style={{ color: '#fff' }}>Salin Token API ke Form:</strong> Salin <strong>API Token</strong> device dari Fonnte, tempelkan ke kolom <strong>Fonnte API Token</strong> pada panel di atas, lalu klik <strong>💾 Simpan WhatsApp API</strong>.
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                                                <div style={{
+                                                    width: '24px', height: '24px', borderRadius: '50%',
+                                                    background: 'rgba(16, 185, 129, 0.2)', color: '#34d399',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '12px', fontWeight: '700', flexShrink: 0, marginTop: '2px'
+                                                }}>3</div>
+                                                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                                                    <strong style={{ color: '#fff' }}>Pasang Webhook URL di Fonnte:</strong> Di dashboard Fonnte, klik device Anda &gt; menu <strong>Webhook</strong>. Tempelkan <strong>Webhook URL</strong> di atas, centang/pilih Event <strong>Message Received</strong> (Pesan Masuk), lalu simpan.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Anti-Banned Explanation Banner */}
+                                        <div style={{
+                                            background: 'rgba(99, 102, 241, 0.08)',
+                                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                                            borderRadius: '10px',
+                                            padding: '12px 14px',
+                                            fontSize: '12px',
+                                            color: '#94a3b8',
+                                            lineHeight: '1.5'
+                                        }}>
+                                            <strong style={{ color: '#a5b4fc', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                                🛡️ Kenapa Webhook Ini Wajib Dipasang? (Anti-Banned Meta)
+                                            </strong>
+                                            Meta/WhatsApp melarang bot melakukan broadcast sepihak ke pengguna baru. Dengan webhook ini:
+                                            <ul style={{ margin: '6px 0 0 16px', padding: 0 }}>
+                                                <li>Pengguna cukup klik tombol <em>Hubungkan WhatsApp</em> di dashboard untuk mengirim chat awal (inbound).</li>
+                                                <li>Webhook secara otomatis mendeteksi chat masuk dan memverifikasi nomor secara instan.</li>
+                                                <li>Pesan notifikasi menyertakan footer instruksi <strong>STOP</strong> jika pengguna ingin menjeda, sehingga nomor bot tidak akan dilaporkan (*reported*) ke WhatsApp.</li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
