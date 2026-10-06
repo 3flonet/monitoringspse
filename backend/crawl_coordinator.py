@@ -111,7 +111,7 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
             cursor.execute("SELECT nomor_pengadaan, tahap FROM tenders WHERE nomor_pengadaan = ?", (nomor_pengadaan,))
             existing_row = cursor.fetchone()
             
-            cursor.execute("SELECT id FROM tender_winners WHERE nomor_pengadaan = ?", (nomor_pengadaan,))
+            cursor.execute("SELECT nomor_pengadaan FROM tender_winners WHERE nomor_pengadaan = ?", (nomor_pengadaan,))
             existing_winner = cursor.fetchone()
             has_winner = existing_winner is not None
             
@@ -223,6 +223,10 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
                 
         except Exception as e:
             logging.error(f"Error processing tender {nomor_pengadaan}: {e}")
+            try:
+                conn.rollback()
+            except Exception:
+                pass
             
     conn.close()
     
