@@ -1660,8 +1660,9 @@ async def fonnte_webhook_receiver(request: Request):
             f"Anda tidak akan menerima pesan notifikasi lelang baru lagi.\n\n"
             f"Ketik *AKTIFKAN* kapan saja jika Anda ingin menyalakan kembali notifikasi radar lelang SPSE."
         )
+        # Kirim balasan via direct API Fonnte
         send_whatsapp_direct(sender, reply)
-        return {"status": "success", "action": "stopped", "sender": sender, "updated_alerts": updated}
+        return {"status": "success", "action": "stopped", "sender": sender, "updated_alerts": updated, "response": reply}
 
     # 2. OPT-IN / INBOUND ACTIVATION (Any chat, e.g. AKTIFKAN, Halo Spy SPSE, dll)
     else:
@@ -1672,8 +1673,9 @@ async def fonnte_webhook_receiver(request: Request):
             f"🎯 Anda akan menerima update lelang baru secara otomatis sesuai kata kunci yang Anda pantau di dashboard.\n\n"
             f"💡 _Ketik *STOP* kapan saja jika ingin menjeda atau mematikan notifikasi._"
         )
+        # Kirim balasan via direct API Fonnte
         send_whatsapp_direct(sender, reply)
-        return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated}
+        return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated, "response": reply}
 
 # SYSTEM LOGS (ADMIN)
 @app.get("/api/admin/logs")
