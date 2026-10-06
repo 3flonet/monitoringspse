@@ -258,12 +258,13 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
+    const [isForceRunning, setIsForceRunning] = useState(false);
     const [flashMsg, setFlashMsg] = useState(null);
 
     const fetchLogs = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/crawl-logs?limit=30', {
+            const res = await fetch('/api/admin/crawl-logs?limit=50', {
                 headers: {
                     'Authorization': `Bearer ${userToken}`
                 }
@@ -276,6 +277,31 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             console.error('Failed to fetch crawl logs:', e);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleForceRunScraper = async () => {
+        setIsForceRunning(true);
+        setFlashMsg(null);
+        try {
+            const res = await fetch('/api/admin/scheduler/force-run', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setFlashMsg({ type: 'success', text: `🚀 ${data.message || 'Scraper otomatis seluruh LPSE berhasil dipicu di latar belakang!'}` });
+                // Polling refresh logs after 4 seconds to show new crawl progress
+                setTimeout(fetchLogs, 4000);
+            } else {
+                setFlashMsg({ type: 'error', text: data.detail || data.message || 'Gagal memicu scraper.' });
+            }
+        } catch (e) {
+            setFlashMsg({ type: 'error', text: 'Kesalahan jaringan saat memicu scraper otomatis.' });
+        } finally {
+            setIsForceRunning(false);
         }
     };
 
@@ -314,6 +340,7 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
     const blockedCount = logs.filter(l => l.status === 'blocked').length;
     const failedCount = logs.filter(l => l.status === 'failed' || l.status === 'error').length;
     const successCount = logs.filter(l => l.status === 'success').length;
+    const totalTendersProcessed = logs.reduce((acc, l) => acc + (parseInt(l.records_count) || 0), 0);
 
     return (
         <div style={{
@@ -420,11 +447,32 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                         <span>📊</span> Status Kesehatan Crawling &amp; Notifikasi Pemblokiran LPSE
                     </h3>
                     <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>
-                        Pemantauan real-time status penarikan data per instansi LPSE &amp; rincian indikasi IP terblokir.
+                        Pemantauan real-time status penarikan data per instansi LPSE, riwayat data terserap &amp; rincian indikasi IP terblokir.
                     </p>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={handleForceRunScraper}
+                        disabled={isForceRunning}
+                        style={{
+                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                            color: '#ffffff',
+                            border: '1px solid rgba(165, 180, 252, 0.4)',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
+                            fontWeight: '700',
+                            fontSize: '12px',
+                            cursor: isForceRunning ? 'wait' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                        }}
+                    >
+                        <span>⚡</span> {isForceRunning ? 'Menjalankan Scraper...' : 'Jalankan Scraper Otomatis'}
+                    </button>
+
                     <button
                         onClick={fetchLogs}
                         disabled={isLoading}
@@ -489,10 +537,14 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             )}
 
             {/* Health Indicators */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
                 <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px 16px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '11px', color: '#86efac', fontWeight: '700', textTransform: 'uppercase' }}>Penarikan Sukses</div>
                     <div style={{ fontSize: '22px', fontWeight: '800', color: '#4ade80' }}>{successCount}</div>
+                </div>
+                <div style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '12px 16px', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '700', textTransform: 'uppercase' }}>Total Data Terserap</div>
+                    <div style={{ fontSize: '22px', fontWeight: '800', color: '#818cf8' }}>{totalTendersProcessed}</div>
                 </div>
                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px 16px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '11px', color: '#fca5a5', fontWeight: '700', textTransform: 'uppercase' }}>Dugaan IP Terblokir</div>
@@ -535,15 +587,15 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                             <th style={{ padding: '10px 14px' }}>Instansi LPSE</th>
                             <th style={{ padding: '10px 14px' }}>Tipe</th>
                             <th style={{ padding: '10px 14px' }}>Status</th>
-                            <th style={{ padding: '10px 14px' }}>Jumlah Data</th>
-                            <th style={{ padding: '10px 14px' }}>Keterangan Kendala / Error</th>
+                            <th style={{ padding: '10px 14px' }}>Data Diproses</th>
+                            <th style={{ padding: '10px 14px' }}>Laporan Scrape / Keterangan</th>
                         </tr>
                     </thead>
                     <tbody>
                         {logs.length === 0 ? (
                             <tr>
                                 <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                                    Belum ada log aktivitas crawling tersimpan. Log akan terisi otomatis saat scheduler atau manual crawling dijalankan.
+                                    Belum ada log aktivitas crawling tersimpan. Klik tombol <strong>Jalankan Scraper Otomatis</strong> di atas untuk memulai.
                                 </td>
                             </tr>
                         ) : (
@@ -569,8 +621,8 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                                             </span>
                                         )}
                                     </td>
-                                    <td style={{ padding: '10px 14px', fontWeight: '600' }}>{log.records_count || 0} tender</td>
-                                    <td style={{ padding: '10px 14px', color: log.error_message ? '#fca5a5' : '#94a3b8', fontStyle: log.error_message ? 'normal' : 'italic' }}>
+                                    <td style={{ padding: '10px 14px', fontWeight: '600', color: '#e2e8f0' }}>{log.records_count || 0} tender</td>
+                                    <td style={{ padding: '10px 14px', color: log.status === 'success' ? '#86efac' : (log.status === 'blocked' ? '#fca5a5' : '#fde047') }}>
                                         {log.error_message || 'Penarikan data berjalan lancar'}
                                     </td>
                                 </tr>

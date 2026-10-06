@@ -67,12 +67,19 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
         
     records = data.get('data', [])
     total_found = len(records)
-    logging.info(f"Retrieved {total_found} raw records from API. Fetching details and saving to database...")
+    logging.info(f"Retrieved {total_found} raw records from API. Executing smart incremental lifecycle crawl...")
     
     detail_getter = SPSEDetailGetter(cookie_manager, category=category_slug)
     
     saved_tenders = []
+    new_tenders_for_alert = []
+    new_tenders_count = 0
+    updated_tenders_count = 0
+    skipped_final_count = 0
     saved_details_count = 0
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
     for idx, record in enumerate(records, 1):
         if not record or len(record) < 2:
@@ -80,86 +87,90 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
             
         nomor_pengadaan = record[0]
         nama_tender = record[1]
+        spse_instansi = record[2] if len(record) > 2 else ""
+        spse_tahap = record[3] if len(record) > 3 else ""
+        spse_pagu = record[4] if len(record) > 4 else ""
+        spse_metode = record[6] if len(record) > 6 else ""
+        spse_jenis = record[8] if len(record) > 8 else ""
         
-        logging.info(f"[{idx}/{total_found}] Processing: {nomor_pengadaan} - {nama_tender[:40]}...")
-        
-        # Parse basic record fields
         tender_data = {
             "nomor_pengadaan": nomor_pengadaan,
             "nama_tender": nama_tender,
-            "instansi": record[2] if len(record) > 2 else "",
-            "tahap": record[3] if len(record) > 3 else "",
-            "pagu": record[4] if len(record) > 4 else "",
-            "metode": record[6] if len(record) > 6 else "",
-            "jenis_pengadaan": record[8] if len(record) > 8 else "",
+            "instansi": spse_instansi,
+            "tahap": spse_tahap,
+            "pagu": spse_pagu,
+            "metode": spse_metode,
+            "jenis_pengadaan": spse_jenis,
             "kategori": category_slug,
             "tipe": tipe,
             "tahun": tahun
         }
         
         try:
-            # Save basic tender list details
-            save_tender(tender_data)
-            saved_tenders.append(tender_data)
+            # Check existing state in local database
+            cursor.execute("SELECT nomor_pengadaan, tahap FROM tenders WHERE nomor_pengadaan = ?", (nomor_pengadaan,))
+            existing_row = cursor.fetchone()
             
-            # Fetch detailed requirements from detail page
-            detail_data = detail_getter.get_detail_data(nomor_pengadaan, tipe)
+            cursor.execute("SELECT id FROM tender_winners WHERE nomor_pengadaan = ?", (nomor_pengadaan,))
+            existing_winner = cursor.fetchone()
+            has_winner = existing_winner is not None
             
-            # Fetch schedule data
-            schedule_data = None
-            try:
+            is_new = existing_row is None
+            existing_tahap = existing_row['tahap'] if existing_row else ""
+            
+            is_spse_final = not is_tender_active(spse_tahap)
+            is_winner_stage = any(w in str(spse_tahap).lower() for w in ['pemenang', 'kontrak', 'selesai'])
+            
+            # CASE 1: Existing Finalized Tender with Winner already recorded -> Skip!
+            if not is_new and is_spse_final and has_winner:
+                logging.info(f"[{idx}/{total_found}] Skipping finalized tender {nomor_pengadaan} (Tahap: {spse_tahap})")
+                skipped_final_count += 1
+                continue
+                
+            need_delay = False
+            
+            # CASE 2: Brand New Tender -> Fetch all details
+            if is_new:
+                logging.info(f"[{idx}/{total_found}] [NEW TENDER] {nomor_pengadaan} - {nama_tender[:40]}...")
+                save_tender(tender_data)
+                saved_tenders.append(tender_data)
+                new_tenders_for_alert.append(tender_data)
+                new_tenders_count += 1
+                need_delay = True
+                
+                # Fetch detailed requirements
+                detail_data = detail_getter.get_detail_data(nomor_pengadaan, tipe)
                 schedule_data = detail_getter.get_schedule_data(nomor_pengadaan, tipe)
-            except Exception as se:
-                logging.warning(f"Error fetching schedule for tender {nomor_pengadaan}: {se}")
-                
-            # Fetch participants data
-            participants_data = None
-            try:
                 participants_data = detail_getter.get_participants_data(nomor_pengadaan, tipe)
-            except Exception as pe:
-                logging.warning(f"Error fetching participants for tender {nomor_pengadaan}: {pe}")
-
-            # Fetch contract winner data
-            winner_data = None
-            try:
-                winner_data = detail_getter.get_contract_winner_data(nomor_pengadaan, category_slug)
-            except Exception as we:
-                logging.warning(f"Error fetching contract winner for tender {nomor_pengadaan}: {we}")
                 
-            # Fetch competitor evaluations data
-            evaluations_data = None
-            try:
-                evaluations_data = detail_getter.get_evaluation_data(nomor_pengadaan, category_slug)
-            except Exception as ee:
-                logging.warning(f"Error fetching evaluations for tender {nomor_pengadaan}: {ee}")
-                
-            if detail_data:
-                if schedule_data:
-                    import json
-                    detail_data['jadwal'] = json.dumps(schedule_data, ensure_ascii=False)
+                winner_data = None
+                evaluations_data = None
+                if is_winner_stage:
+                    winner_data = detail_getter.get_contract_winner_data(nomor_pengadaan, category_slug)
+                    evaluations_data = detail_getter.get_evaluation_data(nomor_pengadaan, category_slug)
                     
-                    # Parse tanggal_mulai_tender (Mulai column of the first row)
-                    if len(schedule_data) > 0:
-                        detail_data['tanggal_mulai_tender'] = schedule_data[0].get('mulai')
-                        
-                    # Parse akhir_penawaran
-                    akhir_penawaran_found = False
-                    for step in schedule_data:
-                        tahap_lower = step.get('tahap', '').lower()
-                        if any(kw in tahap_lower for kw in ['upload', 'kirim', 'penyampaian']) and 'penawaran' in tahap_lower:
-                            detail_data['akhir_penawaran'] = step.get('sampai')
-                            akhir_penawaran_found = True
-                            break
-                    if not akhir_penawaran_found:
+                if detail_data:
+                    if schedule_data:
+                        import json
+                        detail_data['jadwal'] = json.dumps(schedule_data, ensure_ascii=False)
+                        if len(schedule_data) > 0:
+                            detail_data['tanggal_mulai_tender'] = schedule_data[0].get('mulai')
+                        akhir_penawaran_found = False
                         for step in schedule_data:
                             tahap_lower = step.get('tahap', '').lower()
-                            if any(kw in tahap_lower for kw in ['upload', 'kirim', 'penyampaian']) and 'kualifikasi' in tahap_lower:
+                            if any(kw in tahap_lower for kw in ['upload', 'kirim', 'penyampaian']) and 'penawaran' in tahap_lower:
                                 detail_data['akhir_penawaran'] = step.get('sampai')
+                                akhir_penawaran_found = True
                                 break
-                                
-                save_tender_detail(detail_data)
-                
-                # Save participants list and winner details to dedicated tables
+                        if not akhir_penawaran_found:
+                            for step in schedule_data:
+                                tahap_lower = step.get('tahap', '').lower()
+                                if any(kw in tahap_lower for kw in ['upload', 'kirim', 'penyampaian']) and 'kualifikasi' in tahap_lower:
+                                    detail_data['akhir_penawaran'] = step.get('sampai')
+                                    break
+                    save_tender_detail(detail_data)
+                    saved_details_count += 1
+                    
                 if participants_data:
                     save_tender_participants(nomor_pengadaan, participants_data)
                 if winner_data:
@@ -168,28 +179,75 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
                     w_name = winner_data.get('nama_pemenang') if winner_data else None
                     save_competitor_evaluations(nomor_pengadaan, evaluations_data, w_name)
                     
-                saved_details_count += 1
+            # CASE 3: Existing Tender with Stage Change or Winner Pending
             else:
-                logging.warning(f"Could not retrieve details for tender {nomor_pengadaan}")
+                stage_changed = (spse_tahap.strip().lower() != existing_tahap.strip().lower())
+                need_winner = is_winner_stage and not has_winner
+                
+                if stage_changed or need_winner:
+                    logging.info(f"[{idx}/{total_found}] [UPDATE] {nomor_pengadaan}: stage changed '{existing_tahap}' -> '{spse_tahap}' (need_winner={need_winner})")
+                    save_tender(tender_data)
+                    updated_tenders_count += 1
+                    need_delay = True
+                    
+                    # Update schedule if stage changed
+                    if stage_changed:
+                        schedule_data = detail_getter.get_schedule_data(nomor_pengadaan, tipe)
+                        if schedule_data:
+                            import json
+                            akhir_penawaran = None
+                            for step in schedule_data:
+                                tahap_lower = step.get('tahap', '').lower()
+                                if any(kw in tahap_lower for kw in ['upload', 'kirim', 'penyampaian']) and 'penawaran' in tahap_lower:
+                                    akhir_penawaran = step.get('sampai')
+                                    break
+                            cursor.execute("""
+                                UPDATE tender_details 
+                                SET jadwal = ?, akhir_penawaran = COALESCE(?, akhir_penawaran)
+                                WHERE nomor_pengadaan = ?
+                            """, (json.dumps(schedule_data, ensure_ascii=False), akhir_penawaran, nomor_pengadaan))
+                            conn.commit()
+                            
+                    # Update winner if newly announced or pending
+                    if need_winner:
+                        winner_data = detail_getter.get_contract_winner_data(nomor_pengadaan, category_slug)
+                        evaluations_data = detail_getter.get_evaluation_data(nomor_pengadaan, category_slug)
+                        if winner_data:
+                            save_tender_winner(nomor_pengadaan, winner_data)
+                        if evaluations_data:
+                            w_name = winner_data.get('nama_pemenang') if winner_data else None
+                            save_competitor_evaluations(nomor_pengadaan, evaluations_data, w_name)
+                            
+            if need_delay:
+                time.sleep(1.2)
+                
         except Exception as e:
-            logging.error(f"Error saving tender {nomor_pengadaan} to database: {e}")
+            logging.error(f"Error processing tender {nomor_pengadaan}: {e}")
             
-        # Add a polite delay of 1.5s between detail crawl requests
-        time.sleep(1.5)
-            
-    logging.info(f"Crawl completed. Saved {len(saved_tenders)} tenders, {saved_details_count} details.")
-    save_crawl_log(instansi=category_slug, tipe=tipe, status="success", records_count=len(saved_tenders))
+    conn.close()
     
-    # Run email notification alerts
-    alerts_triggered = check_alerts_and_notify(saved_tenders)
-
+    # Run notification alerts only for newly discovered tenders
+    alerts_triggered = check_alerts_and_notify(new_tenders_for_alert)
+    
+    summary_report = f"{new_tenders_count} baru, {updated_tenders_count} diperbarui, {alerts_triggered} alert terkirim, {skipped_final_count} dilewati"
+    logging.info(f"Crawl completed for {category_slug}: {summary_report}")
+    
+    save_crawl_log(
+        instansi=category_slug,
+        tipe=tipe,
+        status="success",
+        records_count=new_tenders_count + updated_tenders_count,
+        error_message=f"Berhasil: {summary_report}"
+    )
     
     return {
         "status": "success",
         "tenders_found": total_found,
-        "tenders_saved": len(saved_tenders),
+        "tenders_saved": new_tenders_count,
+        "tenders_updated": updated_tenders_count,
         "details_saved": saved_details_count,
-        "alerts_triggered": alerts_triggered
+        "alerts_triggered": alerts_triggered,
+        "tenders_skipped": skipped_final_count
     }
 
 def is_tender_active(tahap_str: str) -> bool:

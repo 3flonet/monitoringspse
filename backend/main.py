@@ -563,8 +563,9 @@ def set_maintenance_mode(req: MaintenanceToggleReq, current_user: dict = Depends
 
 def run_force_scrape_background():
     try:
+        import asyncio
         from backend.scheduler import run_daily_scraping
-        run_daily_scraping()
+        asyncio.run(run_daily_scraping())
     except Exception as e:
         logging.error(f"Error executing forced scraping job: {e}")
 
