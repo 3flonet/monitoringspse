@@ -9699,11 +9699,11 @@ function App() {
                                                 style={{
                                                     background: 'linear-gradient(135deg,#6366f1,#4f46e5)', color: '#fff', border: 'none',
                                                     padding: '6px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px',
-                                                    cursor: (isForceRunningScheduler || serverMonitoring.scheduler?.state === 'running') ? 'not-allowed' : 'pointer',
-                                                    opacity: (isForceRunningScheduler || serverMonitoring.scheduler?.state === 'running') ? 0.5 : 1
+                                                    cursor: (isForceRunningScheduler || serverMonitoring.scheduler?.state?.toLowerCase() === 'running') ? 'not-allowed' : 'pointer',
+                                                    opacity: (isForceRunningScheduler || serverMonitoring.scheduler?.state?.toLowerCase() === 'running') ? 0.5 : 1
                                                 }}
                                                 onClick={handleForceRunScheduler}
-                                                disabled={isForceRunningScheduler || serverMonitoring.scheduler?.state === 'running'}
+                                                disabled={isForceRunningScheduler || serverMonitoring.scheduler?.state?.toLowerCase() === 'running'}
                                             >
                                                 {isForceRunningScheduler ? '⏳ Meminta...' : '▶ Force Run'}
                                             </button>
@@ -9754,18 +9754,22 @@ function App() {
                                                 }
                                                 return (
                                                     <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '10px' }}>
-                                                            <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
+                                                            <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
                                                                 <div style={{ fontSize: '10px', color: '#a5b4fc', fontWeight: '600' }}>⏱️ DURASI</div>
-                                                                <div style={{ fontSize: '13px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.duration_seconds ?? 0}s</div>
+                                                                <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.duration_seconds ?? 0}s</div>
                                                             </div>
-                                                            <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
-                                                                <div style={{ fontSize: '10px', color: '#4ade80', fontWeight: '600' }}>💾 TENDER SAVED</div>
-                                                                <div style={{ fontSize: '13px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.tenders_saved ?? 0}</div>
+                                                            <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
+                                                                <div style={{ fontSize: '10px', color: '#4ade80', fontWeight: '600' }}>💾 BARU</div>
+                                                                <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.tenders_saved ?? 0}</div>
                                                             </div>
-                                                            <div style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.2)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
-                                                                <div style={{ fontSize: '10px', color: '#facc15', fontWeight: '600' }}>🔔 ALERT SENT</div>
-                                                                <div style={{ fontSize: '13px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.alerts_triggered ?? 0}</div>
+                                                            <div style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
+                                                                <div style={{ fontSize: '10px', color: '#38bdf8', fontWeight: '600' }}>🔄 UPDATE</div>
+                                                                <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.tenders_updated ?? 0}</div>
+                                                            </div>
+                                                            <div style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
+                                                                <div style={{ fontSize: '10px', color: '#facc15', fontWeight: '600' }}>🔔 ALERT</div>
+                                                                <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.alerts_triggered ?? 0}</div>
                                                             </div>
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: '6px' }}>

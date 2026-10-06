@@ -574,7 +574,7 @@ def force_run_scheduler(background_tasks: BackgroundTasks, current_user: dict = 
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Akses ditolak.")
     state = get_setting("scheduler_state", "idle")
-    if state == "running":
+    if state and state.lower() == "running":
         return {"status": "running", "message": "Scraper otomatis saat ini sedang berjalan!"}
     
     background_tasks.add_task(run_force_scrape_background)
