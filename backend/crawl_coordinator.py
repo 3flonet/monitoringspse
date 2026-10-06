@@ -12,7 +12,7 @@ from spse.json_getter import SPSEJsonGetter
 from spse.detail_getter import SPSEDetailGetter
 from spse.config import DEFAULT_CATEGORY
 
-from backend.database import save_tender, save_tender_detail, get_db_connection, save_tender_participants, save_tender_winner, save_competitor_evaluations, save_crawl_log
+from backend.database import save_tender, save_tender_detail, get_db_connection, save_tender_participants, save_tender_winner, save_competitor_evaluations, save_crawl_log, parse_indonesian_date
 from backend.email_notifier import send_email_alert
 from backend.whatsapp_notifier import send_admin_crawl_alert
 
@@ -203,9 +203,16 @@ def run_crawl(tipe="tender", category=None, tahun=None, start=0, length=25, sear
                                     break
                             cursor.execute("""
                                 UPDATE tender_details 
-                                SET jadwal = ?, akhir_penawaran = COALESCE(?, akhir_penawaran)
+                                SET jadwal = ?
                                 WHERE nomor_pengadaan = ?
-                            """, (json.dumps(schedule_data, ensure_ascii=False), akhir_penawaran, nomor_pengadaan))
+                            """, (json.dumps(schedule_data, ensure_ascii=False), nomor_pengadaan))
+                            if akhir_penawaran:
+                                parsed_akhir = parse_indonesian_date(akhir_penawaran)
+                                cursor.execute("""
+                                    UPDATE tenders
+                                    SET akhir_penawaran = COALESCE(?, akhir_penawaran)
+                                    WHERE nomor_pengadaan = ?
+                                """, (parsed_akhir, nomor_pengadaan))
                             conn.commit()
                             
                     # Update winner if newly announced or pending
