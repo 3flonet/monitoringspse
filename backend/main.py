@@ -1795,6 +1795,10 @@ def edit_user_subscription_admin(user_id: int, req: dict, current_user: dict = D
 def delete_user_admin(user_id: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Akses ditolak.")
+    if user_id == 1:
+        raise HTTPException(status_code=400, detail="Akun Super Admin utama (ID #1) tidak dapat dihapus demi keamanan sistem.")
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Anda tidak dapat menghapus akun Anda sendiri.")
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))

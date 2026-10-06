@@ -5392,6 +5392,11 @@ function App() {
     };
 
     const handleDeleteUser = async (userId) => {
+        if (userId === 1) {
+            alert("Akun Super Admin utama (ID #1) tidak dapat dihapus demi keamanan sistem.");
+            setDeleteUserConfirm(null);
+            return;
+        }
         try {
             const res = await authFetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
             const data = await res.json();
@@ -8342,12 +8347,15 @@ function App() {
                                                                     >
                                                                         🔑 Password
                                                                     </button>
-                                                                    <button
-                                                                        onClick={() => setDeleteUserConfirm(user)}
-                                                                        style={{ padding: '4px 10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
-                                                                    >
-                                                                        🗑️
-                                                                    </button>
+                                                                    {user.id !== 1 && user.id !== currentUser?.id && (
+                                                                        <button
+                                                                            onClick={() => setDeleteUserConfirm(user)}
+                                                                            style={{ padding: '4px 10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+                                                                            title="Hapus pengguna"
+                                                                        >
+                                                                            🗑️
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                         </tr>
