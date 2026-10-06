@@ -260,6 +260,52 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
     const [isClearing, setIsClearing] = useState(false);
     const [isForceRunning, setIsForceRunning] = useState(false);
     const [flashMsg, setFlashMsg] = useState(null);
+    const [isAutoScraperEnabled, setIsAutoScraperEnabled] = useState(true);
+    const [isTogglingScraper, setIsTogglingScraper] = useState(false);
+
+    const fetchSchedulerStatus = async () => {
+        try {
+            const res = await fetch('/api/admin/scheduler/status', {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIsAutoScraperEnabled(data.enabled !== false);
+            }
+        } catch (e) {
+            console.error('Failed to fetch scheduler status:', e);
+        }
+    };
+
+    const handleToggleAutoScraper = async () => {
+        setIsTogglingScraper(true);
+        const newTarget = !isAutoScraperEnabled;
+        try {
+            const res = await fetch('/api/admin/scheduler/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({ enabled: newTarget })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setIsAutoScraperEnabled(data.enabled);
+                setFlashMsg({
+                    type: 'success',
+                    text: data.enabled ? '🟢 Auto-Scraper berhasil DIAKTIFKAN (Berjalan rutin tiap 24 jam).' : '⚪ Auto-Scraper berhasil DINONAKTIFKAN (Proses perayapan terjadwal dihentikan sementara).'
+                });
+                setTimeout(() => setFlashMsg(null), 5000);
+            } else {
+                setFlashMsg({ type: 'error', text: data.detail || 'Gagal mengubah status Auto-Scraper.' });
+            }
+        } catch (e) {
+            setFlashMsg({ type: 'error', text: 'Kesalahan jaringan saat mengubah status Auto-Scraper.' });
+        } finally {
+            setIsTogglingScraper(false);
+        }
+    };
 
     const fetchLogs = async () => {
         setIsLoading(true);
@@ -334,7 +380,10 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
     };
 
     useEffect(() => {
-        if (userToken) fetchLogs();
+        if (userToken) {
+            fetchLogs();
+            fetchSchedulerStatus();
+        }
     }, [userToken]);
 
     const blockedCount = logs.filter(l => l.status === 'blocked').length;
@@ -452,14 +501,65 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {/* AUTO-SCRAPER ON/OFF SWITCH */}
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        background: 'rgba(15, 23, 42, 0.85)',
+                        border: `1px solid ${isAutoScraperEnabled ? 'rgba(52, 211, 153, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
+                        borderRadius: '10px',
+                        padding: '3px 4px 3px 10px',
+                        gap: '8px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: isAutoScraperEnabled ? '#34d399' : '#94a3b8',
+                                boxShadow: isAutoScraperEnabled ? '0 0 8px #34d399' : 'none'
+                            }}></span>
+                            <span style={{
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                color: isAutoScraperEnabled ? '#34d399' : '#94a3b8'
+                            }}>
+                                Auto-Scraper: {isAutoScraperEnabled ? 'ON' : 'OFF'}
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleToggleAutoScraper}
+                            disabled={isTogglingScraper}
+                            title={isAutoScraperEnabled ? 'Klik untuk mematikan jadwal scraper otomatis' : 'Klik untuk mengaktifkan jadwal scraper otomatis'}
+                            style={{
+                                background: isAutoScraperEnabled ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'rgba(255, 255, 255, 0.1)',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '5px 12px',
+                                borderRadius: '7px',
+                                fontWeight: '800',
+                                fontSize: '11px',
+                                cursor: isTogglingScraper ? 'wait' : 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            {isTogglingScraper ? '...' : (isAutoScraperEnabled ? 'Matikan' : 'Aktifkan')}
+                        </button>
+                    </div>
+
+                    {/* FORCE RUN TRIGGER BUTTON */}
                     <button
                         onClick={handleForceRunScraper}
                         disabled={isForceRunning}
+                        title="Jalankan scraper seluruh LPSE saat ini juga di latar belakang"
                         style={{
                             background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                             color: '#ffffff',
                             border: '1px solid rgba(165, 180, 252, 0.4)',
-                            padding: '8px 16px',
+                            padding: '8px 14px',
                             borderRadius: '10px',
                             fontWeight: '700',
                             fontSize: '12px',
@@ -470,7 +570,7 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                             boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
                         }}
                     >
-                        <span>⚡</span> {isForceRunning ? 'Menjalankan Scraper...' : 'Jalankan Scraper Otomatis'}
+                        <span>⚡</span> {isForceRunning ? 'Menjalankan...' : 'Jalankan Sekarang'}
                     </button>
 
                     <button

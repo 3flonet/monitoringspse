@@ -120,6 +120,9 @@ class MaintenanceToggleReq(BaseModel):
     maintenance_mode: bool
     maintenance_message: Optional[str] = None
 
+class SchedulerToggleRequest(BaseModel):
+    enabled: bool
+
 
 
 class SmtpTestRequest(BaseModel):
@@ -569,6 +572,41 @@ def run_force_scrape_background():
     except Exception as e:
         logging.error(f"Error executing forced scraping job: {e}")
 
+@app.get("/api/admin/scheduler/status")
+def get_scheduler_status(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    enabled = get_setting("auto_scraper_enabled", "true") == "true"
+    state = get_setting("scheduler_state", "IDLE")
+    last_run_at = get_setting("scheduler_last_run_at", None)
+    next_run_at = get_setting("scheduler_next_run_at", None)
+    last_run_summary = get_setting("scheduler_last_run_summary", None)
+    return {
+        "enabled": enabled,
+        "state": state,
+        "last_run_at": last_run_at,
+        "next_run_at": next_run_at,
+        "last_run_summary": last_run_summary
+    }
+
+@app.post("/api/admin/scheduler/toggle")
+def toggle_scheduler(req: SchedulerToggleRequest, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    val_str = "true" if req.enabled else "false"
+    set_setting("auto_scraper_enabled", val_str)
+    if not req.enabled:
+        set_setting("scheduler_state", "DISABLED")
+    else:
+        current_state = get_setting("scheduler_state", "IDLE")
+        if current_state == "DISABLED":
+            set_setting("scheduler_state", "IDLE")
+    return {
+        "status": "success",
+        "enabled": req.enabled,
+        "message": f"Auto-Scraper berhasil {'diaktifkan (ON)' if req.enabled else 'dinonaktifkan (OFF)'}."
+    }
+
 @app.post("/api/admin/scheduler/force-run")
 def force_run_scheduler(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
@@ -629,6 +667,7 @@ def get_server_monitoring(current_user: dict = Depends(get_current_user)):
         "db_status": db_status,
         "uptime_seconds": uptime_seconds,
         "scheduler": {
+            "enabled": get_setting("auto_scraper_enabled", "true") == "true",
             "state": scheduler_state,
             "last_run_at": scheduler_last_run_at,
             "last_run_summary": scheduler_last_run_summary,

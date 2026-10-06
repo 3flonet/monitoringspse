@@ -71,6 +71,10 @@ async def run_daily_scraping():
         
         # 3. Sequentially crawl each LPSE instance (Smart Incremental Ingestion)
         for idx, target_instansi in enumerate(target_instansi_list, 1):
+            if get_setting("auto_scraper_enabled", "true") != "true":
+                logger.info("Auto-Scraper was toggled OFF by admin mid-run. Halting daily job.")
+                break
+                
             logger.info(f"[{idx}/{len(target_instansi_list)}] Auto-scraping LPSE: '{target_instansi}' (Top 25 tenders, without keyword filter)...")
             try:
                 # Crawl latest 25 items without keyword filter
@@ -109,7 +113,8 @@ async def run_daily_scraping():
             "lpse_scanned": total_lpse_success
         }
         set_setting("scheduler_last_run_summary", json.dumps(summary))
-        set_setting("scheduler_state", "IDLE")
+        final_state = "IDLE" if get_setting("auto_scraper_enabled", "true") == "true" else "DISABLED"
+        set_setting("scheduler_state", final_state)
 
         # Write log entry to log file so tail log is updated
         log_dir = Path("logs")
@@ -173,22 +178,34 @@ async def sync_bookmarked_tenders():
         logger.error(f"Bookmarked tenders sync failed: {e}")
 
 async def start_scheduler_loop():
-    """Daily scheduler loop that runs once every 24 hours."""
+    """Daily scheduler loop that runs once every 24 hours when enabled."""
+    from backend.database import get_setting, set_setting
     logger.info("Auto-Scraper Scheduler loop starting in background. Interval: 24 hours.")
     while True:
-        try:
-            await run_daily_scraping()
-        except Exception as e:
-            logger.error(f"Error in daily scraping task: {e}")
-            
-        try:
-            await sync_bookmarked_tenders()
-        except Exception as e:
-            logger.error(f"Error in bookmarked tenders sync task: {e}")
-            
-        logger.info("Scheduler completed cycle. Sleeping for 24 hours...")
-        # Sleep for 24 hours (86400 seconds)
-        await asyncio.sleep(86400)
+        is_enabled = get_setting("auto_scraper_enabled", "true") == "true"
+        if is_enabled:
+            try:
+                await run_daily_scraping()
+            except Exception as e:
+                logger.error(f"Error in daily scraping task: {e}")
+                
+            try:
+                await sync_bookmarked_tenders()
+            except Exception as e:
+                logger.error(f"Error in bookmarked tenders sync task: {e}")
+                
+            logger.info("Scheduler completed cycle. Sleeping for 24 hours...")
+            # Check every 10 seconds during the 24-hour sleep so admin toggle OFF takes effect promptly
+            for _ in range(8640):
+                await asyncio.sleep(10)
+                if get_setting("auto_scraper_enabled", "true") != "true":
+                    logger.info("Auto-Scraper was switched OFF by admin. Entering standby...")
+                    set_setting("scheduler_state", "DISABLED")
+                    break
+        else:
+            set_setting("scheduler_state", "DISABLED")
+            # When disabled, poll every 5 seconds until admin turns it back ON
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     import sys
