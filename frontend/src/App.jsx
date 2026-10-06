@@ -5977,6 +5977,27 @@ function App() {
         }
     };
 
+    const handleOpenWaActivationModal = async (alertObj) => {
+        try {
+            const res = await authFetch(`/api/alerts/${alertObj.id}/activation-link`);
+            const data = await res.json();
+            if (res.ok && data.activation_url) {
+                setWaActivationModal({
+                    alert_id: alertObj.id,
+                    whatsapp: data.whatsapp || alertObj.whatsapp,
+                    app_name: 'Spy SPSE',
+                    activation_url: data.activation_url,
+                    whatsapp_registered: true
+                });
+                setIsEditingModalWa(false);
+            } else if (data.activation_url) {
+                window.open(data.activation_url, '_blank');
+            }
+        } catch (e) {
+            console.error("Gagal mengambil link aktivasi WA:", e);
+        }
+    };
+
     const handleDeleteAlert = (alertObj) => {
         const lpseName = getLpseNameBySlug(alertObj.instansi);
         setConfirmModal({
@@ -8827,14 +8848,70 @@ function App() {
                                                         <span style={{ width: '20px', textAlign: 'center' }}>✉️</span>
                                                         <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{alert.email}</span>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', flexWrap: 'wrap' }}>
                                                         <span style={{ width: '20px', textAlign: 'center' }}>💬</span>
-                                                        {alert.whatsapp ? (
-                                                            <span style={{ color: '#34d399', fontWeight: '500' }}>{alert.whatsapp}</span>
-                                                        ) : currentUser?.whatsapp ? (
-                                                            <span style={{ color: '#34d399', fontWeight: '500' }}>
-                                                                {currentUser.whatsapp} <span style={{ fontSize: '10px', color: '#6b7280', fontWeight: 'normal' }}>(Default Profil)</span>
-                                                            </span>
+                                                        {alert.whatsapp || currentUser?.whatsapp ? (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                                <span style={{ color: '#34d399', fontWeight: '500' }}>
+                                                                    {alert.whatsapp ? alert.whatsapp : `${currentUser?.whatsapp} (Default)`}
+                                                                </span>
+                                                                {alert.wa_verified ? (
+                                                                    <span style={{
+                                                                        fontSize: '11px',
+                                                                        background: 'rgba(16, 185, 129, 0.15)',
+                                                                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                                                                        color: '#34d399',
+                                                                        padding: '2px 8px',
+                                                                        borderRadius: '6px',
+                                                                        fontWeight: '600',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px'
+                                                                    }} title="Nomor WhatsApp sudah diverifikasi dua arah">
+                                                                        🟢 Terhubung
+                                                                    </span>
+                                                                ) : (
+                                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                                        <span style={{
+                                                                            fontSize: '11px',
+                                                                            background: 'rgba(245, 158, 11, 0.15)',
+                                                                            border: '1px solid rgba(245, 158, 11, 0.35)',
+                                                                            color: '#fbbf24',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '6px',
+                                                                            fontWeight: '600',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '4px'
+                                                                        }} title="Perlu kirim chat aktivasi pertama agar bot tidak diblokir WhatsApp">
+                                                                            🟡 Perlu Aktivasi
+                                                                        </span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleOpenWaActivationModal(alert)}
+                                                                            style={{
+                                                                                background: 'rgba(16, 185, 129, 0.18)',
+                                                                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                                                                color: '#10b981',
+                                                                                padding: '2px 8px',
+                                                                                borderRadius: '6px',
+                                                                                fontSize: '11px',
+                                                                                fontWeight: '600',
+                                                                                cursor: 'pointer',
+                                                                                transition: 'all 0.2s',
+                                                                                display: 'inline-flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '3px'
+                                                                            }}
+                                                                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.32)'}
+                                                                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.18)'}
+                                                                            title="Klik untuk membuka WhatsApp dan mengaktifkan notifikasi lelang"
+                                                                        >
+                                                                            📱 Hubungkan
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <span style={{ color: '#ef4444' }}>Belum diset</span>
                                                         )}

@@ -288,7 +288,7 @@ def check_alerts_and_notify(new_tenders):
     
     # Get all alerts, joining users and subscriptions to check status and active dates
     cursor.execute("""
-        SELECT a.id, a.keyword, a.email, a.whatsapp as alert_whatsapp, a.instansi, u.whatsapp as user_whatsapp, u.id as user_id, 
+        SELECT a.id, a.keyword, a.email, a.whatsapp as alert_whatsapp, a.instansi, a.wa_verified, u.whatsapp as user_whatsapp, u.id as user_id, 
                s.status as sub_status, s.end_date as sub_end_date
         FROM alerts a
         JOIN users u ON a.user_id = u.id
@@ -375,10 +375,14 @@ def check_alerts_and_notify(new_tenders):
                 # Send email
                 email_sent = send_email_alert(email, matched_kw, tender)
                 
-                # Send WhatsApp if user phone number is registered
+                # Send WhatsApp only if user phone number is registered and WA is verified
                 wa_sent = False
+                is_wa_verified = bool(alert.get('wa_verified'))
                 if whatsapp and whatsapp.strip():
-                    wa_sent = send_whatsapp_alert(whatsapp.strip(), matched_kw, tender)
+                    if is_wa_verified:
+                        wa_sent = send_whatsapp_alert(whatsapp.strip(), matched_kw, tender)
+                    else:
+                        logging.info(f"Skipping WA alert to {whatsapp} for user {alert.get('user_id')}: Belum verifikasi chat inbound.")
                 
                 # Record as sent if either email or WA succeeded (or mock fallback completed)
                 if email_sent or wa_sent:

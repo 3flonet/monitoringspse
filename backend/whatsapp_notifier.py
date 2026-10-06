@@ -69,6 +69,89 @@ def validate_whatsapp_number(to_number: str) -> dict:
         return {"registered": False, "message": str(e)}
 
 
+def normalize_phone_number(num: str) -> str:
+    """Normalize phone number to international 62 format."""
+    if not num:
+        return ""
+    digits = "".join(filter(str.isdigit, str(num)))
+    if digits.startswith("0"):
+        digits = "62" + digits[1:]
+    elif digits.startswith("8"):
+        digits = "62" + digits
+    return digits
+
+def verify_whatsapp_number(phone: str) -> int:
+    """
+    Mark alerts and user record matching this phone number as wa_verified = True.
+    Triggered when an incoming message (inbound chat) is received via Fonnte webhook.
+    """
+    from backend.database import get_db_connection
+    norm = normalize_phone_number(phone)
+    if not norm or len(norm) < 9:
+        return 0
+    suffix = norm[-9:]
+    now_str = datetime.now().isoformat()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE alerts 
+        SET wa_verified = TRUE, wa_verified_at = ? 
+        WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+    """, (now_str, f"%{suffix}"))
+    updated = cursor.rowcount if hasattr(cursor, 'rowcount') else 1
+    
+    cursor.execute("""
+        UPDATE users 
+        SET whatsapp = ? 
+        WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+    """, (norm, f"%{suffix}"))
+    
+    conn.commit()
+    conn.close()
+    logging.info(f"Verified WhatsApp number {phone} (Suffix: {suffix}) - {updated} alerts updated.")
+    return updated
+
+def unverify_whatsapp_number(phone: str) -> int:
+    """
+    Mark alerts matching this phone number as wa_verified = False (Opt-Out / STOP).
+    Triggered when a user sends 'STOP' message.
+    """
+    from backend.database import get_db_connection
+    norm = normalize_phone_number(phone)
+    if not norm or len(norm) < 9:
+        return 0
+    suffix = norm[-9:]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE alerts 
+        SET wa_verified = FALSE, wa_verified_at = NULL 
+        WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+    """, (f"%{suffix}",))
+    updated = cursor.rowcount if hasattr(cursor, 'rowcount') else 1
+    conn.commit()
+    conn.close()
+    logging.info(f"Unverified (Opt-Out STOP) WhatsApp number {phone} (Suffix: {suffix}) - {updated} alerts updated.")
+    return updated
+
+def send_whatsapp_direct(to_number: str, message: str) -> bool:
+    """Send immediate WhatsApp message via Fonnte (used for webhook auto-reply)."""
+    config = _get_whatsapp_config()
+    token = config.get("token")
+    clean_num = normalize_phone_number(to_number)
+    if token and clean_num:
+        try:
+            url = "https://api.fonnte.com/send"
+            headers = {"Authorization": token}
+            data = {"target": clean_num, "message": message, "countryCode": "62"}
+            resp = requests.post(url, headers=headers, data=data, timeout=12)
+            res_json = resp.json()
+            if resp.status_code == 200 and res_json.get("status"):
+                return True
+        except Exception as e:
+            logging.error(f"Error sending direct WA via Fonnte: {e}")
+    return _write_mock_log(to_number, message)
+
 def get_whatsapp_activation_link(user_wa: str = None, admin_wa: str = None) -> str:
     """Generate WhatsApp inbound activation link so user sends first message to bypass anti-spam block."""
     from backend.database import get_setting
@@ -193,7 +276,8 @@ def send_whatsapp_alert(to_number: str, keyword: str, tender: dict) -> bool:
         f"• *Tahap Saat Ini:* {tender.get('tahap', '-')}\n"
         f"• *Metode:* {tender.get('metode', '-')}\n\n"
         f"🔍 *Lihat Detail & Pengumuman Resmi:*\n"
-        f"{public_tender_url}"
+        f"{public_tender_url}\n\n"
+        f"💡 _Ingin jeda notifikasi? Balas *STOP* untuk mematikan._"
     )
     
     # Add random delay (2 - 5s) to mimic human typing & bypass rate-limit filters

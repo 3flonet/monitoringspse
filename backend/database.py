@@ -364,6 +364,8 @@ def init_db():
             email TEXT NOT NULL,
             whatsapp TEXT,
             instansi TEXT NOT NULL,
+            wa_verified BOOLEAN DEFAULT FALSE,
+            wa_verified_at TEXT,
             created_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
@@ -611,6 +613,8 @@ def init_db():
             email TEXT NOT NULL,
             whatsapp TEXT,
             instansi TEXT NOT NULL,
+            wa_verified INTEGER DEFAULT 0,
+            wa_verified_at TEXT,
             created_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
@@ -750,6 +754,24 @@ def init_db():
             updated_at TEXT
         )
         """)
+        
+    # Ensure wa_verified and wa_verified_at columns exist in alerts table
+    if is_pg:
+        try:
+            cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_verified BOOLEAN DEFAULT FALSE")
+            cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_verified_at TEXT")
+        except Exception as e:
+            logging.warning(f"PG alerts migration warning: {e}")
+    else:
+        try:
+            cursor.execute("PRAGMA table_info(alerts)")
+            cols = [c[1] for c in cursor.fetchall()]
+            if 'wa_verified' not in cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN wa_verified INTEGER DEFAULT 0")
+            if 'wa_verified_at' not in cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN wa_verified_at TEXT")
+        except Exception as e:
+            logging.warning(f"SQLite alerts migration warning: {e}")
         
     # Seed default system settings
     default_settings = {

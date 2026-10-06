@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, List, Any
 
-from fastapi import FastAPI, BackgroundTasks, HTTPException, Depends, Query, UploadFile, File, status
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Depends, Query, UploadFile, File, status, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -1381,6 +1381,11 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
         rows = cursor.fetchall()
         now_str = datetime.now().isoformat()
 
+        # Check if alert WA is verified
+        cursor.execute("SELECT wa_verified FROM alerts WHERE id = ?", (alert_id,))
+        alert_row = cursor.fetchone()
+        is_wa_verified = bool(alert_row["wa_verified"]) if alert_row and "wa_verified" in alert_row.keys() else False
+
         # Resolve target whatsapp number
         target_wa = whatsapp
         if not target_wa:
@@ -1409,7 +1414,10 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
             email_sent = send_email_alert(email, matched_kw, tender)
             wa_sent = False
             if target_wa and target_wa.strip():
-                wa_sent = send_whatsapp_alert(target_wa.strip(), matched_kw, tender)
+                if is_wa_verified:
+                    wa_sent = send_whatsapp_alert(target_wa.strip(), matched_kw, tender)
+                else:
+                    logging.info(f"Skipping initial WA alert to {target_wa}: Belum verifikasi chat inbound.")
 
             if email_sent or wa_sent:
                 try:
@@ -1466,27 +1474,31 @@ def create_user_alert(req: AlertCreate, background_tasks: BackgroundTasks, curre
     is_new_number = False
     whatsapp_registered = False
     activation_url = None
+    wa_verified = False
+    wa_verified_at = None
     app_name = get_setting("app_name", "Spy SPSE")
 
     if clean_target_wa:
-        # Check if clean_target_wa already exists in alerts table
+        from backend.whatsapp_notifier import validate_whatsapp_number, get_whatsapp_activation_link
+        # Check if clean_target_wa is already verified in alerts table
         cursor.execute("""
             SELECT COUNT(*) FROM alerts 
-            WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
-        """, (f"%{clean_target_wa[-10:]}",))
-        existing_count = cursor.fetchone()[0]
-        if existing_count == 0:
+            WHERE wa_verified = TRUE AND whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+        """, (f"%{clean_target_wa[-9:]}",))
+        if cursor.fetchone()[0] > 0:
+            wa_verified = True
+            wa_verified_at = datetime.now().isoformat()
+        else:
             is_new_number = True
-            from backend.whatsapp_notifier import validate_whatsapp_number, get_whatsapp_activation_link
             val_res = validate_whatsapp_number(target_wa)
             whatsapp_registered = val_res.get("registered", True)
             activation_url = get_whatsapp_activation_link(user_wa=target_wa)
 
     now_str = datetime.now().isoformat()
     cursor.execute("""
-        INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str))
+        INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str, wa_verified, wa_verified_at))
     conn.commit()
     alert_id = cursor.lastrowid
     conn.close()
@@ -1508,6 +1520,7 @@ def create_user_alert(req: AlertCreate, background_tasks: BackgroundTasks, curre
         "alert_id": alert_id,
         "is_new_number": is_new_number,
         "whatsapp": target_wa,
+        "wa_verified": wa_verified,
         "whatsapp_registered": whatsapp_registered,
         "app_name": app_name,
         "activation_url": activation_url
@@ -1535,7 +1548,24 @@ def update_alert_whatsapp(alert_id: int, req: AlertUpdateWhatsapp, current_user:
         raise HTTPException(status_code=404, detail="Pemantauan tidak ditemukan")
         
     target_wa = req.whatsapp.strip() if (req.whatsapp and req.whatsapp.strip()) else None
-    cursor.execute("UPDATE alerts SET whatsapp = ? WHERE id = ?", (target_wa, alert_id))
+    clean_target_wa = "".join(filter(str.isdigit, target_wa)) if target_wa else None
+    
+    wa_verified = False
+    wa_verified_at = None
+    if clean_target_wa:
+        cursor.execute("""
+            SELECT COUNT(*) FROM alerts 
+            WHERE wa_verified = TRUE AND whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+        """, (f"%{clean_target_wa[-9:]}",))
+        if cursor.fetchone()[0] > 0:
+            wa_verified = True
+            wa_verified_at = datetime.now().isoformat()
+            
+    cursor.execute("""
+        UPDATE alerts 
+        SET whatsapp = ?, wa_verified = ?, wa_verified_at = ? 
+        WHERE id = ?
+    """, (target_wa, wa_verified, wa_verified_at, alert_id))
     conn.commit()
     conn.close()
     
@@ -1549,10 +1579,101 @@ def update_alert_whatsapp(alert_id: int, req: AlertUpdateWhatsapp, current_user:
         "message": "Nomor WhatsApp pemantauan berhasil diperbarui.",
         "alert_id": alert_id,
         "whatsapp": target_wa,
+        "wa_verified": wa_verified,
         "whatsapp_registered": val_res.get("registered", False),
         "app_name": app_name,
         "activation_url": activation_url
     }
+
+
+@app.get("/api/alerts/{alert_id}/activation-link")
+def get_alert_activation_link(alert_id: int, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alerts WHERE id = ? AND user_id = ?", (alert_id, current_user["id"]))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Pemantauan tidak ditemukan")
+    
+    alert = dict(row)
+    target_wa = alert.get("whatsapp")
+    from backend.whatsapp_notifier import get_whatsapp_activation_link
+    activation_url = get_whatsapp_activation_link(user_wa=target_wa) if target_wa else None
+    return {
+        "alert_id": alert_id,
+        "whatsapp": target_wa,
+        "wa_verified": bool(alert.get("wa_verified")),
+        "activation_url": activation_url
+    }
+
+
+# FONNTE INCOMING WEBHOOK (TWO-WAY INBOUND VERIFICATION & ANTI-BAN)
+@app.get("/api/fonnte/webhook")
+def fonnte_webhook_verify():
+    """Endpoint validation check for Fonnte webhook ping."""
+    return {"status": "active", "service": "Spy SPSE WhatsApp Webhook Gateway"}
+
+
+@app.post("/api/fonnte/webhook")
+async def fonnte_webhook_receiver(request: Request):
+    """
+    Webhook handler for incoming WhatsApp messages from Fonnte Gateway.
+    When a user chats to the Fonnte number:
+    - Opt-in / verify: Activates wa_verified = True and sends welcome confirmation.
+    - Opt-out / STOP: Deactivates wa_verified = False to prevent spam reports.
+    """
+    try:
+        content_type = request.headers.get("content-type", "")
+        if "application/json" in content_type:
+            data = await request.json()
+        else:
+            form = await request.form()
+            data = dict(form)
+    except Exception as e:
+        logging.warning(f"Error parsing Fonnte webhook payload: {e}")
+        data = {}
+
+    sender = str(data.get("sender", "")).strip()
+    msg = str(data.get("message", "")).strip().lower()
+
+    if not sender:
+        return {"status": "ignored", "reason": "No sender number"}
+
+    logging.info(f"[FONNTE WEBHOOK] Received message from {sender}: {msg}")
+
+    from backend.whatsapp_notifier import (
+        verify_whatsapp_number,
+        unverify_whatsapp_number,
+        send_whatsapp_direct
+    )
+    from backend.database import get_setting
+
+    app_name = get_setting("app_name", "Spy SPSE")
+
+    # 1. OPT-OUT / STOP COMMAND
+    if any(k in msg for k in ["stop", "berhenti", "jeda", "nonaktif", "unsubscribe"]):
+        updated = unverify_whatsapp_number(sender)
+        reply = (
+            f"⏸️ *{app_name} — Notifikasi WhatsApp Dijeda*\n\n"
+            f"Notifikasi radar tender untuk nomor WhatsApp Anda (*{sender}*) berhasil dinonaktifkan sementara.\n\n"
+            f"Anda tidak akan menerima pesan notifikasi lelang baru lagi.\n\n"
+            f"Ketik *AKTIFKAN* kapan saja jika Anda ingin menyalakan kembali notifikasi radar lelang SPSE."
+        )
+        send_whatsapp_direct(sender, reply)
+        return {"status": "success", "action": "stopped", "sender": sender, "updated_alerts": updated}
+
+    # 2. OPT-IN / INBOUND ACTIVATION (Any chat, e.g. AKTIFKAN, Halo Spy SPSE, dll)
+    else:
+        updated = verify_whatsapp_number(sender)
+        reply = (
+            f"✅ *{app_name} — WhatsApp Berhasil Terhubung!*\n\n"
+            f"Nomor WhatsApp Anda (*{sender}*) telah berhasil diverifikasi dan terhubung ke sistem radar tender {app_name}.\n\n"
+            f"🎯 Anda akan menerima update lelang baru secara otomatis sesuai kata kunci yang Anda pantau di dashboard.\n\n"
+            f"💡 _Ketik *STOP* kapan saja jika ingin menjeda atau mematikan notifikasi._"
+        )
+        send_whatsapp_direct(sender, reply)
+        return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated}
 
 # SYSTEM LOGS (ADMIN)
 @app.get("/api/admin/logs")
