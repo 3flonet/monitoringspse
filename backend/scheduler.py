@@ -175,8 +175,6 @@ async def sync_bookmarked_tenders():
 async def start_scheduler_loop():
     """Daily scheduler loop that runs once every 24 hours."""
     logger.info("Auto-Scraper Scheduler loop starting in background. Interval: 24 hours.")
-    # Run once at startup after a short delay (10 seconds) to not block initial server loading
-    await asyncio.sleep(10)
     while True:
         try:
             await run_daily_scraping()
@@ -188,6 +186,7 @@ async def start_scheduler_loop():
         except Exception as e:
             logger.error(f"Error in bookmarked tenders sync task: {e}")
             
+        logger.info("Scheduler completed cycle. Sleeping for 24 hours...")
         # Sleep for 24 hours (86400 seconds)
         await asyncio.sleep(86400)
 
@@ -200,7 +199,5 @@ if __name__ == "__main__":
     
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     
-    logger.info("=== Memulai Scheduler Harian SPSE ===")
-    asyncio.run(run_daily_scraping())
-    asyncio.run(sync_bookmarked_tenders())
-    logger.info("=== Scheduler Harian SPSE Selesai ===")
+    logger.info("=== Memulai Background Scheduler SPSE ===")
+    asyncio.run(start_scheduler_loop())
