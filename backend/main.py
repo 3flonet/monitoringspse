@@ -1643,6 +1643,7 @@ async def fonnte_webhook_receiver(request: Request):
     logging.info(f"[FONNTE WEBHOOK] Received message from {sender}: {msg}")
 
     from backend.whatsapp_notifier import (
+        check_whatsapp_registration,
         verify_whatsapp_number,
         unverify_whatsapp_number,
         send_whatsapp_direct
@@ -1651,31 +1652,46 @@ async def fonnte_webhook_receiver(request: Request):
 
     app_name = get_setting("app_name", "Spy SPSE")
 
-    # 1. OPT-OUT / STOP COMMAND
+    # 1. FILTER NOMOR TERDAFTAR (Pencegahan Chat Pribadi Ikut Dibalas)
+    reg_info = check_whatsapp_registration(sender)
+    if not reg_info["exists"]:
+        logging.info(f"[FONNTE WEBHOOK] Ignored private/unregistered chat from {sender}: '{msg}'")
+        return {"status": "ignored", "reason": "Sender number not registered in alerts or users"}
+
+    # 2. OPT-OUT / STOP COMMAND (Hanya untuk nomor terdaftar)
     if any(k in msg for k in ["stop", "berhenti", "jeda", "nonaktif", "unsubscribe"]):
         updated = unverify_whatsapp_number(sender)
         reply = (
             f"⏸️ *{app_name} — Notifikasi WhatsApp Dijeda*\n\n"
             f"Notifikasi radar tender untuk nomor WhatsApp Anda (*{sender}*) berhasil dinonaktifkan sementara.\n\n"
             f"Anda tidak akan menerima pesan notifikasi lelang baru lagi.\n\n"
-            f"Ketik *AKTIFKAN* kapan saja jika Anda ingin menyalakan kembali notifikasi radar lelang SPSE."
+            f"Ketik pesan mengandung *spy spse* kapan saja jika Anda ingin menyalakan kembali notifikasi radar lelang SPSE."
         )
-        # Kirim balasan via direct API Fonnte
         send_whatsapp_direct(sender, reply)
-        return {"status": "success", "action": "stopped", "sender": sender, "updated_alerts": updated, "response": reply}
+        return {"status": "success", "action": "stopped", "sender": sender, "updated_alerts": updated}
 
-    # 2. OPT-IN / INBOUND ACTIVATION (Any chat, e.g. AKTIFKAN, Halo Spy SPSE, dll)
+    # 3. AKTIVASI DUA ARAH (HANYA JIKA MENGANDUNG KATA KUNCI 'spy spse')
+    elif "spy spse" in msg:
+        # Cek apakah nomor ini memang belum aktif / butuh verifikasi
+        if reg_info["unverified_alerts"] > 0 or not reg_info["is_verified"]:
+            updated = verify_whatsapp_number(sender)
+            reply = (
+                f"✅ *{app_name} — WhatsApp Berhasil Terhubung!*\n\n"
+                f"Nomor WhatsApp Anda (*{sender}*) telah berhasil diverifikasi dan terhubung ke sistem radar tender {app_name}.\n\n"
+                f"🎯 Anda akan menerima update lelang baru secara otomatis sesuai kata kunci yang Anda pantau di dashboard.\n\n"
+                f"💡 _Ketik *STOP* kapan saja jika ingin menjeda atau mematikan notifikasi._"
+            )
+            send_whatsapp_direct(sender, reply)
+            return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated}
+        else:
+            # Nomor sudah aktif sebelumnya, abaikan agar tidak membalas berulang kali
+            logging.info(f"[FONNTE WEBHOOK] Number {sender} is already verified, ignoring repeat 'spy spse' chat.")
+            return {"status": "ignored", "reason": "Already verified"}
+
+    # 4. CHAT LAINNYA DARI USER TERDAFTAR (Abaikan tanpa membalas apapun)
     else:
-        updated = verify_whatsapp_number(sender)
-        reply = (
-            f"✅ *{app_name} — WhatsApp Berhasil Terhubung!*\n\n"
-            f"Nomor WhatsApp Anda (*{sender}*) telah berhasil diverifikasi dan terhubung ke sistem radar tender {app_name}.\n\n"
-            f"🎯 Anda akan menerima update lelang baru secara otomatis sesuai kata kunci yang Anda pantau di dashboard.\n\n"
-            f"💡 _Ketik *STOP* kapan saja jika ingin menjeda atau mematikan notifikasi._"
-        )
-        # Kirim balasan via direct API Fonnte
-        send_whatsapp_direct(sender, reply)
-        return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated, "response": reply}
+        logging.info(f"[FONNTE WEBHOOK] Ignored chat from registered user {sender} (no 'spy spse' keyword): '{msg}'")
+        return {"status": "ignored", "reason": "Keyword 'spy spse' not found"}
 
 # SYSTEM LOGS (ADMIN)
 @app.get("/api/admin/logs")

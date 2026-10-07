@@ -10557,8 +10557,9 @@ function App() {
                                             </strong>
                                             Meta/WhatsApp melarang bot melakukan broadcast sepihak ke pengguna baru. Dengan webhook ini:
                                             <ul style={{ margin: '6px 0 0 16px', padding: 0 }}>
-                                                <li>Pengguna cukup klik tombol <em>Hubungkan WhatsApp</em> di dashboard untuk mengirim chat awal (inbound).</li>
-                                                <li>Webhook secara otomatis mendeteksi chat masuk dan memverifikasi nomor secara instan.</li>
+                                                <li>Pengguna mengklik tombol <em>Hubungkan WhatsApp</em> di dashboard untuk mengirim chat awal (inbound) yang memuat kata kunci <code>spy spse</code>.</li>
+                                                <li>Sistem otomatis mendeteksi kata kunci <strong>spy spse</strong> dari nomor terdaftar dan memverifikasi nomor secara instan.</li>
+                                                <li><strong>Chat pribadi teman/keluarga tidak akan pernah dibalas otomatis</strong> karena bot mengabaikan nomor tak terdaftar dan chat tanpa kata kunci <code>spy spse</code>.</li>
                                                 <li>Pesan notifikasi menyertakan footer instruksi <strong>STOP</strong> jika pengguna ingin menjeda, sehingga nomor bot tidak akan dilaporkan (*reported*) ke WhatsApp.</li>
                                             </ul>
                                         </div>

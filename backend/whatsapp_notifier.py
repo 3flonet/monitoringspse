@@ -80,6 +80,49 @@ def normalize_phone_number(num: str) -> str:
         digits = "62" + digits
     return digits
 
+def check_whatsapp_registration(phone: str) -> dict:
+    """
+    Check if phone number exists in alerts or users, and whether it has unverified alerts.
+    Used by webhook to ensure we NEVER reply to private personal chats or unregistered numbers.
+    """
+    from backend.database import get_db_connection
+    norm = normalize_phone_number(phone)
+    if not norm or len(norm) < 9:
+        return {"exists": False, "total_alerts": 0, "unverified_alerts": 0, "is_verified": False}
+    suffix = norm[-9:]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check in alerts
+    cursor.execute("""
+        SELECT COUNT(*) as total, 
+               SUM(CASE WHEN wa_verified = TRUE THEN 1 ELSE 0 END) as verified_count
+        FROM alerts 
+        WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+    """, (f"%{suffix}",))
+    row = cursor.fetchone()
+    total = row[0] if row and row[0] is not None else 0
+    verified = row[1] if row and row[1] is not None else 0
+    
+    # Check in users table
+    cursor.execute("""
+        SELECT COUNT(*) FROM users 
+        WHERE whatsapp IS NOT NULL AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+    """, (f"%{suffix}",))
+    user_row = cursor.fetchone()
+    user_exists = (user_row[0] > 0) if user_row else False
+    
+    conn.close()
+    
+    exists = (total > 0) or user_exists
+    unverified = total - verified
+    return {
+        "exists": exists,
+        "total_alerts": total,
+        "unverified_alerts": unverified,
+        "is_verified": (verified > 0)
+    }
+
 def verify_whatsapp_number(phone: str) -> int:
     """
     Mark alerts and user record matching this phone number as wa_verified = True.
