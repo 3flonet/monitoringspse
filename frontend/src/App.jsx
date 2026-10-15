@@ -8715,7 +8715,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="panel">
+                        <div className="panel" data-tour="keyword-tenders-table">
                             {isLoadingKeywordTenders ? (
                                 <div style={{ textAlign: 'center', padding: '60px' }}>
                                     <div className="spinner"></div>
@@ -8845,7 +8845,7 @@ function App() {
                             </div>
 
                             {/* Premium Stats Grid for Alerts */}
-                            <div className="stats-grid" style={{ marginBottom: '24px' }}>
+                            <div className="stats-grid" data-tour="alerts-stats" style={{ marginBottom: '24px' }}>
                                 <div className="card-stat primary" style={{ padding: '16px 20px' }}>
                                     <span className="title" style={{ fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pemantauan Aktif</span>
                                     <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
@@ -8902,7 +8902,7 @@ function App() {
 
                         <div className="dash-layout">
                             {/* Active Alerts List (2fr wide on the left) */}
-                            <div className="panel">
+                            <div className="panel" data-tour="alerts-list">
                                 <div className="panel-header">
                                     <h3 className="panel-title">Daftar Pemantauan Aktif ({alerts.length})</h3>
                                 </div>
@@ -9099,7 +9099,7 @@ function App() {
                             </div>
 
                             {/* Alert Creation Form (1fr wide on the right) */}
-                            <div className="panel" style={{ height: 'fit-content' }}>
+                            <div className="panel" data-tour="alerts-create-form" style={{ height: 'fit-content' }}>
                                 <div className="panel-header">
                                     <h3 className="panel-title">Buat Pemantauan Baru</h3>
                                 </div>
@@ -12135,7 +12135,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="panel" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                        <div className="panel" data-tour="competitor-search-box" style={{ maxWidth: '800px', margin: '0 auto' }}>
                             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                                 <span style={{ fontSize: '64px', display: 'block', marginBottom: '20px' }}>🔍</span>
                                 <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Cari Profil Kompetitor</h2>
@@ -13394,6 +13394,11 @@ function App() {
             {/* User Onboarding Tour Modal */}
             <UserOnboardingTour
                 isOpen={showOnboardingTour}
+                activeTab={activeTab}
+                onNavigate={(tab) => {
+                    setActiveTab(tab);
+                    window.location.hash = `#/${tab}`;
+                }}
                 onClose={() => {
                     setShowOnboardingTour(false);
                     localStorage.setItem('spse_onboarding_completed', 'true');

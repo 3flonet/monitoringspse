@@ -57,7 +57,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
     return (
         <div style={{ maxWidth: '1300px', margin: '0 auto', paddingBottom: '60px' }}>
             {/* Header Banner */}
-            <div style={{
+            <div data-tour="docs-header" style={{
                 background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8))',
                 border: '1px solid rgba(99, 102, 241, 0.25)',
                 borderRadius: '20px',
