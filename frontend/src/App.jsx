@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Chatbot from './components/Chatbot';
 import AdminLeadsManager from './components/AdminLeadsManager';
 import CompanyLeadsManager from './components/CompanyLeadsManager';
+import UserOnboardingTour from './components/UserOnboardingTour';
+import UserDocumentation from './components/UserDocumentation';
 
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
@@ -3805,6 +3807,20 @@ function App() {
     // Auth & Session States
     const [userToken, setUserToken] = useState(localStorage.getItem('user_token') || null);
     const [currentUser, setCurrentUser] = useState(null);
+    const [showOnboardingTour, setShowOnboardingTour] = useState(false);
+
+    useEffect(() => {
+        if (userToken && currentUser) {
+            const hasCompleted = localStorage.getItem('spse_onboarding_completed');
+            if (!hasCompleted) {
+                const timer = setTimeout(() => {
+                    setShowOnboardingTour(true);
+                }, 1200);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [userToken, currentUser]);
+
     const [authEmail, setAuthEmail] = useState('');
     const [authPassword, setAuthPassword] = useState('');
     const [authWhatsapp, setAuthWhatsapp] = useState('');
@@ -5198,6 +5214,14 @@ function App() {
                 setSelectedArticleLpseSlug(null);
                 if (userToken) {
                     setActiveTab('billing');
+                }
+            } else if (hash.startsWith('#/docs') || hash.startsWith('#/panduan')) {
+                setSelectedArticleSlug(null);
+                setSelectedArticleLpseSlug(null);
+                if (userToken) {
+                    setActiveTab('docs');
+                } else {
+                    window.location.hash = '#/login';
                 }
             } else if (hash.startsWith('#/dashboard')) {
                 setSelectedArticleSlug(null);
@@ -7377,6 +7401,12 @@ function App() {
                         onClick={() => { window.location.hash = '#/billing'; setIsMobileMenuOpen(false); }}
                     >
                         <span>💎</span> Upgrade / Billing
+                    </div>
+                    <div
+                        className={`menu-item ${activeTab === 'docs' ? 'active' : ''}`}
+                        onClick={() => { window.location.hash = '#/docs'; setIsMobileMenuOpen(false); }}
+                    >
+                        <span>📚</span> Panduan &amp; Dokumentasi
                     </div>
                     {currentUser?.role === 'admin' && (
                         <div
@@ -9704,6 +9734,19 @@ function App() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* TAB: PANDUAN & DOKUMENTASI */}
+                {activeTab === 'docs' && (
+                    <UserDocumentation
+                        onOpenTour={() => setShowOnboardingTour(true)}
+                        onNavigateTab={(tab) => {
+                            setActiveTab(tab);
+                            window.location.hash = `#/${tab}`;
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        currentUser={currentUser}
+                    />
                 )}
 
                 {/* TAB: SCRAPER CONTROL */}
@@ -13347,6 +13390,22 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {/* User Onboarding Tour Modal */}
+            <UserOnboardingTour
+                isOpen={showOnboardingTour}
+                onClose={() => {
+                    setShowOnboardingTour(false);
+                    localStorage.setItem('spse_onboarding_completed', 'true');
+                }}
+                onGoDocs={() => {
+                    setShowOnboardingTour(false);
+                    localStorage.setItem('spse_onboarding_completed', 'true');
+                    setActiveTab('docs');
+                    window.location.hash = '#/docs';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+            />
 
             {/* Floating Chatbot Widget */}
             <Chatbot adminSettings={adminSettings} />
