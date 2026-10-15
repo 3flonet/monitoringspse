@@ -55,7 +55,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
     );
 
     return (
-        <div style={{ maxWidth: '1300px', margin: '0 auto', paddingBottom: '60px' }}>
+        <div style={{ width: '100%', paddingBottom: '60px' }}>
             {/* Header Banner */}
             <div data-tour="docs-header" style={{
                 background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8))',
@@ -107,7 +107,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
             </div>
 
             {/* Layout Grid: Sidebar Nav & Main Reader */}
-            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'flex-start' }}>
+            <div className="docs-layout-grid" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'flex-start', width: '100%' }}>
                 {/* Left Navigation Sidebar */}
                 <div style={{
                     background: 'rgba(15, 23, 42, 0.5)',
