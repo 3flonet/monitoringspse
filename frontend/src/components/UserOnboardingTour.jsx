@@ -3,8 +3,17 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onClose, onGoDocs }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [targetRect, setTargetRect] = useState(null);
+    const [sidebarMenuRect, setSidebarMenuRect] = useState(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const pollIntervalRef = useRef(null);
+
+    const menuMetadata = {
+        'alerts': { icon: '🔔', label: 'Alerts Notifikasi' },
+        'keyword-tenders': { icon: '🎯', label: 'Peluang Anda' },
+        'competitors': { icon: '👥', label: 'Analisis Kompetitor' },
+        'docs': { icon: '📚', label: 'Panduan & Dokumentasi' },
+        'dashboard': { icon: '📊', label: 'Dashboard' }
+    };
 
     const steps = [
         {
@@ -91,11 +100,29 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
 
     const currentStepData = steps[currentStep];
 
-    // Measure target element position
+    // Measure target element position & active sidebar menu
     const updatePosition = useCallback(() => {
         if (!isOpen) return;
         const step = steps[currentStep];
         if (!step) return;
+
+        // Measure sidebar menu item for active tab
+        const menuEl = document.querySelector(`[data-tour-menu="${step.tab}"]`);
+        if (menuEl) {
+            const mRect = menuEl.getBoundingClientRect();
+            if (mRect.width > 0 && mRect.height > 0 && mRect.left >= 0 && mRect.top >= 0) {
+                setSidebarMenuRect({
+                    top: mRect.top,
+                    left: mRect.left,
+                    width: mRect.width,
+                    height: mRect.height
+                });
+            } else {
+                setSidebarMenuRect(null);
+            }
+        } else {
+            setSidebarMenuRect(null);
+        }
 
         const el = document.querySelector(step.selector);
         if (el) {
@@ -120,6 +147,7 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
     useEffect(() => {
         if (!isOpen) {
             setTargetRect(null);
+            setSidebarMenuRect(null);
             return;
         }
 
@@ -346,6 +374,54 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                         zIndex: 999992
                     }}
                 />
+            )}
+
+            {/* Sidebar Active Menu Spotlight Highlight */}
+            {sidebarMenuRect && menuMetadata[currentStepData.tab] && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: `${sidebarMenuRect.top}px`,
+                        left: `${sidebarMenuRect.left}px`,
+                        width: `${sidebarMenuRect.width}px`,
+                        height: `${sidebarMenuRect.height}px`,
+                        borderRadius: '10px',
+                        background: 'linear-gradient(90deg, rgba(56, 189, 248, 0.28), rgba(99, 102, 241, 0.38))',
+                        border: '2px solid #38bdf8',
+                        boxShadow: '0 0 25px rgba(56, 189, 248, 0.75), inset 0 0 15px rgba(56, 189, 248, 0.3)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 16px',
+                        fontSize: '15px',
+                        fontWeight: '700',
+                        zIndex: 999994,
+                        pointerEvents: 'none',
+                        animation: 'tourMenuPulse 2.4s ease-in-out infinite',
+                        transition: 'top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease',
+                        fontFamily: "'Inter', sans-serif"
+                    }}
+                >
+                    <span style={{ fontSize: '18px' }}>{menuMetadata[currentStepData.tab].icon}</span>
+                    <span style={{ color: '#ffffff', letterSpacing: '0.2px' }}>{menuMetadata[currentStepData.tab].label}</span>
+                    <span
+                        style={{
+                            marginLeft: 'auto',
+                            fontSize: '10px',
+                            background: 'linear-gradient(135deg, #0284c7, #38bdf8)',
+                            color: '#070a13',
+                            fontWeight: '900',
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            boxShadow: '0 2px 8px rgba(56, 189, 248, 0.5)'
+                        }}
+                    >
+                        Menu Aktif
+                    </span>
+                </div>
             )}
 
             {/* Floating Tooltip Card */}

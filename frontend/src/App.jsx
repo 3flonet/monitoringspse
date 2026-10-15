@@ -7355,54 +7355,63 @@ function App() {
 
                 <div className="menu">
                     <div
+                        data-tour-menu="dashboard"
                         className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/dashboard'; setIsMobileMenuOpen(false); }}
                     >
                         <span>📊</span> Dashboard
                     </div>
                     <div
+                        data-tour-menu="explorer"
                         className={`menu-item ${activeTab === 'explorer' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/explorer'; setIsMobileMenuOpen(false); }}
                     >
                         <span>🔍</span> Explorer Tender
                     </div>
                     <div
+                        data-tour-menu="keyword-tenders"
                         className={`menu-item ${activeTab === 'keyword-tenders' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/keyword-tenders'; setIsMobileMenuOpen(false); }}
                     >
                         <span>🎯</span> Peluang Anda
                     </div>
                     <div
+                        data-tour-menu="alerts"
                         className={`menu-item ${activeTab === 'alerts' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/alerts'; setIsMobileMenuOpen(false); }}
                     >
                         <span>🔔</span> Alerts Notifikasi
                     </div>
                     <div
+                        data-tour-menu="bookmarks"
                         className={`menu-item ${activeTab === 'bookmarks' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/bookmarks'; setIsMobileMenuOpen(false); }}
                     >
                         <span>💾</span> Saved Bookmarks
                     </div>
                     <div
+                        data-tour-menu="competitors"
                         className={`menu-item ${activeTab === 'competitors' || activeTab === 'competitor-profile' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/competitors'; setCompetitorSearch(''); setCompetitorSuggestions([]); setIsMobileMenuOpen(false); }}
                     >
                         <span>👥</span> Analisis Kompetitor
                     </div>
                     <div
+                        data-tour-menu="instansi"
                         className={`menu-item ${activeTab === 'instansi' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/instansi'; setIsMobileMenuOpen(false); }}
                     >
                         <span>🏢</span> Daftar LPSE
                     </div>
                     <div
+                        data-tour-menu="billing"
                         className={`menu-item ${activeTab === 'billing' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/billing'; setIsMobileMenuOpen(false); }}
                     >
                         <span>💎</span> Upgrade / Billing
                     </div>
                     <div
+                        data-tour-menu="docs"
                         className={`menu-item ${activeTab === 'docs' ? 'active' : ''}`}
                         onClick={() => { window.location.hash = '#/docs'; setIsMobileMenuOpen(false); }}
                     >
