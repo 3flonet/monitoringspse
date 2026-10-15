@@ -245,8 +245,8 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                 top: '-8px',
                 left: `${arrowLeft}px`,
                 transform: 'translateX(-50%) rotate(45deg)',
-                borderTop: '1px solid rgba(99, 102, 241, 0.4)',
-                borderLeft: '1px solid rgba(99, 102, 241, 0.4)'
+                borderTop: '1px solid rgba(56, 189, 248, 0.5)',
+                borderLeft: '1px solid rgba(56, 189, 248, 0.5)'
             };
         } else {
             const top = Math.max(16, targetRect.top - estimatedHeight - 16);
@@ -260,8 +260,8 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                 bottom: '-8px',
                 left: `${arrowLeft}px`,
                 transform: 'translateX(-50%) rotate(45deg)',
-                borderBottom: '1px solid rgba(99, 102, 241, 0.4)',
-                borderRight: '1px solid rgba(99, 102, 241, 0.4)'
+                borderBottom: '1px solid rgba(56, 189, 248, 0.5)',
+                borderRight: '1px solid rgba(56, 189, 248, 0.5)'
             };
         }
     } else {
@@ -297,6 +297,8 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                         width: `${targetRect.width + 16}px`,
                         height: `${targetRect.height + 16}px`,
                         borderRadius: '16px',
+                        border: '2px solid #38bdf8',
+                        background: 'radial-gradient(ellipse at center, rgba(56, 189, 248, 0.08) 0%, rgba(99, 102, 241, 0.04) 75%, transparent 100%)',
                         animation: 'tourSpotlightPulse 2.4s ease-in-out infinite',
                         pointerEvents: 'none',
                         transition: isTransitioning
@@ -304,14 +306,42 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                             : 'top 0.15s ease-out, left 0.15s ease-out, width 0.15s ease-out, height 0.15s ease-out',
                         zIndex: 999992
                     }}
-                />
+                >
+                    {/* Floating Glow Badge at Top-Left of Cutout */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '-13px',
+                            left: '18px',
+                            background: 'linear-gradient(135deg, #0284c7, #6366f1)',
+                            color: '#ffffff',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            padding: '3px 12px',
+                            borderRadius: '20px',
+                            boxShadow: '0 4px 15px rgba(56, 189, 248, 0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            fontFamily: "'Outfit', sans-serif"
+                        }}
+                    >
+                        <span style={{ position: 'relative', display: 'flex', width: '7px', height: '7px' }}>
+                            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#38bdf8', animation: 'tourPing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }}></span>
+                            <span style={{ position: 'relative', width: '7px', height: '7px', borderRadius: '50%', background: '#ffffff' }}></span>
+                        </span>
+                        Area Yang Disorot
+                    </div>
+                </div>
             ) : (
                 <div
                     style={{
                         position: 'fixed',
                         inset: 0,
-                        background: 'rgba(3, 7, 18, 0.85)',
-                        backdropFilter: 'blur(4px)',
+                        background: 'rgba(2, 6, 23, 0.92)',
+                        backdropFilter: 'blur(5px)',
                         transition: 'opacity 0.3s ease',
                         zIndex: 999992
                     }}
@@ -325,7 +355,7 @@ export default function UserOnboardingTour({ isOpen, activeTab, onNavigate, onCl
                     zIndex: 999995,
                     pointerEvents: 'auto',
                     background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(20, 27, 48, 0.98))',
-                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                    border: '1px solid rgba(56, 189, 248, 0.4)',
                     borderRadius: '18px',
                     padding: '24px 26px',
                     boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(99, 102, 241, 0.2)',

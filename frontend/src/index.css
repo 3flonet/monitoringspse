@@ -1378,10 +1378,27 @@ h1, h2, h3, h4, h5, h6 {
 /* Onboarding Spotlight Tour */
 @keyframes tourSpotlightPulse {
   0%, 100% {
-    box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.82), 0 0 0 2px #6366f1, 0 0 20px rgba(99, 102, 241, 0.45);
+    box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.91), 0 0 25px rgba(56, 189, 248, 0.7), inset 0 0 30px rgba(56, 189, 248, 0.18);
+    border-color: #38bdf8;
+    outline: 3px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 3px;
   }
   50% {
-    box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.86), 0 0 0 3px #818cf8, 0 0 30px rgba(129, 140, 248, 0.75);
+    box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.94), 0 0 45px rgba(99, 102, 241, 0.95), inset 0 0 45px rgba(99, 102, 241, 0.28);
+    border-color: #818cf8;
+    outline: 3px solid rgba(56, 189, 248, 0.85);
+    outline-offset: 4px;
+  }
+}
+
+@keyframes tourPing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(2.4);
+    opacity: 0;
   }
 }
 
