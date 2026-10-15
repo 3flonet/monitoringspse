@@ -97,19 +97,35 @@ export default function AdminLeadsManager({ leads, isLoadingLeads, fetchLeads, a
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
                 <div style={{ background: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '16px 20px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Prospek</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', marginTop: '4px' }}>{leads.length}</div>
+                    {isLoadingLeads ? (
+                        <div className="skeleton-box" style={{ height: '32px', width: '60px', marginTop: '6px' }} />
+                    ) : (
+                        <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', marginTop: '4px' }}>{leads.length}</div>
+                    )}
                 </div>
                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '16px', padding: '16px 20px' }}>
                     <div style={{ fontSize: '11px', color: '#f87171', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prospek Baru</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#f87171', marginTop: '4px' }}>{countNew}</div>
+                    {isLoadingLeads ? (
+                        <div className="skeleton-box" style={{ height: '32px', width: '45px', marginTop: '6px' }} />
+                    ) : (
+                        <div style={{ fontSize: '28px', fontWeight: '800', color: '#f87171', marginTop: '4px' }}>{countNew}</div>
+                    )}
                 </div>
                 <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.25)', borderRadius: '16px', padding: '16px 20px' }}>
                     <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sudah Dihubungi</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#60a5fa', marginTop: '4px' }}>{countContacted}</div>
+                    {isLoadingLeads ? (
+                        <div className="skeleton-box" style={{ height: '32px', width: '45px', marginTop: '6px' }} />
+                    ) : (
+                        <div style={{ fontSize: '28px', fontWeight: '800', color: '#60a5fa', marginTop: '4px' }}>{countContacted}</div>
+                    )}
                 </div>
                 <div style={{ background: 'rgba(107, 114, 128, 0.1)', border: '1px solid rgba(107, 114, 128, 0.25)', borderRadius: '16px', padding: '16px 20px' }}>
                     <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Diarsipkan</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#9ca3af', marginTop: '4px' }}>{countArchive}</div>
+                    {isLoadingLeads ? (
+                        <div className="skeleton-box" style={{ height: '32px', width: '45px', marginTop: '6px' }} />
+                    ) : (
+                        <div style={{ fontSize: '28px', fontWeight: '800', color: '#9ca3af', marginTop: '4px' }}>{countArchive}</div>
+                    )}
                 </div>
             </div>
 
@@ -150,26 +166,49 @@ export default function AdminLeadsManager({ leads, isLoadingLeads, fetchLeads, a
             <div style={{ display: 'grid', gridTemplateColumns: selectedLead ? '1fr 400px' : '1fr', gap: '24px' }}>
                 {/* Table Column */}
                 <div style={{ background: 'rgba(15, 23, 42, 0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                    {isLoadingLeads ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Memuat data prospek...</div>
-                    ) : filteredLeads.length === 0 ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                            {leads.length === 0 ? 'Belum ada prospek yang masuk dari Chatbot.' : 'Tidak ada prospek yang sesuai filter.'}
-                        </div>
-                    ) : (
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                                <thead>
-                                    <tr style={{ background: 'rgba(30, 41, 59, 0.6)', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8' }}>
-                                        <th style={{ padding: '14px 16px' }}>Tanggal</th>
-                                        <th style={{ padding: '14px 16px' }}>Nama</th>
-                                        <th style={{ padding: '14px 16px' }}>WhatsApp</th>
-                                        <th style={{ padding: '14px 16px' }}>Status</th>
-                                        <th style={{ padding: '14px 16px', textAlign: 'right' }}>Aksi</th>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                            <thead>
+                                <tr style={{ background: 'rgba(30, 41, 59, 0.6)', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8' }}>
+                                    <th style={{ padding: '14px 16px' }}>Tanggal</th>
+                                    <th style={{ padding: '14px 16px' }}>Nama</th>
+                                    <th style={{ padding: '14px 16px' }}>WhatsApp</th>
+                                    <th style={{ padding: '14px 16px' }}>Status</th>
+                                    <th style={{ padding: '14px 16px', textAlign: 'right' }}>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {isLoadingLeads ? (
+                                    Array.from({ length: 6 }).map((_, rIdx) => (
+                                        <tr key={`skel-lead-${rIdx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                            <td style={{ padding: '16px' }}>
+                                                <div className="skeleton-box" style={{ height: '14px', width: '110px' }} />
+                                            </td>
+                                            <td style={{ padding: '16px' }}>
+                                                <div className="skeleton-box" style={{ height: '15px', width: `${120 + (rIdx * 25) % 80}px` }} />
+                                            </td>
+                                            <td style={{ padding: '16px' }}>
+                                                <div className="skeleton-box" style={{ height: '14px', width: '100px' }} />
+                                            </td>
+                                            <td style={{ padding: '16px' }}>
+                                                <div className="skeleton-badge" style={{ width: '70px', height: '22px' }} />
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'right' }}>
+                                                <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                                    <div className="skeleton-btn" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                                                    <div className="skeleton-btn" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : filteredLeads.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                                            {leads.length === 0 ? 'Belum ada prospek yang masuk dari Chatbot.' : 'Tidak ada prospek yang sesuai filter.'}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredLeads.map((lead) => (
+                                ) : (
+                                    filteredLeads.map((lead) => (
                                         <tr
                                             key={lead.id}
                                             onClick={() => setSelectedLead(lead)}
@@ -207,11 +246,11 @@ export default function AdminLeadsManager({ leads, isLoadingLeads, fetchLeads, a
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* Detail Column */}

@@ -2970,7 +2970,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>📄</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Tender Terpantau</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.tenders)}</div>
+                        {isLoadingStats ? (
+                            <div className="skeleton-box" style={{ height: '38px', width: '120px', margin: '12px auto 0' }} />
+                        ) : (
+                            <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{formatStatsCount(stats.tenders)}</div>
+                        )}
                     </div>
                     <div
                         title={isLoadingStats ? '' : `Total tepat: Rp ${stats.pagu.toLocaleString('id-ID')}`}
@@ -2978,7 +2982,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>💰</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Pagu Terpantau (Rp)</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsPagu(stats.pagu)}</div>
+                        {isLoadingStats ? (
+                            <div className="skeleton-box" style={{ height: '38px', width: '140px', margin: '12px auto 0' }} />
+                        ) : (
+                            <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{formatStatsPagu(stats.pagu)}</div>
+                        )}
                     </div>
                     <div
                         title={isLoadingStats ? '' : `Total tepat: ${stats.instansi.toLocaleString('id-ID')} LPSE`}
@@ -2986,7 +2994,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>🏢</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total LPSE Terhubung</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.instansi)}</div>
+                        {isLoadingStats ? (
+                            <div className="skeleton-box" style={{ height: '38px', width: '90px', margin: '12px auto 0' }} />
+                        ) : (
+                            <div style={{ fontSize: '36px', fontWeight: '900', color: '#fff', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{formatStatsCount(stats.instansi)}</div>
+                        )}
                     </div>
                     <div
                         title={isLoadingStats ? '' : `Total tepat: ${stats.penyedia.toLocaleString('id-ID')} penyedia`}
@@ -2994,7 +3006,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     >
                         <div style={{ fontSize: '36px', marginBottom: '12px' }}>👥</div>
                         <div style={{ fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold' }}>Total Penyedia Terhubung</div>
-                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#38bdf8', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{isLoadingStats ? '...' : formatStatsCount(stats.penyedia)}</div>
+                        {isLoadingStats ? (
+                            <div className="skeleton-box" style={{ height: '38px', width: '110px', margin: '12px auto 0' }} />
+                        ) : (
+                            <div style={{ fontSize: '36px', fontWeight: '900', color: '#38bdf8', marginTop: '12px', fontFamily: "'Outfit', sans-serif" }}>{formatStatsCount(stats.penyedia)}</div>
+                        )}
                     </div>
                 </div>
 
@@ -3027,7 +3043,27 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {isLoadingTenders ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Memuat data tender terbaru...</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                            {Array.from({ length: 4 }).map((_, sIdx) => (
+                                <div key={`skel-landing-t-${sIdx}`} style={{ background: '#0f1322', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                                        <div className="skeleton-badge" style={{ width: '80px', height: '22px' }} />
+                                        <div className="skeleton-box" style={{ width: '60px', height: '14px' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', flexGrow: 1 }}>
+                                        <div className="skeleton-box" style={{ width: '92%', height: '18px' }} />
+                                        <div className="skeleton-box" style={{ width: '68%', height: '18px' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
+                                        <div className="skeleton-box" style={{ width: '60%', height: '13px' }} />
+                                        <div className="skeleton-box" style={{ width: '75%', height: '13px' }} />
+                                        <div className="skeleton-box" style={{ width: '50%', height: '13px' }} />
+                                        <div className="skeleton-box" style={{ width: '65%', height: '18px', marginTop: '4px' }} />
+                                    </div>
+                                    <div className="skeleton-btn" style={{ width: '100%', height: '42px', borderRadius: '8px' }} />
+                                </div>
+                            ))}
+                        </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                             {latestTenders.map(t => (
@@ -3070,7 +3106,23 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {isLoadingWinners ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Memuat data pemenang tender...</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                            {Array.from({ length: 4 }).map((_, sIdx) => (
+                                <div key={`skel-landing-w-${sIdx}`} style={{ background: '#0f1322', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', padding: '24px', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', alignItems: 'center' }}>
+                                        <div className="skeleton-badge" style={{ width: '85px', height: '22px' }} />
+                                        <div className="skeleton-box" style={{ width: '90px', height: '13px' }} />
+                                    </div>
+                                    <div className="skeleton-box" style={{ width: '80%', height: '20px', marginBottom: '10px' }} />
+                                    <div className="skeleton-box" style={{ width: '60%', height: '14px', marginBottom: '20px' }} />
+                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '14px', flexGrow: 1 }}>
+                                        <div className="skeleton-box" style={{ width: '70px', height: '12px', marginBottom: '8px' }} />
+                                        <div className="skeleton-box" style={{ width: '95%', height: '15px', marginBottom: '6px' }} />
+                                        <div className="skeleton-box" style={{ width: '70%', height: '15px' }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : latestWinners.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', background: '#0f1322', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>Belum ada data pemenang tender terbaru.</div>
                     ) : (
@@ -4057,6 +4109,7 @@ function App() {
     const [smtpTestResult, setSmtpTestResult] = useState(null);
     const [adminDashboard, setAdminDashboard] = useState(null);
     const [adminUsers, setAdminUsers] = useState([]);
+    const [isLoadingAdminUsers, setIsLoadingAdminUsers] = useState(false);
     const [editUserModal, setEditUserModal] = useState(null); // { id, email, whatsapp, role }
     const [editUserForm, setEditUserForm] = useState({ email: '', whatsapp: '', role: 'user', plan_type: 'premium', status: 'active', duration_days: 30 });
     const [editUserMsg, setEditUserMsg] = useState(null);
@@ -4867,6 +4920,7 @@ function App() {
     };
 
     const fetchAdminUsers = async () => {
+        setIsLoadingAdminUsers(true);
         try {
             const res = await authFetch('/api/admin/users');
             if (res.ok) {
@@ -4875,6 +4929,8 @@ function App() {
             }
         } catch (err) {
             console.error('Failed to fetch admin users:', err);
+        } finally {
+            setIsLoadingAdminUsers(false);
         }
     };
 
@@ -8238,7 +8294,34 @@ function App() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(() => {
+                                        {isLoadingAdminUsers ? (
+                                            Array.from({ length: 6 }).map((_, rIdx) => (
+                                                <tr key={`skel-user-${rIdx}`}>
+                                                    <td data-label="#"><div className="skeleton-box" style={{ height: '14px', width: '20px' }} /></td>
+                                                    <td data-label="Email Pengguna">
+                                                        <div className="skeleton-box" style={{ height: '15px', width: `${140 + (rIdx * 20) % 70}px` }} />
+                                                    </td>
+                                                    <td data-label="Role"><div className="skeleton-badge" style={{ width: '56px', height: '20px' }} /></td>
+                                                    <td data-label="WhatsApp"><div className="skeleton-box" style={{ height: '13px', width: '90px' }} /></td>
+                                                    <td data-label="Paket"><div className="skeleton-badge" style={{ width: '64px', height: '20px' }} /></td>
+                                                    <td data-label="Status"><div className="skeleton-badge" style={{ width: '50px', height: '20px' }} /></td>
+                                                    <td data-label="Berakhir"><div className="skeleton-box" style={{ height: '13px', width: '85px' }} /></td>
+                                                    <td data-label="Tgl Daftar"><div className="skeleton-box" style={{ height: '13px', width: '85px' }} /></td>
+                                                    <td data-label="Kirim Akses Login" style={{ textAlign: 'center' }}>
+                                                        <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'center' }}>
+                                                            <div className="skeleton-btn" style={{ width: '65px', height: '26px' }} />
+                                                            <div className="skeleton-btn" style={{ width: '65px', height: '26px' }} />
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Aksi" style={{ textAlign: 'center' }}>
+                                                        <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'center' }}>
+                                                            <div className="skeleton-btn" style={{ width: '50px', height: '26px' }} />
+                                                            <div className="skeleton-btn" style={{ width: '65px', height: '26px' }} />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (() => {
                                             const filteredAdminUsers = adminUsers.filter(user => {
                                                 const matchesSearch = !userSearchQuery.trim() ||
                                                     (user.email && user.email.toLowerCase().includes(userSearchQuery.toLowerCase())) ||
@@ -8485,63 +8568,77 @@ function App() {
                             </div>
 
                             {/* Table */}
-                            {isLoadingExplorer ? (
-                                <div style={{ textAlign: 'center', padding: '60px' }}>
-                                    <div className="spinner"></div>
-                                    <p style={{ marginTop: '12px', color: '#9ca3af' }}>Memuat database tender...</p>
-                                </div>
-                            ) : (
-                                <div className="table-wrapper">
-                                    <table className="tender-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Nomor</th>
-                                                <th>Nama Paket</th>
-                                                <th>K/L/Pemda/Instansi</th>
-                                                <th>Jenis/Tipe</th>
-                                                <th>Pagu</th>
-                                                <th>Tahap Saat Ini</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tenders.length > 0 ? (
-                                                tenders.map((tender, index) => (
-                                                    <tr key={index} onClick={() => handleViewTenderDetail(tender.nomor_pengadaan)}>
-                                                        <td data-label="Nomor">{tender.nomor_pengadaan}</td>
-                                                        <td data-label="Nama Paket">
-                                                            <div style={{ fontWeight: '500', color: '#fff' }}>
-                                                                {renderTenderTitle(tender.nama_tender)}
-                                                            </div>
-                                                            <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
-                                                                Lokasi: {tender.lokasi_pekerjaan || '-'}
-                                                            </div>
-                                                        </td>
-                                                        <td data-label="Instansi">{tender.instansi}</td>
-                                                        <td data-label="Jenis/Tipe">
-                                                            <span className={`badge ${tender.tipe === 'tender' ? 'badge-tender' : 'badge-nontender'}`}>
-                                                                {tender.tipe ? tender.tipe.toUpperCase() : 'TENDER'}
-                                                            </span>
-                                                            <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', fontWeight: '500' }}>
-                                                                {tender.jenis_pengadaan ? tender.jenis_pengadaan.replace(/\s*-\s*TA\s*\d{4}.*/gi, '') : (tender.kategori || '-')}
-                                                            </div>
-                                                        </td>
-                                                        <td data-label="Pagu"><span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{tender.pagu}</span></td>
-                                                        <td data-label="Tahap">
-                                                            <span style={getTahapStyle(tender.tahap)}>{tender.tahap || '-'}</span>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
-                                                        Tidak ada tender yang ditemukan untuk filter kata kunci saat ini.
+                            <div className="table-wrapper">
+                                <table className="tender-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nomor</th>
+                                            <th>Nama Paket</th>
+                                            <th>K/L/Pemda/Instansi</th>
+                                            <th>Jenis/Tipe</th>
+                                            <th>Pagu</th>
+                                            <th>Tahap Saat Ini</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {isLoadingExplorer ? (
+                                            Array.from({ length: 6 }).map((_, rIdx) => (
+                                                <tr key={`skel-expl-${rIdx}`}>
+                                                    <td data-label="Nomor"><div className="skeleton-box" style={{ height: '14px', width: '65px' }} /></td>
+                                                    <td data-label="Nama Paket">
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                            <div className="skeleton-box" style={{ height: '16px', width: `${60 + (rIdx * 15) % 35}%` }} />
+                                                            <div className="skeleton-box" style={{ height: '11px', width: '38%' }} />
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Instansi"><div className="skeleton-box" style={{ height: '14px', width: '130px' }} /></td>
+                                                    <td data-label="Jenis/Tipe">
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                            <div className="skeleton-badge" style={{ width: '65px', height: '20px' }} />
+                                                            <div className="skeleton-box" style={{ height: '11px', width: '80px' }} />
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Pagu"><div className="skeleton-box" style={{ height: '15px', width: '105px' }} /></td>
+                                                    <td data-label="Tahap"><div className="skeleton-badge" style={{ width: '90px', height: '22px' }} /></td>
+                                                </tr>
+                                            ))
+                                        ) : tenders.length > 0 ? (
+                                            tenders.map((tender, index) => (
+                                                <tr key={index} onClick={() => handleViewTenderDetail(tender.nomor_pengadaan)}>
+                                                    <td data-label="Nomor">{tender.nomor_pengadaan}</td>
+                                                    <td data-label="Nama Paket">
+                                                        <div style={{ fontWeight: '500', color: '#fff' }}>
+                                                            {renderTenderTitle(tender.nama_tender)}
+                                                        </div>
+                                                        <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+                                                            Lokasi: {tender.lokasi_pekerjaan || '-'}
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Instansi">{tender.instansi}</td>
+                                                    <td data-label="Jenis/Tipe">
+                                                        <span className={`badge ${tender.tipe === 'tender' ? 'badge-tender' : 'badge-nontender'}`}>
+                                                            {tender.tipe ? tender.tipe.toUpperCase() : 'TENDER'}
+                                                        </span>
+                                                        <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', fontWeight: '500' }}>
+                                                            {tender.jenis_pengadaan ? tender.jenis_pengadaan.replace(/\s*-\s*TA\s*\d{4}.*/gi, '') : (tender.kategori || '-')}
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Pagu"><span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{tender.pagu}</span></td>
+                                                    <td data-label="Tahap">
+                                                        <span style={getTahapStyle(tender.tahap)}>{tender.tahap || '-'}</span>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
+                                                    Tidak ada tender yang ditemukan untuk filter kata kunci saat ini.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
 
                             {/* Pagination */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
@@ -12079,9 +12176,34 @@ function App() {
                         </div>
 
                         {isLoadingCompetitor ? (
-                            <div style={{ textAlign: 'center', padding: '80px', color: '#9ca3af' }}>
-                                <div className="spinner" style={{ width: '36px', height: '36px', borderWidth: '4px', marginBottom: '16px' }}></div>
-                                <p>Mengompilasi data analitik kompetitor...</p>
+                            <div>
+                                {/* Competitor Header Skeleton */}
+                                <div className="panel" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, rgba(20,27,48,0.7), rgba(15,19,34,0.7))', borderLeft: '4px solid var(--color-primary)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                                        <div style={{ flex: 1, minWidth: '260px' }}>
+                                            <div className="skeleton-badge" style={{ width: '130px', height: '22px' }} />
+                                            <div className="skeleton-box" style={{ width: '65%', height: '28px', marginTop: '12px' }} />
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+                                                <div className="skeleton-box" style={{ width: '220px', height: '14px' }} />
+                                                <div className="skeleton-box" style={{ width: '340px', height: '14px' }} />
+                                            </div>
+                                        </div>
+                                        <div style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.15)', padding: '16px 24px', borderRadius: '12px', textAlign: 'center', minWidth: '150px' }}>
+                                            <div className="skeleton-box" style={{ width: '100px', height: '12px', margin: '0 auto' }} />
+                                            <div className="skeleton-box" style={{ width: '70px', height: '36px', margin: '10px auto 0' }} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Metric Cards Skeleton */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                    {Array.from({ length: 4 }).map((_, mIdx) => (
+                                        <div key={`skel-comp-m-${mIdx}`} className="panel" style={{ padding: '20px' }}>
+                                            <div className="skeleton-box" style={{ width: '90px', height: '12px' }} />
+                                            <div className="skeleton-box" style={{ width: '60px', height: '28px', marginTop: '10px' }} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ) : competitorProfile ? (
                             <div>

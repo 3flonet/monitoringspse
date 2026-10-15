@@ -343,19 +343,31 @@ export default function CompanyLeadsManager({ token }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         <div style={{ backgroundColor: '#1e293b', padding: '20px', borderRadius: '12px', border: '1px solid #334155' }}>
           <div style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>TOTAL PERUSAHAAN TEREKAM</div>
-          <div style={{ fontSize: '28px', fontWeight: '800', color: '#fff' }}>{stats.total_companies.toLocaleString('id-ID')}</div>
+          {loading && !stats.total_companies ? (
+            <div className="skeleton-box" style={{ width: '130px', height: '34px', margin: '4px 0', borderRadius: '8px' }} />
+          ) : (
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#fff' }}>{stats.total_companies.toLocaleString('id-ID')}</div>
+          )}
           <div style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}>Peserta & Pemenang SPSE</div>
         </div>
 
         <div style={{ backgroundColor: '#1e293b', padding: '20px', borderRadius: '12px', border: '1px solid #065f46' }}>
           <div style={{ color: '#34d399', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>SUDAH ADA KONTAK</div>
-          <div style={{ fontSize: '28px', fontWeight: '800', color: '#34d399' }}>{stats.has_contact.toLocaleString('id-ID')}</div>
+          {loading && !stats.total_companies ? (
+            <div className="skeleton-box" style={{ width: '110px', height: '34px', margin: '4px 0', borderRadius: '8px' }} />
+          ) : (
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#34d399' }}>{stats.has_contact.toLocaleString('id-ID')}</div>
+          )}
           <div style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}>Telah diisi email / telp</div>
         </div>
 
         <div style={{ backgroundColor: '#1e293b', padding: '20px', borderRadius: '12px', border: '1px solid #854d0e' }}>
           <div style={{ color: '#facc15', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>BELUM ADA KONTAK</div>
-          <div style={{ fontSize: '28px', fontWeight: '800', color: '#facc15' }}>{stats.no_contact.toLocaleString('id-ID')}</div>
+          {loading && !stats.total_companies ? (
+            <div className="skeleton-box" style={{ width: '110px', height: '34px', margin: '4px 0', borderRadius: '8px' }} />
+          ) : (
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#facc15' }}>{stats.no_contact.toLocaleString('id-ID')}</div>
+          )}
           <div style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}>Perlu di-prospecting</div>
         </div>
       </div>
@@ -457,12 +469,36 @@ export default function CompanyLeadsManager({ token }) {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                    <RefreshIcon size={28} className="animate-spin" style={{ margin: '0 auto 12px auto', display: 'block', color: '#6366f1' }} />
-                    Memuat data perusahaan prospek...
-                  </td>
-                </tr>
+                Array.from({ length: 7 }).map((_, idx) => (
+                  <tr key={`lead-skeleton-${idx}`} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div className="skeleton-box" style={{ width: '24px', height: '16px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div className="skeleton-box" style={{ width: `${170 + (idx % 4) * 35}px`, height: '16px', marginBottom: '8px' }} />
+                      <div className="skeleton-box" style={{ width: '120px', height: '12px', opacity: 0.6 }} />
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <div className="skeleton-box" style={{ width: '32px', height: '16px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <div className="skeleton-box" style={{ width: '42px', height: '22px', borderRadius: '6px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <div className="skeleton-box" style={{ width: '42px', height: '16px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                      <div className="skeleton-box" style={{ width: '120px', height: '16px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div className="skeleton-box" style={{ width: '145px', height: '14px', marginBottom: '6px' }} />
+                      <div className="skeleton-box" style={{ width: '110px', height: '14px' }} />
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <div className="skeleton-box" style={{ width: '82px', height: '32px', borderRadius: '8px' }} />
+                    </td>
+                  </tr>
+                ))
               ) : leads.length === 0 ? (
                 <tr>
                   <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
