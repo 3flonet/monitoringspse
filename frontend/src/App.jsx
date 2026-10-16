@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Chatbot from './components/Chatbot';
 import AdminLeadsManager from './components/AdminLeadsManager';
 import CompanyLeadsManager from './components/CompanyLeadsManager';
@@ -4384,6 +4384,9 @@ function App() {
     // Control Panel States
     const [crawlTipe, setCrawlTipe] = useState('tender');
     const [crawlKategori, setCrawlKategori] = useState('nasional');
+    const [crawlKategoriSearch, setCrawlKategoriSearch] = useState('');
+    const [isCrawlKategoriOpen, setIsCrawlKategoriOpen] = useState(false);
+    const crawlKategoriDropdownRef = useRef(null);
     const [crawlJenis, setCrawlJenis] = useState('');
     const [crawlTahun, setCrawlTahun] = useState(String(currentYear));
     const [crawlLimit, setCrawlLimit] = useState(10);
@@ -5143,6 +5146,17 @@ function App() {
             }
         }
     }, [lpseInstances, alertInstansi, crawlKategori]);
+
+    // Close crawl category searchable dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (crawlKategoriDropdownRef.current && !crawlKategoriDropdownRef.current.contains(e.target)) {
+                setIsCrawlKategoriOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Re-fetch settings/logs when admin tabs are opened
     useEffect(() => {
@@ -10102,18 +10116,309 @@ function App() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label>K/L/Pemda/Instansi (Kategori Slug)</label>
-                                        <select
+                                    <div className="form-group" ref={crawlKategoriDropdownRef} style={{ position: 'relative' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label style={{ margin: 0 }}>K/L/Pemda/Instansi (Kategori Slug)</label>
+                                            {crawlKategori !== 'all' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setCrawlKategori('all'); setCrawlStart(0); }}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: '#818cf8',
+                                                        fontSize: '11px',
+                                                        cursor: 'pointer',
+                                                        padding: 0,
+                                                        fontWeight: '500',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px'
+                                                    }}
+                                                >
+                                                    <span>↺</span> Reset ke Semua
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Dropdown Trigger Box */}
+                                        <div
                                             className="form-control"
-                                            value={crawlKategori}
-                                            onChange={(e) => { setCrawlKategori(e.target.value); setCrawlStart(0); }}
+                                            onClick={() => {
+                                                setIsCrawlKategoriOpen(prev => !prev);
+                                                if (!isCrawlKategoriOpen) setCrawlKategoriSearch('');
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                cursor: 'pointer',
+                                                userSelect: 'none',
+                                                background: isCrawlKategoriOpen ? 'rgba(99, 102, 241, 0.08)' : undefined,
+                                                borderColor: isCrawlKategoriOpen ? '#6366f1' : undefined,
+                                                padding: '10px 14px'
+                                            }}
                                         >
-                                            <option value="all">-- Semua K/L/Pemda/Instansi --</option>
-                                            {lpseInstances.map((inst, idx) => (
-                                                <option key={idx} value={inst.slug}>{inst.name}</option>
-                                            ))}
-                                        </select>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', minWidth: 0 }}>
+                                                <span style={{ fontSize: '14px', flexShrink: 0 }}>{crawlKategori === 'all' ? '🌐' : '🏛️'}</span>
+                                                <span style={{
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    fontWeight: crawlKategori === 'all' ? 'normal' : '600',
+                                                    color: crawlKategori === 'all' ? '#94a3b8' : '#f8fafc',
+                                                    fontSize: '13px'
+                                                }}>
+                                                    {crawlKategori === 'all'
+                                                        ? '-- Semua K/L/Pemda/Instansi --'
+                                                        : (lpseInstances.find(i => i.slug === crawlKategori)?.name || crawlKategori)}
+                                                </span>
+                                                {crawlKategori !== 'all' && (
+                                                    <span style={{
+                                                        fontSize: '11px',
+                                                        padding: '1px 6px',
+                                                        borderRadius: '4px',
+                                                        background: 'rgba(99, 102, 241, 0.25)',
+                                                        color: '#c7d2fe',
+                                                        fontFamily: 'monospace',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {crawlKategori}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                style={{
+                                                    transition: 'transform 0.2s',
+                                                    transform: isCrawlKategoriOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                    color: '#94a3b8',
+                                                    flexShrink: 0,
+                                                    marginLeft: '8px'
+                                                }}
+                                            >
+                                                <path d="m6 9 6 6 6-6" />
+                                            </svg>
+                                        </div>
+
+                                        {/* Dropdown Popover with Search Filter */}
+                                        {isCrawlKategoriOpen && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                left: 0,
+                                                right: 0,
+                                                marginTop: '6px',
+                                                background: '#0f172a',
+                                                border: '1px solid rgba(99, 102, 241, 0.35)',
+                                                borderRadius: '12px',
+                                                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.75)',
+                                                zIndex: 100,
+                                                overflow: 'hidden',
+                                                backdropFilter: 'blur(16px)'
+                                            }}>
+                                                {/* Search Input Box */}
+                                                <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                                        <svg
+                                                            width="14"
+                                                            height="14"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="#94a3b8"
+                                                            strokeWidth="2"
+                                                            style={{ position: 'absolute', left: '10px', pointerEvents: 'none' }}
+                                                        >
+                                                            <circle cx="11" cy="11" r="8"></circle>
+                                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                        </svg>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Cari nama atau slug instansi..."
+                                                            value={crawlKategoriSearch}
+                                                            onChange={(e) => setCrawlKategoriSearch(e.target.value)}
+                                                            autoFocus
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '8px 28px 8px 32px',
+                                                                background: 'rgba(15, 23, 42, 0.85)',
+                                                                border: '1px solid rgba(99, 102, 241, 0.25)',
+                                                                borderRadius: '8px',
+                                                                color: '#f8fafc',
+                                                                fontSize: '13px',
+                                                                outline: 'none',
+                                                                boxSizing: 'border-box'
+                                                            }}
+                                                            onFocus={(e) => e.target.style.borderColor = '#6366f1'}
+                                                            onBlur={(e) => e.target.style.borderColor = 'rgba(99, 102, 241, 0.25)'}
+                                                        />
+                                                        {crawlKategoriSearch && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setCrawlKategoriSearch('')}
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    right: '8px',
+                                                                    background: 'rgba(255,255,255,0.08)',
+                                                                    border: 'none',
+                                                                    color: '#94a3b8',
+                                                                    borderRadius: '50%',
+                                                                    width: '18px',
+                                                                    height: '18px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    cursor: 'pointer',
+                                                                    padding: 0,
+                                                                    fontSize: '11px'
+                                                                }}
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        marginTop: '6px',
+                                                        fontSize: '11px',
+                                                        color: '#64748b'
+                                                    }}>
+                                                        <span>
+                                                            {lpseInstances.filter(inst => {
+                                                                if (!crawlKategoriSearch.trim()) return true;
+                                                                const q = crawlKategoriSearch.toLowerCase();
+                                                                return (inst.name && inst.name.toLowerCase().includes(q)) || (inst.slug && inst.slug.toLowerCase().includes(q));
+                                                            }).length} dari {lpseInstances.length} instansi
+                                                        </span>
+                                                        {crawlKategoriSearch && (
+                                                            <span style={{ color: '#a5b4fc', fontStyle: 'italic' }}>
+                                                                "{crawlKategoriSearch}"
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Options Scrollable Container */}
+                                                <div style={{ maxHeight: '250px', overflowY: 'auto', padding: '6px 0' }}>
+                                                    {/* Option: Semua Instansi */}
+                                                    {(!crawlKategoriSearch.trim() || 'semua k/l/pemda/instansi all'.includes(crawlKategoriSearch.toLowerCase())) && (
+                                                        <div
+                                                            onClick={() => {
+                                                                setCrawlKategori('all');
+                                                                setCrawlStart(0);
+                                                                setIsCrawlKategoriOpen(false);
+                                                            }}
+                                                            style={{
+                                                                padding: '8px 14px',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                                background: crawlKategori === 'all' ? 'rgba(99, 102, 241, 0.18)' : 'transparent',
+                                                                color: crawlKategori === 'all' ? '#a5b4fc' : '#cbd5e1',
+                                                                fontSize: '13px',
+                                                                fontWeight: crawlKategori === 'all' ? '600' : 'normal',
+                                                                borderLeft: crawlKategori === 'all' ? '3px solid #6366f1' : '3px solid transparent',
+                                                                transition: 'background 0.15s'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                if (crawlKategori !== 'all') e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                if (crawlKategori !== 'all') e.currentTarget.style.background = 'transparent';
+                                                            }}
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <span>🌐</span>
+                                                                <span>-- Semua K/L/Pemda/Instansi --</span>
+                                                            </div>
+                                                            {crawlKategori === 'all' && (
+                                                                <span style={{ color: '#818cf8', fontSize: '13px', fontWeight: 'bold' }}>✓</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Filtered Instansi Items */}
+                                                    {(() => {
+                                                        const filtered = lpseInstances.filter(inst => {
+                                                            if (!crawlKategoriSearch.trim()) return true;
+                                                            const q = crawlKategoriSearch.toLowerCase();
+                                                            return (inst.name && inst.name.toLowerCase().includes(q)) || (inst.slug && inst.slug.toLowerCase().includes(q));
+                                                        });
+
+                                                        if (filtered.length === 0) {
+                                                            return (
+                                                                <div style={{ padding: '20px 14px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
+                                                                    Tidak ada instansi yang cocok dengan <em>"{crawlKategoriSearch}"</em>
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        return filtered.map((inst, idx) => {
+                                                            const isSelected = crawlKategori === inst.slug;
+                                                            return (
+                                                                <div
+                                                                    key={inst.slug || idx}
+                                                                    onClick={() => {
+                                                                        setCrawlKategori(inst.slug);
+                                                                        setCrawlStart(0);
+                                                                        setIsCrawlKategoriOpen(false);
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '8px 14px',
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'space-between',
+                                                                        background: isSelected ? 'rgba(99, 102, 241, 0.18)' : 'transparent',
+                                                                        color: isSelected ? '#a5b4fc' : '#e2e8f0',
+                                                                        fontSize: '13px',
+                                                                        fontWeight: isSelected ? '600' : 'normal',
+                                                                        borderLeft: isSelected ? '3px solid #6366f1' : '3px solid transparent',
+                                                                        transition: 'background 0.15s'
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        if (!isSelected) e.currentTarget.style.background = 'transparent';
+                                                                    }}
+                                                                >
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', minWidth: 0 }}>
+                                                                        <span style={{ fontSize: '13px', flexShrink: 0 }}>🏛️</span>
+                                                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                            {inst.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: '8px' }}>
+                                                                        <span style={{
+                                                                            fontSize: '11px',
+                                                                            padding: '1px 6px',
+                                                                            borderRadius: '4px',
+                                                                            background: isSelected ? 'rgba(99, 102, 241, 0.35)' : 'rgba(255, 255, 255, 0.06)',
+                                                                            color: isSelected ? '#c7d2fe' : '#94a3b8',
+                                                                            fontFamily: 'monospace'
+                                                                        }}>
+                                                                            {inst.slug}
+                                                                        </span>
+                                                                        {isSelected && (
+                                                                            <span style={{ color: '#818cf8', fontSize: '13px', fontWeight: 'bold' }}>✓</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        });
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group">
