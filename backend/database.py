@@ -1351,17 +1351,49 @@ def save_crawl_log(instansi, tipe="tender", status="success", records_count=0, e
     except Exception as e:
         logging.error(f"Failed to save crawl log to DB: {e}")
 
-def get_recent_crawl_logs(limit=50):
+def get_recent_crawl_logs(limit=15, offset=0):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM crawl_logs ORDER BY id DESC LIMIT ?", (int(limit),))
+        cursor.execute("SELECT COUNT(*) FROM crawl_logs")
+        count_row = cursor.fetchone()
+        total = count_row[0] if count_row else 0
+
+        cursor.execute("SELECT * FROM crawl_logs ORDER BY id DESC LIMIT ? OFFSET ?", (int(limit), int(offset)))
         rows = cursor.fetchall()
         conn.close()
-        return [dict(r) for r in rows] if rows else []
+        return ([dict(r) for r in rows] if rows else []), total
     except Exception as e:
         logging.error(f"Failed to fetch crawl logs from DB: {e}")
-        return []
+        return [], 0
+
+def get_crawl_logs_stats():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                COUNT(*),
+                SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END),
+                SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END),
+                SUM(CASE WHEN status IN ('failed', 'error') THEN 1 ELSE 0 END),
+                SUM(COALESCE(records_count, 0))
+            FROM crawl_logs
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return {
+                "total_logs": int(row[0] or 0),
+                "success": int(row[1] or 0),
+                "blocked": int(row[2] or 0),
+                "failed": int(row[3] or 0),
+                "total_records": int(row[4] or 0)
+            }
+        return {"total_logs": 0, "success": 0, "blocked": 0, "failed": 0, "total_records": 0}
+    except Exception as e:
+        logging.error(f"Failed to fetch crawl log stats: {e}")
+        return {"total_logs": 0, "success": 0, "blocked": 0, "failed": 0, "total_records": 0}
 
 def clear_all_crawl_logs():
     try:

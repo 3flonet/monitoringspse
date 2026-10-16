@@ -264,6 +264,10 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
     const [flashMsg, setFlashMsg] = useState(null);
     const [isAutoScraperEnabled, setIsAutoScraperEnabled] = useState(true);
     const [isTogglingScraper, setIsTogglingScraper] = useState(false);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(15);
+    const [totalLogs, setTotalLogs] = useState(0);
+    const [serverStats, setServerStats] = useState(null);
 
     const fetchSchedulerStatus = async () => {
         try {
@@ -309,10 +313,11 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
         }
     };
 
-    const fetchLogs = async () => {
+    const fetchLogs = async (targetPage = page, targetLimit = limit) => {
         setIsLoading(true);
+        const offset = (targetPage - 1) * targetLimit;
         try {
-            const res = await fetch('/api/admin/crawl-logs?limit=50', {
+            const res = await fetch(`/api/admin/crawl-logs?limit=${targetLimit}&offset=${offset}`, {
                 headers: {
                     'Authorization': `Bearer ${userToken}`
                 }
@@ -320,12 +325,27 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             if (res.ok) {
                 const data = await res.json();
                 setLogs(data.logs || []);
+                setTotalLogs(data.total !== undefined ? data.total : (data.logs || []).length);
+                if (data.stats) {
+                    setServerStats(data.stats);
+                }
             }
         } catch (e) {
             console.error('Failed to fetch crawl logs:', e);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+        fetchLogs(newPage, limit);
+    };
+
+    const handleLimitChange = (newLimit) => {
+        setLimit(newLimit);
+        setPage(1);
+        fetchLogs(1, newLimit);
     };
 
     const handleForceRunScraper = async () => {
@@ -342,7 +362,7 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             if (res.ok) {
                 setFlashMsg({ type: 'success', text: `🚀 ${data.message || 'Scraper otomatis seluruh LPSE berhasil dipicu di latar belakang!'}` });
                 // Polling refresh logs after 4 seconds to show new crawl progress
-                setTimeout(fetchLogs, 4000);
+                setTimeout(() => fetchLogs(1, limit), 4000);
             } else {
                 setFlashMsg({ type: 'error', text: data.detail || data.message || 'Gagal memicu scraper.' });
             }
@@ -366,6 +386,9 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
             const data = await res.json();
             if (res.ok) {
                 setLogs([]);
+                setTotalLogs(0);
+                setServerStats({ total_logs: 0, success: 0, blocked: 0, failed: 0, total_records: 0 });
+                setPage(1);
                 setShowConfirmModal(false);
                 setFlashMsg({ type: 'success', text: data.message || 'Log kesehatan penarikan & pemblokiran berhasil dibersihkan!' });
                 setTimeout(() => setFlashMsg(null), 5000);
@@ -383,15 +406,15 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
 
     useEffect(() => {
         if (userToken) {
-            fetchLogs();
+            fetchLogs(1, limit);
             fetchSchedulerStatus();
         }
     }, [userToken]);
 
-    const blockedCount = logs.filter(l => l.status === 'blocked').length;
-    const failedCount = logs.filter(l => l.status === 'failed' || l.status === 'error').length;
-    const successCount = logs.filter(l => l.status === 'success').length;
-    const totalTendersProcessed = logs.reduce((acc, l) => acc + (parseInt(l.records_count) || 0), 0);
+    const blockedCount = serverStats ? serverStats.blocked : logs.filter(l => l.status === 'blocked').length;
+    const failedCount = serverStats ? serverStats.failed : logs.filter(l => l.status === 'failed' || l.status === 'error').length;
+    const successCount = serverStats ? serverStats.success : logs.filter(l => l.status === 'success').length;
+    const totalTendersProcessed = serverStats ? serverStats.total_records : logs.reduce((acc, l) => acc + (parseInt(l.records_count) || 0), 0);
 
     return (
         <div style={{
@@ -694,7 +717,18 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {logs.length === 0 ? (
+                        {isLoading ? (
+                            Array.from({ length: Math.min(limit, 8) }).map((_, rIdx) => (
+                                <tr key={`skel-crawl-${rIdx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-box" style={{ width: '130px', height: '14px' }} /></td>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-box" style={{ width: '90px', height: '14px' }} /></td>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-badge" style={{ width: '60px', height: '20px' }} /></td>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-badge" style={{ width: '75px', height: '20px' }} /></td>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-box" style={{ width: '70px', height: '14px' }} /></td>
+                                    <td style={{ padding: '12px 14px' }}><div className="skeleton-box" style={{ width: '240px', height: '14px' }} /></td>
+                                </tr>
+                            ))
+                        ) : logs.length === 0 ? (
                             <tr>
                                 <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
                                     Belum ada log aktivitas crawling tersimpan. Klik tombol <strong>Jalankan Scraper Otomatis</strong> di atas untuk memulai.
@@ -733,6 +767,135 @@ const CrawlLogsHealthMonitor = ({ userToken }) => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalLogs > 0 && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '14px',
+                    marginTop: '16px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#94a3b8' }}>
+                        <span>
+                            Menampilkan <strong style={{ color: '#ffffff' }}>{Math.min((page - 1) * limit + 1, totalLogs)} - {Math.min(page * limit, totalLogs)}</strong> dari <strong style={{ color: '#ffffff' }}>{totalLogs}</strong> total log
+                        </span>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '12px' }}>Tampilkan:</span>
+                            <select
+                                value={limit}
+                                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                                style={{
+                                    background: 'rgba(15, 23, 42, 0.8)',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                    color: '#ffffff',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    fontSize: '12px',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value={10}>10</option>
+                                <option value={15}>15</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                            onClick={() => handlePageChange(1)}
+                            disabled={page <= 1 || isLoading}
+                            title="Halaman Pertama"
+                            style={{
+                                background: page <= 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.08)',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                color: page <= 1 ? '#475569' : '#e2e8f0',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: page <= 1 || isLoading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            « Pertama
+                        </button>
+                        <button
+                            onClick={() => handlePageChange(page - 1)}
+                            disabled={page <= 1 || isLoading}
+                            title="Halaman Sebelumnya"
+                            style={{
+                                background: page <= 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.08)',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                color: page <= 1 ? '#475569' : '#e2e8f0',
+                                padding: '6px 14px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: page <= 1 || isLoading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            ‹ Sebelumnya
+                        </button>
+                        <span style={{
+                            padding: '6px 14px',
+                            background: 'rgba(99, 102, 241, 0.15)',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            borderRadius: '8px',
+                            color: '#a5b4fc',
+                            fontSize: '12px',
+                            fontWeight: '700'
+                        }}>
+                            Halaman {page} dari {Math.max(1, Math.ceil(totalLogs / limit))}
+                        </span>
+                        <button
+                            onClick={() => handlePageChange(page + 1)}
+                            disabled={page >= Math.ceil(totalLogs / limit) || isLoading}
+                            title="Halaman Berikutnya"
+                            style={{
+                                background: page >= Math.ceil(totalLogs / limit) ? 'rgba(255,255,255,0.02)' : 'rgba(99, 102, 241, 0.2)',
+                                border: page >= Math.ceil(totalLogs / limit) ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(99, 102, 241, 0.4)',
+                                color: page >= Math.ceil(totalLogs / limit) ? '#475569' : '#ffffff',
+                                padding: '6px 14px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: page >= Math.ceil(totalLogs / limit) || isLoading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Berikutnya ›
+                        </button>
+                        <button
+                            onClick={() => handlePageChange(Math.ceil(totalLogs / limit))}
+                            disabled={page >= Math.ceil(totalLogs / limit) || isLoading}
+                            title="Halaman Terakhir"
+                            style={{
+                                background: page >= Math.ceil(totalLogs / limit) ? 'rgba(255,255,255,0.02)' : 'rgba(99, 102, 241, 0.2)',
+                                border: page >= Math.ceil(totalLogs / limit) ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(99, 102, 241, 0.4)',
+                                color: page >= Math.ceil(totalLogs / limit) ? '#475569' : '#ffffff',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: page >= Math.ceil(totalLogs / limit) || isLoading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Terakhir »
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -679,12 +679,13 @@ def get_server_monitoring(current_user: dict = Depends(get_current_user)):
     }
 
 @app.get("/api/admin/crawl-logs")
-def get_admin_crawl_logs(limit: int = 50, current_user: dict = Depends(get_current_user)):
+def get_admin_crawl_logs(limit: int = 15, offset: int = 0, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Akses ditolak.")
-    from backend.database import get_recent_crawl_logs
-    logs = get_recent_crawl_logs(limit=limit)
-    return {"logs": logs}
+    from backend.database import get_recent_crawl_logs, get_crawl_logs_stats
+    logs, total = get_recent_crawl_logs(limit=limit, offset=offset)
+    stats = get_crawl_logs_stats()
+    return {"logs": logs, "total": total, "stats": stats}
 
 @app.delete("/api/admin/crawl-logs")
 def clear_admin_crawl_logs(current_user: dict = Depends(get_current_user)):
