@@ -1346,8 +1346,8 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
     4. Triggers background crawling for fresh tenders.
     """
     import time
-    from backend.email_notifier import send_email_alert
-    from backend.whatsapp_notifier import send_whatsapp_alert
+    from backend.email_notifier import send_email_alert, send_email_digest_alert
+    from backend.whatsapp_notifier import send_whatsapp_alert, send_whatsapp_digest_alert
     from backend.crawl_coordinator import run_crawl, is_tender_active
 
     try:
@@ -1395,6 +1395,7 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
             if user_row and user_row["whatsapp"]:
                 target_wa = user_row["whatsapp"]
 
+        matched_items = []
         for row in rows:
             tender = dict(row)
             nomor_pengadaan = tender["nomor_pengadaan"]
@@ -1411,24 +1412,56 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
 
             title_lower = tender["nama_tender"].lower()
             matched_kw = next((k for k in sub_keywords if k in title_lower), sub_keywords[0])
+            matched_items.append({"tender": tender, "matched_kw": matched_kw})
 
-            email_sent = send_email_alert(email, matched_kw, tender)
+        has_wa = bool(target_wa and target_wa.strip())
+
+        # Digest threshold: If > 3 matched tenders, consolidate into 1 digest alert to prevent spam reports / WhatsApp ban
+        if len(matched_items) > 3:
+            logging.info(f"Initial Alert Digest: {len(matched_items)} existing tenders matched alert #{alert_id}. Consolidating into 1 digest alert.")
+            tenders_list = [item["tender"] for item in matched_items]
+
+            email_sent = send_email_digest_alert(email, raw_kw, tenders_list)
             wa_sent = False
-            if target_wa and target_wa.strip():
+            if has_wa:
                 if is_wa_verified:
-                    wa_sent = send_whatsapp_alert(target_wa.strip(), matched_kw, tender)
+                    wa_sent = send_whatsapp_digest_alert(target_wa.strip(), raw_kw, tenders_list)
                 else:
-                    logging.info(f"Skipping initial WA alert to {target_wa}: Belum verifikasi chat inbound.")
+                    logging.info(f"Skipping initial WA digest alert to {target_wa}: Belum verifikasi chat inbound.")
 
             if email_sent or wa_sent:
-                try:
-                    cursor.execute("INSERT OR IGNORE INTO sent_alerts (alert_id, nomor_pengadaan, sent_at) VALUES (?, ?, ?)", (alert_id, nomor_pengadaan, now_str))
-                    conn.commit()
-                except Exception as e:
-                    logging.error(f"Error recording sent alert: {e}")
+                for item in matched_items:
+                    t_nomor = item["tender"]["nomor_pengadaan"]
+                    try:
+                        cursor.execute("INSERT OR IGNORE INTO sent_alerts (alert_id, nomor_pengadaan, sent_at) VALUES (?, ?, ?)", (alert_id, t_nomor, now_str))
+                    except Exception as e:
+                        logging.error(f"Error recording digest sent alert: {e}")
+                conn.commit()
 
-            # 3. 5-second notification delay throttle to prevent spam detection
             time.sleep(5)
+        else:
+            # <= 3 tenders: send individual alerts with 5-second interval
+            for item in matched_items:
+                tender = item["tender"]
+                matched_kw = item["matched_kw"]
+                nomor_pengadaan = tender["nomor_pengadaan"]
+
+                email_sent = send_email_alert(email, matched_kw, tender)
+                wa_sent = False
+                if has_wa:
+                    if is_wa_verified:
+                        wa_sent = send_whatsapp_alert(target_wa.strip(), matched_kw, tender)
+                    else:
+                        logging.info(f"Skipping initial WA alert to {target_wa}: Belum verifikasi chat inbound.")
+
+                if email_sent or wa_sent:
+                    try:
+                        cursor.execute("INSERT OR IGNORE INTO sent_alerts (alert_id, nomor_pengadaan, sent_at) VALUES (?, ?, ?)", (alert_id, nomor_pengadaan, now_str))
+                        conn.commit()
+                    except Exception as e:
+                        logging.error(f"Error recording sent alert: {e}")
+
+                time.sleep(5)
 
         conn.close()
 

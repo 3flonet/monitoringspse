@@ -186,7 +186,7 @@ def send_whatsapp_direct(to_number: str, message: str) -> bool:
         try:
             url = "https://api.fonnte.com/send"
             headers = {"Authorization": token}
-            data = {"target": clean_num, "message": message, "countryCode": "62"}
+            data = {"target": clean_num, "message": message, "countryCode": "62", "typing": True, "delay": "1"}
             resp = requests.post(url, headers=headers, data=data, timeout=12)
             res_json = resp.json()
             if resp.status_code == 200 and res_json.get("status"):
@@ -336,7 +336,9 @@ def send_whatsapp_alert(to_number: str, keyword: str, tender: dict) -> bool:
             data = {
                 "target": to_number,
                 "message": message,
-                "countryCode": "62"
+                "countryCode": "62",
+                "typing": True,
+                "delay": "2"
             }
             response = requests.post(url, headers=headers, data=data, timeout=15)
             res_json = response.json()
@@ -349,6 +351,80 @@ def send_whatsapp_alert(to_number: str, keyword: str, tender: dict) -> bool:
             logging.error(f"Failed to connect to Fonnte API: {e}")
             
     # Fallback to local mock log file
+    return _write_mock_log(to_number, message)
+
+def send_whatsapp_digest_alert(to_number: str, keyword: str, tenders: list) -> bool:
+    """
+    Send a consolidated WhatsApp digest alert when multiple tenders (>3) match in a single crawl session.
+    Prevents burst messaging spam and protects WhatsApp number from being reported/banned.
+    Includes Fonnte native typing simulation and internal delay.
+    """
+    if not tenders:
+        return False
+        
+    from backend.database import get_setting
+    app_name = get_setting("app_name", "Spy SPSE")
+    app_logo = get_setting("app_logo", "🕵🏼‍♂️")
+    app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
+    
+    total_count = len(tenders)
+    # Display up to 5 tenders in detail, summarize remainder
+    display_tenders = tenders[:5]
+    
+    tender_items = []
+    for idx, t in enumerate(display_tenders, 1):
+        nomor = t.get("nomor_pengadaan", "-")
+        nama = t.get("nama_tender", "-")
+        instansi = t.get("instansi", "-")
+        pagu = t.get("pagu", "-")
+        tahap = t.get("tahap", "-")
+        link = f"{app_url}/#/tender/{nomor}"
+        tender_items.append(
+            f"*{idx}. {nama}*\n"
+            f"   • Instansi: {instansi}\n"
+            f"   • Pagu: {pagu} | Tahap: {tahap}\n"
+            f"   • Link: {link}"
+        )
+        
+    tenders_formatted = "\n\n".join(tender_items)
+    more_info = ""
+    if total_count > 5:
+        more_info = f"\n\n_... dan {total_count - 5} lelang lainnya yang cocok dapat dilihat langsung di portal._"
+        
+    message = (
+        f"{app_logo} *{app_name} — Ringkasan Radar Tender*\n\n"
+        f"Ditemukan *{total_count} paket lelang baru* yang cocok dengan kata kunci: *\"{keyword}\"*\n\n"
+        f"{tenders_formatted}"
+        f"{more_info}\n\n"
+        f"🔍 *Telusuri Semua Tender:* {app_url}/#/explorer\n\n"
+        f"💡 _Ingin jeda notifikasi? Balas *STOP* untuk mematikan._"
+    )
+    
+    # Add random delay (2 - 4s) to mimic human typing
+    time.sleep(random.uniform(2.0, 4.0))
+    
+    config = _get_whatsapp_config()
+    if config["token"]:
+        try:
+            url = "https://api.fonnte.com/send"
+            headers = {"Authorization": config["token"]}
+            data = {
+                "target": to_number,
+                "message": message,
+                "countryCode": "62",
+                "typing": True,
+                "delay": "3"
+            }
+            response = requests.post(url, headers=headers, data=data, timeout=15)
+            res_json = response.json()
+            if response.status_code == 200 and res_json.get("status"):
+                logging.info(f"WhatsApp digest alert ({total_count} tenders) sent successfully to {to_number} via Fonnte")
+                return True
+            else:
+                logging.error(f"Fonnte API digest responded with error: {res_json.get('reason', 'Unknown error')}")
+        except Exception as e:
+            logging.error(f"Failed to send digest alert via Fonnte: {e}")
+            
     return _write_mock_log(to_number, message)
 
 def send_test_whatsapp(to_number: str, api_token: str = None) -> dict:
@@ -376,7 +452,9 @@ def send_test_whatsapp(to_number: str, api_token: str = None) -> dict:
         data = {
             "target": to_number,
             "message": message,
-            "countryCode": "62"
+            "countryCode": "62",
+            "typing": True,
+            "delay": "1"
         }
         response = requests.post(url, headers=headers, data=data, timeout=15)
         res_json = response.json()
@@ -413,7 +491,7 @@ def send_credentials_whatsapp(to_number: str, email: str, password: str = None, 
         try:
             url = "https://api.fonnte.com/send"
             headers = {"Authorization": token}
-            data = {"target": to_number, "message": message, "countryCode": "62"}
+            data = {"target": to_number, "message": message, "countryCode": "62", "typing": True, "delay": "2"}
             response = requests.post(url, headers=headers, data=data, timeout=15)
             res_json = response.json()
             if response.status_code == 200 and res_json.get("status"):
@@ -451,7 +529,7 @@ def send_password_reset_whatsapp(to_number: str, reset_link: str, expire_minutes
         try:
             url = "https://api.fonnte.com/send"
             headers = {"Authorization": token}
-            data = {"target": to_number, "message": message, "countryCode": "62"}
+            data = {"target": to_number, "message": message, "countryCode": "62", "typing": True, "delay": "1"}
             response = requests.post(url, headers=headers, data=data, timeout=15)
             res_json = response.json()
             if response.status_code == 200 and res_json.get("status"):
@@ -492,7 +570,7 @@ def send_admin_crawl_alert(instansi: str, error_reason: str) -> dict:
         try:
             url = "https://api.fonnte.com/send"
             headers = {"Authorization": token}
-            data = {"target": admin_wa, "message": message, "countryCode": "62"}
+            data = {"target": admin_wa, "message": message, "countryCode": "62", "typing": True, "delay": "1"}
             response = requests.post(url, headers=headers, data=data, timeout=15)
             res_json = response.json()
             if response.status_code == 200 and res_json.get("status"):

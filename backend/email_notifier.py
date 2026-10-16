@@ -376,4 +376,76 @@ def send_password_reset_email(to_email: str, reset_link: str, expire_minutes: in
     _write_mock_log(smtp["sender"], to_email, subject, "RESET_PASSWORD", {"nomor_pengadaan": reset_link, "nama_tender": "Password Reset Link"})
     return {"success": True, "message": f"[LOG MODE] Instruksi reset kata sandi berhasil dicatat di log Email."}
 
+def send_email_digest_alert(to_email: str, keyword: str, tenders: list) -> bool:
+    """Send an HTML email digest summarizing multiple newly discovered tenders."""
+    if not tenders or not to_email:
+        return False
+        
+    from backend.database import get_setting
+    app_name = get_setting("app_name", "Spy SPSE")
+    app_logo = get_setting("app_logo", "🕵🏼‍♂️")
+    app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
+    smtp = _get_smtp_config()
+    
+    total = len(tenders)
+    subject = f"{app_logo} {app_name} — Ringkasan Radar: {total} Tender Baru (\"{keyword}\")"
+    
+    items_html = ""
+    for idx, t in enumerate(tenders[:10], 1):
+        nomor = t.get("nomor_pengadaan", "-")
+        nama = t.get("nama_tender", "-")
+        instansi = t.get("instansi", "-")
+        pagu = t.get("pagu", "-")
+        tahap = t.get("tahap", "-")
+        link = f"{app_url}/#/tender/{nomor}"
+        items_html += f"""
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 6px;">{idx}. {nama}</div>
+            <div style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 10px;">
+                🏢 <strong>Instansi:</strong> {instansi}<br>
+                💰 <strong>Pagu:</strong> <span style="color: #b45309; font-weight: bold;">{pagu}</span> | 📌 <strong>Tahap:</strong> {tahap}
+            </div>
+            <a href="{link}" style="display: inline-block; font-size: 12px; font-weight: bold; color: #4f46e5; text-decoration: none;">Lihat Pengumuman Resmi &rarr;</a>
+        </div>
+        """
+        
+    more_html = ""
+    if total > 10:
+        more_html = f"<p style='color: #64748b; font-size: 13px; text-align: center;'>... dan <strong>{total - 10} lelang lainnya</strong> yang dapat Anda akses di portal.</p>"
+        
+    html_content = f"""
+    <html><body style="font-family: Arial, sans-serif; padding: 20px; color: #333; background: #f1f5f9;">
+        <div style="max-width: 600px; margin: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #4f46e5, #6366f1); padding: 24px; text-align: center; color: white;">
+                <h2 style="margin: 0; font-size: 22px;">{app_logo} {app_name}</h2>
+                <p style="margin: 6px 0 0; opacity: 0.9; font-size: 14px;">Ringkasan Radar Tender Baru</p>
+            </div>
+            <div style="padding: 24px;">
+                <p style="font-size: 14px;">Halo,</p>
+                <p style="font-size: 14px; line-height: 1.5;">
+                    Sistem mendeteksi <strong>{total} paket pengadaan baru</strong> yang cocok dengan kata kunci pantauan Anda: <strong style="color: #4f46e5;">"{keyword}"</strong>.
+                </p>
+                <div style="margin-top: 20px;">
+                    {items_html}
+                </div>
+                {more_html}
+                <div style="text-align: center; margin-top: 24px;">
+                    <a href="{app_url}/#/explorer" style="display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">Buka Explorer Tender</a>
+                </div>
+                <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;">
+                <p style="font-size: 11px; color: #94a3b8; text-align: center;">Anda menerima notifikasi ini karena berlangganan alert tender di {app_name}.</p>
+            </div>
+        </div>
+    </body></html>
+    """
+    
+    if smtp["host"] and smtp["user"] and smtp["password"]:
+        try:
+            _send_via_smtp(smtp, to_email, subject, html_content)
+            return True
+        except Exception as e:
+            logging.error(f"Failed to send email digest alert via SMTP: {e}")
+            
+    return _write_mock_log(smtp["sender"], to_email, subject, keyword, {"nomor_pengadaan": "DIGEST", "nama_tender": f"{total} Tenders Summary"})
+
 

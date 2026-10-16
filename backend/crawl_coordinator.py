@@ -281,7 +281,8 @@ def check_alerts_and_notify(new_tenders):
         return 0
         
     import time
-    from backend.whatsapp_notifier import send_whatsapp_alert
+    from backend.whatsapp_notifier import send_whatsapp_alert, send_whatsapp_digest_alert
+    from backend.email_notifier import send_email_alert, send_email_digest_alert
     
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -333,6 +334,7 @@ def check_alerts_and_notify(new_tenders):
             except Exception:
                 continue
         
+        matched_items = []
         for tender in new_tenders:
             nomor_pengadaan = tender['nomor_pengadaan']
             tender_kategori = tender.get('kategori', '').strip().lower()
@@ -370,21 +372,58 @@ def check_alerts_and_notify(new_tenders):
             matched_kw = next((kw for kw in keywords_list if kw in title or kw in syarat or kw in uraian), None)
             
             if matched_kw:
-                logging.info(f"Match found! Alert sub-keyword '{matched_kw}' (from '{raw_kw}') on '{tender_kategori}' triggered by tender {nomor_pengadaan}")
+                matched_items.append({"tender": tender, "matched_kw": matched_kw})
+
+        if not matched_items:
+            continue
+            
+        is_wa_verified = bool(alert.get('wa_verified'))
+        has_wa = bool(whatsapp and whatsapp.strip())
+        
+        # Digest threshold: If > 3 matched tenders in single crawl, send 1 digest alert
+        if len(matched_items) > 3:
+            logging.info(f"Digest Alert Triggered: {len(matched_items)} tenders matched alert #{alert_id} ('{raw_kw}'). Consolidating into 1 digest alert.")
+            tenders_list = [item["tender"] for item in matched_items]
+            
+            email_sent = send_email_digest_alert(email, raw_kw, tenders_list)
+            wa_sent = False
+            if has_wa:
+                if is_wa_verified:
+                    wa_sent = send_whatsapp_digest_alert(whatsapp.strip(), raw_kw, tenders_list)
+                else:
+                    logging.info(f"Skipping WA digest alert to {whatsapp} for user {alert.get('user_id')}: Belum verifikasi chat inbound.")
+                    
+            if email_sent or wa_sent:
+                for item in matched_items:
+                    t_nomor = item["tender"]["nomor_pengadaan"]
+                    try:
+                        cursor.execute(
+                            "INSERT OR IGNORE INTO sent_alerts (alert_id, nomor_pengadaan, sent_at) VALUES (?, ?, ?)",
+                            (alert_id, t_nomor, now_str)
+                        )
+                        alerts_count += 1
+                    except Exception as e:
+                        logging.error(f"Error logging sent alert in digest: {e}")
+                conn.commit()
                 
-                # Send email
+            time.sleep(5)
+        else:
+            # <= 3 tenders: send individual alerts with 5-second interval
+            for item in matched_items:
+                tender = item["tender"]
+                matched_kw = item["matched_kw"]
+                nomor_pengadaan = tender["nomor_pengadaan"]
+                
+                logging.info(f"Match found! Alert sub-keyword '{matched_kw}' (from '{raw_kw}') on '{tender.get('kategori', '')}' triggered by tender {nomor_pengadaan}")
+                
                 email_sent = send_email_alert(email, matched_kw, tender)
-                
-                # Send WhatsApp only if user phone number is registered and WA is verified
                 wa_sent = False
-                is_wa_verified = bool(alert.get('wa_verified'))
-                if whatsapp and whatsapp.strip():
+                if has_wa:
                     if is_wa_verified:
                         wa_sent = send_whatsapp_alert(whatsapp.strip(), matched_kw, tender)
                     else:
                         logging.info(f"Skipping WA alert to {whatsapp} for user {alert.get('user_id')}: Belum verifikasi chat inbound.")
-                
-                # Record as sent if either email or WA succeeded (or mock fallback completed)
+                        
                 if email_sent or wa_sent:
                     try:
                         cursor.execute(
@@ -395,8 +434,7 @@ def check_alerts_and_notify(new_tenders):
                         alerts_count += 1
                     except Exception as e:
                         logging.error(f"Error logging sent alert: {e}")
-                
-                # 5-second notification delay throttle to prevent spam detection
+                        
                 time.sleep(5)
                         
     conn.close()
