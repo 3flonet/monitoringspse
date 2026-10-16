@@ -2117,29 +2117,46 @@ def trigger_crawl(req: CrawlRequest, background_tasks: BackgroundTasks, current_
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Akses ditolak.")
         
-    def run_sequential_crawl(tipe, category, tahun, limit, start, search):
-        if category == "all":
-            lpse_str = get_setting("lpse_instances", "[]")
-            try:
-                targets = [l["slug"] for l in json.loads(lpse_str)]
-            except Exception:
+    targets = []
+    if req.category == "all":
+        lpse_str = get_setting("lpse_instances", "[]")
+        try:
+            raw_list = json.loads(lpse_str)
+            targets = [
+                l["slug"].strip().lower() 
+                for l in raw_list 
+                if isinstance(l, dict) and l.get("slug") and l["slug"].strip()
+            ]
+            if not targets:
                 targets = ["nasional"]
-        else:
-            targets = [category]
-            
+        except Exception as e:
+            logging.error(f"Error parsing lpse_instances setting for crawl: {e}")
+            targets = ["nasional"]
+    else:
+        targets = [req.category]
+        
+    def run_sequential_crawl(tipe, target_list, tahun, limit, start, search):
         import time
-        for t in targets:
+        total = len(target_list)
+        logging.info(f"Sequential crawl dimulai untuk {total} target instansi (tipe={tipe}, tahun={tahun})")
+        for idx, t in enumerate(target_list, 1):
             try:
+                logging.info(f"[{idx}/{total}] Crawling instansi '{t}'...")
                 run_crawl(tipe=tipe, category=t, tahun=tahun, start=start, length=limit, search=search)
-                if len(targets) > 1:
+                if total > 1:
                     time.sleep(5.0)
             except Exception as e:
-                logging.error(f"Sequential crawl error for {t}: {e}")
+                logging.error(f"Sequential crawl error for '{t}': {e}")
+        logging.info(f"Sequential crawl selesai untuk seluruh {total} instansi.")
                 
-    background_tasks.add_task(run_sequential_crawl, req.tipe, req.category, req.tahun, req.limit, req.start, req.search)
+    background_tasks.add_task(run_sequential_crawl, req.tipe, targets, req.tahun, req.limit, req.start, req.search)
     
-    instansi_label = "seluruh instansi" if req.category == "all" else req.category
-    return {"status": "success", "message": f"Proses scraping untuk {instansi_label} berhasil dimasukkan ke antrean."}
+    if req.category == "all":
+        instansi_label = f"seluruh {len(targets)} K/L/Pemda/Instansi"
+    else:
+        instansi_label = f"instansi '{req.category}'"
+        
+    return {"status": "success", "message": f"Proses scraping untuk {instansi_label} berhasil dimasukkan ke antrean latar belakang ({len(targets)} target)."}
 
 # BOOKMARKS Realtime sync (ADMIN)
 @app.post("/api/admin/sync-bookmarks")

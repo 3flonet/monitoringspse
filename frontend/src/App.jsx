@@ -6439,8 +6439,14 @@ function App() {
         e.preventDefault();
         setIsCrawling(true);
         setCrawlResult(null);
+        const targetLabel = crawlKategori === 'all' 
+            ? `Seluruh ${lpseInstances.length} K/L/Pemda/Instansi` 
+            : (lpseInstances.find(i => i.slug === crawlKategori)?.name || crawlKategori);
         const jenisSuffix = crawlJenis ? ` | Jenis: ${crawlJenis}` : '';
-        setCrawlLogs(["[SYSTEM] Memulai permintaan crawling...", `[SYSTEM] Target: ${crawlKategori} (${crawlTipe}) - Tahun ${crawlTahun}${jenisSuffix} - Indeks Awal: ${crawlStart}`]);
+        setCrawlLogs([
+            "[SYSTEM] Memulai permintaan crawling manual...", 
+            `[SYSTEM] Target: ${targetLabel} (${crawlTipe}) - Tahun ${crawlTahun}${jenisSuffix} - Indeks Awal: ${crawlStart}`
+        ]);
 
         try {
             const res = await authFetch('/api/crawl', {
@@ -6457,14 +6463,17 @@ function App() {
 
             const data = await res.json();
             if (data.status === 'crawling_started' || data.status === 'success') {
-                setCrawlLogs(prev => [...prev, `[SUCCESS] ${data.message}`, "[SYSTEM] Menunggu scraper menyelesaikan crawling di server... (Proses berjalan secara asinkron)"]);
+                const asyncNote = crawlKategori === 'all'
+                    ? `[INFO] Server sedang mencrawl seluruh ${lpseInstances.length} instansi secara berurutan di latar belakang (jeda 5 detik antar-instansi). Proses ini berjalan aman di background VPS.`
+                    : "[SYSTEM] Menunggu scraper menyelesaikan crawling di server... (Proses berjalan secara asinkron)";
+                setCrawlLogs(prev => [...prev, `[SUCCESS] ${data.message}`, asyncNote]);
 
-                // Simulasikan polling atau langsung fetching data setelah 10 detik
+                // Polling/fetching status
                 setTimeout(async () => {
                     setCrawlLogs(prev => [...prev, "[SYSTEM] Mengambil hasil pembaruan database...", "[OK] Database selesai diperbarui."]);
                     setIsCrawling(false);
                     fetchAnalytics();
-                }, 12000);
+                }, 10000);
             } else {
                 setCrawlLogs(prev => [...prev, `[ERROR] Gagal memicu crawling: ${data.message}`]);
                 setIsCrawling(false);
