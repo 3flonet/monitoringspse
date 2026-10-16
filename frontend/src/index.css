@@ -1325,7 +1325,11 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-.skeleton-box {
+.skeleton-box,
+.skeleton-text,
+.skeleton-badge,
+.skeleton-btn,
+.skeleton-circle {
   display: inline-block;
   position: relative;
   overflow: hidden;
