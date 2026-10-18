@@ -240,16 +240,34 @@ const PremiumFooter = ({ adminSettings, onNavigate }) => {
                             onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
                             onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                         >Syarat & Ketentuan</button>
-                        <span style={{ color: '#334155' }}>•</span>
-                        <a href="https://3flo.net" target="_blank" rel="noreferrer" style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '6px',
-                            background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.25)',
-                            padding: '4px 10px', borderRadius: '12px',
-                            color: '#a5b4fc', textDecoration: 'none', fontWeight: '600', fontSize: '12px'
-                        }}>
-                            <span>Powered by</span>
-                            <strong style={{ color: '#818cf8' }}>3flo.net</strong>
-                        </a>
+                        {adminSettings?.powered_by_text !== '' && (
+                            <>
+                                <span style={{ color: '#334155' }}>•</span>
+                                <a
+                                    href={adminSettings?.powered_by_url || 'https://3flo.net'}
+                                    target={adminSettings?.powered_by_url ? '_blank' : '_self'}
+                                    rel="noreferrer"
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                        background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.25)',
+                                        padding: '4px 10px', borderRadius: '12px',
+                                        color: '#a5b4fc', textDecoration: 'none', fontWeight: '600', fontSize: '12px',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)';
+                                        e.currentTarget.style.borderColor = 'rgba(129, 140, 248, 0.5)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
+                                        e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.25)';
+                                    }}
+                                >
+                                    <span>Powered by</span>
+                                    <strong style={{ color: '#818cf8' }}>{adminSettings?.powered_by_text || '3flo.net'}</strong>
+                                </a>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -5561,7 +5579,9 @@ function App() {
         chatbot_final_message: 'Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp.',
         gtm_id: '',
         custom_head_scripts: '',
-        custom_body_scripts: ''
+        custom_body_scripts: '',
+        powered_by_text: '3flo.net',
+        powered_by_url: 'https://3flo.net'
     });
     const [leads, setLeads] = useState([]);
     const [isLoadingLeads, setIsLoadingLeads] = useState(false);
@@ -7142,7 +7162,9 @@ function App() {
                     chatbot_final_message: data.chatbot_final_message || '',
                     gtm_id: data.gtm_id || '',
                     custom_head_scripts: data.custom_head_scripts || '',
-                    custom_body_scripts: data.custom_body_scripts || ''
+                    custom_body_scripts: data.custom_body_scripts || '',
+                    powered_by_text: data.powered_by_text ?? '3flo.net',
+                    powered_by_url: data.powered_by_url ?? 'https://3flo.net'
                 }));
                 if (data.lpse_instances) {
                     if (typeof data.lpse_instances === 'string') {
@@ -12459,6 +12481,76 @@ function App() {
                                             onChange={e => setAdminSettings(p => ({ ...p, geo_placename: e.target.value }))}
                                             placeholder="Contoh: Indonesia, Jakarta"
                                         />
+                                    </div>
+
+                                    {/* SECTION: FOOTER POWERED BY & HYPERLINK */}
+                                    <div style={{
+                                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                        paddingTop: '22px',
+                                        marginTop: '10px',
+                                        marginBottom: '26px'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '18px' }}>⚡</span>
+                                            <h4 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '16px', fontWeight: '700', color: '#ffffff', margin: 0 }}>
+                                                Footer "Powered By" &amp; Hyperlink
+                                            </h4>
+                                        </div>
+                                        <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: '0 0 18px 0' }}>
+                                            Kustomisasi teks identitas pengembang/agensi beserta tautan link (hyperlink) pada footer publik.
+                                        </p>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0', marginBottom: '6px', display: 'block' }}>
+                                                    Teks Powered By
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={adminSettings.powered_by_text ?? ''}
+                                                    onChange={e => setAdminSettings(p => ({ ...p, powered_by_text: e.target.value }))}
+                                                    placeholder="Contoh: 3flo.net (kosongkan jika ingin disembunyikan)"
+                                                />
+                                                <small style={{ color: '#64748b', fontSize: '11px', marginTop: '6px', display: 'block' }}>
+                                                    Teks label yang muncul di footer, misal: <em>3flo.net</em> atau <em>Nama Perusahaan Anda</em>.
+                                                </small>
+                                            </div>
+
+                                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0', marginBottom: '6px', display: 'block' }}>
+                                                    Tautan Link (URL Hyperlink)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={adminSettings.powered_by_url ?? ''}
+                                                    onChange={e => setAdminSettings(p => ({ ...p, powered_by_url: e.target.value }))}
+                                                    placeholder="Contoh: https://3flo.net"
+                                                />
+                                                <small style={{ color: '#64748b', fontSize: '11px', marginTop: '6px', display: 'block' }}>
+                                                    Tautan yang dituju saat tombol "Powered by" diklik.
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        {/* Preview badge */}
+                                        <div style={{ marginTop: '14px', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>Preview di Footer:</span>
+                                            {adminSettings.powered_by_text ? (
+                                                <div style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                    background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.25)',
+                                                    padding: '4px 10px', borderRadius: '12px',
+                                                    color: '#a5b4fc', fontSize: '12px', fontWeight: '600'
+                                                }}>
+                                                    <span>Powered by</span>
+                                                    <strong style={{ color: '#818cf8' }}>{adminSettings.powered_by_text}</strong>
+                                                </div>
+                                            ) : (
+                                                <span style={{ fontSize: '12px', color: '#ef4444', fontStyle: 'italic' }}>Disembunyikan (teks kosong)</span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* SECTION: GOOGLE TAG MANAGER & CUSTOM SCRIPTS (TAWK.TO / ANALYTICS) */}

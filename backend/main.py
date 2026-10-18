@@ -124,6 +124,8 @@ class SettingsUpdate(BaseModel):
     gtm_id: Optional[str] = None
     custom_head_scripts: Optional[str] = None
     custom_body_scripts: Optional[str] = None
+    powered_by_text: Optional[str] = None
+    powered_by_url: Optional[str] = None
 
 class MaintenanceToggleReq(BaseModel):
     maintenance_mode: bool
@@ -374,7 +376,9 @@ def get_public_settings():
         "chatbot_final_message": get_setting("chatbot_final_message", "Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp."),
         "gtm_id": get_setting("gtm_id", ""),
         "custom_head_scripts": get_setting("custom_head_scripts", ""),
-        "custom_body_scripts": get_setting("custom_body_scripts", "")
+        "custom_body_scripts": get_setting("custom_body_scripts", ""),
+        "powered_by_text": get_setting("powered_by_text", "3flo.net") or "3flo.net",
+        "powered_by_url": get_setting("powered_by_url", "https://3flo.net") or "https://3flo.net"
     }
 
 
@@ -415,7 +419,9 @@ def get_admin_settings(current_user: dict = Depends(get_current_user)):
         "spse_proxy": get_setting("spse_proxy", ""),
         "gtm_id": get_setting("gtm_id", ""),
         "custom_head_scripts": get_setting("custom_head_scripts", ""),
-        "custom_body_scripts": get_setting("custom_body_scripts", "")
+        "custom_body_scripts": get_setting("custom_body_scripts", ""),
+        "powered_by_text": get_setting("powered_by_text", "3flo.net") or "3flo.net",
+        "powered_by_url": get_setting("powered_by_url", "https://3flo.net") or "https://3flo.net"
     }
 
 @app.post("/api/admin/settings")
@@ -479,6 +485,10 @@ def update_admin_settings(req: SettingsUpdate, current_user: dict = Depends(get_
         set_setting("custom_head_scripts", req.custom_head_scripts)
     if req.custom_body_scripts is not None:
         set_setting("custom_body_scripts", req.custom_body_scripts)
+    if req.powered_by_text is not None:
+        set_setting("powered_by_text", req.powered_by_text.strip())
+    if req.powered_by_url is not None:
+        set_setting("powered_by_url", req.powered_by_url.strip())
         
     return {"status": "success", "message": "Pengaturan berhasil diperbarui."}
 
