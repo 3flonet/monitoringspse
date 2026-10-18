@@ -1442,3 +1442,270 @@ h1, h2, h3, h4, h5, h6 {
     border-color: #818cf8;
   }
 }
+
+/* ========================================================
+   Custom Built-in Rich Editor Ala CKEditor & Article Styles
+   ======================================================== */
+.ck-custom-editor {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: #090e1a;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.ck-custom-editor:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.ck-custom-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
+}
+
+.ck-tool-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #cbd5e1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.ck-tool-btn:hover {
+  background: rgba(99, 102, 241, 0.18);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.ck-tool-btn.active {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #6366f1;
+}
+
+.ck-tool-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+}
+
+.ck-tool-select {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.ck-editor-canvas {
+  min-height: 380px;
+  max-height: 720px;
+  overflow-y: auto;
+  padding: 22px;
+  color: #f8fafc;
+  font-size: 15px;
+  line-height: 1.8;
+  outline: none;
+}
+
+.ck-editor-canvas:empty:before {
+  content: attr(data-placeholder);
+  color: #64748b;
+  pointer-events: none;
+  display: block;
+}
+
+.ck-editor-canvas p {
+  margin: 0 0 16px 0;
+}
+
+.ck-editor-canvas h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 28px 0 14px 0;
+  border-left: 4px solid #6366f1;
+  padding-left: 12px;
+}
+
+.ck-editor-canvas h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 22px 0 10px 0;
+}
+
+.ck-editor-canvas h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 18px 0 8px 0;
+}
+
+.ck-editor-canvas blockquote {
+  border-left: 4px solid #818cf8;
+  background: rgba(99, 102, 241, 0.08);
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  margin: 20px 0;
+  font-style: italic;
+  color: #c7d2fe;
+}
+
+.ck-editor-canvas ul,
+.ck-editor-canvas ol {
+  margin: 0 0 18px 24px;
+  padding: 0;
+}
+
+.ck-editor-canvas li {
+  margin-bottom: 6px;
+}
+
+.ck-editor-canvas a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+
+.ck-editor-canvas figure {
+  margin: 24px 0;
+}
+
+.ck-editor-canvas img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.ck-editor-canvas figcaption {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 8px;
+  font-style: italic;
+  text-align: center;
+}
+
+.ck-editor-canvas hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 28px 0;
+}
+
+/* Public Article Detail Rich Body */
+.article-rich-body {
+  color: #d1d5db;
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.article-rich-body p {
+  margin: 0 0 20px 0;
+}
+
+.article-rich-body h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 40px 0 18px 0;
+  border-left: 4px solid #6366f1;
+  padding-left: 14px;
+  line-height: 1.35;
+}
+
+.article-rich-body h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 32px 0 14px 0;
+  line-height: 1.4;
+}
+
+.article-rich-body h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 24px 0 10px 0;
+}
+
+.article-rich-body ul,
+.article-rich-body ol {
+  margin: 0 0 24px 28px;
+  padding: 0;
+}
+
+.article-rich-body li {
+  margin-bottom: 8px;
+  line-height: 1.75;
+}
+
+.article-rich-body blockquote {
+  border-left: 4px solid #6366f1;
+  background: rgba(99, 102, 241, 0.07);
+  padding: 18px 22px;
+  border-radius: 0 12px 12px 0;
+  margin: 28px 0;
+  font-style: italic;
+  color: #c7d2fe;
+}
+
+.article-rich-body a {
+  color: #818cf8;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.article-rich-body a:hover {
+  color: #a5b4fc;
+}
+
+.article-rich-body figure {
+  margin: 32px 0;
+}
+
+.article-rich-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.article-rich-body figcaption {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 10px;
+  text-align: center;
+  font-style: italic;
+}
+
+.article-rich-body hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 36px 0;
+}
+

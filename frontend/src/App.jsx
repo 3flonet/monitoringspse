@@ -5,6 +5,7 @@ import CompanyLeadsManager from './components/CompanyLeadsManager';
 import UserOnboardingTour from './components/UserOnboardingTour';
 import UserDocumentation from './components/UserDocumentation';
 import AdminAlertsManager from './components/AdminAlertsManager';
+import ArticleRichEditor from './components/ArticleRichEditor';
 
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
@@ -1165,11 +1166,16 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
                                     </div>
                                 )}
                                 <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                                         {art.is_pinned === 1 && (
                                             <span style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px' }}>📌 PINNED</span>
                                         )}
-                                        <span style={{ color: '#6b7280', fontSize: '12px', alignSelf: 'center' }}>
+                                        {art.document_url && (
+                                            <span style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.3)', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                <span>📄</span> Dokumen Resmi
+                                            </span>
+                                        )}
+                                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
                                             {art.created_at ? new Date(art.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                                         </span>
                                     </div>
@@ -1177,7 +1183,10 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
                                         {art.title.replace(/{lpse_name}/g, 'Indonesia')}
                                     </h2>
                                     <p style={{ color: '#9ca3af', fontSize: '13px', lineHeight: '1.6', margin: '0 0 20px', flexGrow: 1 }}>
-                                        {art.meta_description || (art.content.length > 130 ? art.content.substring(0, 130) + '...' : art.content)}
+                                        {art.meta_description || (() => {
+                                            const plain = (art.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                                            return plain.length > 130 ? plain.substring(0, 130) + '...' : plain;
+                                        })()}
                                     </p>
                                     <button onClick={() => { window.location.hash = `#/artikel/${art.slug}`; }} style={{
                                         background: 'rgba(99,102,241,0.1)',
@@ -1388,15 +1397,76 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
                         </div>
                     )}
 
-                    <div style={{
-                        color: '#d1d5db',
-                        fontSize: '16px',
-                        lineHeight: '1.8',
-                        whiteSpace: 'pre-wrap',
-                        marginBottom: '40px'
-                    }}>
-                        {resolvedContent}
-                    </div>
+                    <div
+                        className="article-rich-body"
+                        style={{ marginBottom: '40px' }}
+                        dangerouslySetInnerHTML={{ __html: resolvedContent }}
+                    />
+
+                    {selectedArticle.document_url && (
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.04))',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            marginBottom: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '16px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '12px',
+                                    background: selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                                    border: `1px solid ${selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'}`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '24px',
+                                    flexShrink: 0
+                                }}>
+                                    {selectedArticle.document_type === 'pdf' ? '📄' : '🔗'}
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: '700', marginBottom: '4px' }}>
+                                        {selectedArticle.document_type === 'pdf' ? 'DOKUMEN RESMI / SIARAN PERS' : 'RUJUKAN TAUTAN EKSTERNAL'}
+                                    </div>
+                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', marginBottom: '2px' }}>
+                                        {selectedArticle.document_title || 'Dokumen Informasi Terlampir'}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                        Format: {selectedArticle.document_type === 'pdf' ? 'Dokumen PDF / Siaran Pers Resmi' : 'Tautan Rujukan Resmi'}
+                                    </div>
+                                </div>
+                            </div>
+                            <a
+                                href={selectedArticle.document_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                    color: '#ffffff',
+                                    padding: '12px 24px',
+                                    borderRadius: '10px',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    textDecoration: 'none',
+                                    boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <span>{selectedArticle.document_type === 'pdf' ? '📥 Unduh / Buka Dokumen PDF' : '🔗 Buka Tautan Dokumen'}</span>
+                                <span>&rarr;</span>
+                            </a>
+                        </div>
+                    )}
 
                     {embedUrl && (
                         <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '30px' }}>
@@ -1462,6 +1532,7 @@ const AdminArticlesManager = ({
     const [isFormOpen, setIsFormOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isUploading, setIsUploading] = React.useState(false);
+    const [isUploadingDoc, setIsUploadingDoc] = React.useState(false);
 
     const openCreateForm = () => {
         setEditingArticleId(null);
@@ -1475,7 +1546,10 @@ const AdminArticlesManager = ({
             is_pinned: 0,
             is_published: 1,
             image_url: '',
-            youtube_embed: ''
+            youtube_embed: '',
+            document_title: '',
+            document_url: '',
+            document_type: 'pdf'
         });
         setArticleMsg(null);
         setIsFormOpen(true);
@@ -1493,10 +1567,46 @@ const AdminArticlesManager = ({
             is_pinned: art.is_pinned || 0,
             is_published: art.is_published || 0,
             image_url: art.image_url || '',
-            youtube_embed: art.youtube_embed || ''
+            youtube_embed: art.youtube_embed || '',
+            document_title: art.document_title || '',
+            document_url: art.document_url || '',
+            document_type: art.document_type || 'pdf'
         });
         setArticleMsg(null);
         setIsFormOpen(true);
+    };
+
+    const handleDocUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setIsUploadingDoc(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const token = localStorage.getItem('user_token');
+            const res = await fetch('/api/admin/articles/upload-document', {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setAdminArticleForm(prev => ({
+                    ...prev,
+                    document_url: data.url,
+                    document_type: 'pdf',
+                    document_title: prev.document_title || file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+                }));
+            } else {
+                alert(data.detail || 'Gagal mengunggah dokumen.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan koneksi saat mengunggah dokumen.');
+        } finally {
+            setIsUploadingDoc(false);
+        }
     };
 
     const handleTitleChange = (e) => {
@@ -1586,17 +1696,119 @@ const AdminArticlesManager = ({
                             </div>
                         </div>
 
+                        {/* Rich Text Editor Ala CKEditor */}
                         <div className="form-group">
-                            <label>Isi Konten Artikel <span style={{ color: '#ef4444' }}>*</span></label>
-                            <textarea
-                                className="form-control"
-                                rows="12"
-                                placeholder="Tulis isi artikel lengkap disini. Anda dapat menggunakan tag placeholder '{lpse_name}' yang akan diganti secara dinamis."
+                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <span>Isi Konten Artikel <span style={{ color: '#ef4444' }}>*</span></span>
+                                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                    💡 Mendukung format visual, foto dengan Alt SEO, &amp; tag <code>{'{lpse_name}'}</code>
+                                </span>
+                            </label>
+                            <ArticleRichEditor
                                 value={adminArticleForm.content}
-                                onChange={(e) => setAdminArticleForm(prev => ({ ...prev, content: e.target.value }))}
-                                required
-                                style={{ fontFamily: 'inherit', lineHeight: '1.6', resize: 'vertical' }}
+                                onChange={(html) => setAdminArticleForm(prev => ({ ...prev, content: html }))}
+                                placeholder="Tulis artikel lengkap di sini... Gunakan toolbar untuk styling, menyisipkan foto SEO, atau klik '</> HTML' untuk edit kode HTML langsung."
                             />
+                        </div>
+
+                        {/* SECTION: DOKUMEN LAMPIRAN & SIARAN PERS RESMI */}
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                <span style={{ fontSize: '20px' }}>📄</span>
+                                <h4 style={{ fontFamily: 'Outfit, sans-serif', color: '#fff', fontSize: '15px', fontWeight: '600', margin: 0 }}>
+                                    Dokumen Lampiran &amp; Siaran Pers Resmi (Opsional)
+                                </h4>
+                            </div>
+                            <p style={{ color: '#9ca3af', fontSize: '13px', margin: '0 0 16px 0' }}>
+                                Sertakan dokumen resmi (PDF/Word) atau tautan rujukan seperti Siaran Pers LKPP, Regulasi Pengadaan, atau Dokumen Pengumuman Tender.
+                            </p>
+
+                            <div style={{ background: '#090e1a', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div className="form-group">
+                                    <label>Judul / Nama Dokumen Informasi</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Contoh: Siaran Pers No. 12/SP/LKPP/2026 - Penyesuaian Syarat Kualifikasi Tender"
+                                        value={adminArticleForm.document_title || ''}
+                                        onChange={(e) => setAdminArticleForm(prev => ({ ...prev, document_title: e.target.value }))}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                                    <div className="form-group">
+                                        <label>Tipe Sumber Dokumen</label>
+                                        <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '13px' }}>
+                                                <input
+                                                    type="radio"
+                                                    name="doc_type_radio"
+                                                    checked={adminArticleForm.document_type !== 'link'}
+                                                    onChange={() => setAdminArticleForm(prev => ({ ...prev, document_type: 'pdf' }))}
+                                                />
+                                                <span>📤 Upload File PDF / Word</span>
+                                            </label>
+                                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '13px' }}>
+                                                <input
+                                                    type="radio"
+                                                    name="doc_type_radio"
+                                                    checked={adminArticleForm.document_type === 'link'}
+                                                    onChange={() => setAdminArticleForm(prev => ({ ...prev, document_type: 'link' }))}
+                                                />
+                                                <span>🔗 Tautan / URL Luar (Google Drive, LKPP, dll)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        {adminArticleForm.document_type === 'link' ? (
+                                            <div>
+                                                <label>URL / Link Dokumen Eksternal</label>
+                                                <input
+                                                    type="url"
+                                                    className="form-control"
+                                                    placeholder="https://drive.google.com/... atau https://lkpp.go.id/..."
+                                                    value={adminArticleForm.document_url || ''}
+                                                    onChange={(e) => setAdminArticleForm(prev => ({ ...prev, document_url: e.target.value }))}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <label>Upload File PDF / Word</label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf,.doc,.docx"
+                                                        id="article-doc-upload"
+                                                        style={{ display: 'none' }}
+                                                        onChange={handleDocUpload}
+                                                    />
+                                                    <label htmlFor="article-doc-upload" className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', margin: 0 }}>
+                                                        {isUploadingDoc ? '⏳ Mengunggah Dokumen...' : '📂 Pilih File PDF/Word'}
+                                                    </label>
+                                                    {adminArticleForm.document_url && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAdminArticleForm(prev => ({ ...prev, document_url: '', document_title: '' }))}
+                                                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+                                                        >
+                                                            Hapus
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {adminArticleForm.document_url && (
+                                                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <span>✅ File terlampir:</span>
+                                                        <a href={adminArticleForm.document_url} target="_blank" rel="noopener noreferrer" style={{ color: '#818cf8', textDecoration: 'underline' }}>
+                                                            {adminArticleForm.document_url.split('/').pop()}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
@@ -4223,7 +4435,10 @@ function App() {
         is_pinned: 0,
         is_published: 1,
         image_url: '',
-        youtube_embed: ''
+        youtube_embed: '',
+        document_title: '',
+        document_url: '',
+        document_type: 'pdf'
     });
 
     // Server Monitoring & Telemetry States
@@ -5388,7 +5603,10 @@ function App() {
                     is_pinned: 0,
                     is_published: 1,
                     image_url: '',
-                    youtube_embed: ''
+                    youtube_embed: '',
+                    document_title: '',
+                    document_url: '',
+                    document_type: 'pdf'
                 });
                 fetchAdminArticles();
                 fetchPublicArticles();

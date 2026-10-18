@@ -196,6 +196,9 @@ class ArticleCreateReq(BaseModel):
     is_published: Optional[int] = 1
     image_url: Optional[str] = None
     youtube_embed: Optional[str] = None
+    document_title: Optional[str] = None
+    document_url: Optional[str] = None
+    document_type: Optional[str] = None
 
 class CompanyContactUpdate(BaseModel):
     company_name: str
@@ -2618,7 +2621,10 @@ def admin_create_article(req: ArticleCreateReq, current_user: dict = Depends(get
             is_pinned=req.is_pinned,
             is_published=req.is_published,
             image_url=req.image_url,
-            youtube_embed=req.youtube_embed
+            youtube_embed=req.youtube_embed,
+            document_title=req.document_title,
+            document_url=req.document_url,
+            document_type=req.document_type
         )
         return {"status": "success", "article_id": article_id}
     except Exception as e:
@@ -2644,7 +2650,10 @@ def admin_update_article(id: int, req: ArticleCreateReq, current_user: dict = De
             is_pinned=req.is_pinned,
             is_published=req.is_published,
             image_url=req.image_url,
-            youtube_embed=req.youtube_embed
+            youtube_embed=req.youtube_embed,
+            document_title=req.document_title,
+            document_url=req.document_url,
+            document_type=req.document_type
         )
         return {"status": "success", "message": "Artikel berhasil diperbarui."}
     except Exception as e:
@@ -2666,8 +2675,8 @@ def admin_upload_article_image(file: UploadFile = File(...), current_user: dict 
         raise HTTPException(status_code=403, detail="Akses ditolak.")
     try:
         file_ext = Path(file.filename).suffix.lower()
-        if file_ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
-            raise HTTPException(status_code=400, detail="Format file tidak didukung. Harap upload gambar.")
+        if file_ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"]:
+            raise HTTPException(status_code=400, detail="Format file tidak didukung. Harap upload gambar (JPG, PNG, WebP, GIF, SVG).")
             
         # Unique filename using timestamp
         filename = f"img_{int(datetime.now().timestamp())}{file_ext}"
@@ -2676,9 +2685,29 @@ def admin_upload_article_image(file: UploadFile = File(...), current_user: dict 
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        return {"status": "success", "url": f"/static/uploads/{filename}"}
+        return {"status": "success", "url": f"/static/uploads/{filename}", "filename": file.filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gagal mengunggah gambar: {str(e)}")
+
+@app.post("/api/admin/articles/upload-document")
+def admin_upload_article_document(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    try:
+        file_ext = Path(file.filename).suffix.lower()
+        if file_ext not in [".pdf", ".doc", ".docx"]:
+            raise HTTPException(status_code=400, detail="Format file tidak didukung. Harap upload dokumen PDF atau Word.")
+            
+        clean_name = re.sub(r'[^a-zA-Z0-9_-]', '_', Path(file.filename).stem)[:30]
+        filename = f"doc_{int(datetime.now().timestamp())}_{clean_name}{file_ext}"
+        filepath = UPLOAD_DIR / filename
+        
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {"status": "success", "url": f"/static/uploads/{filename}", "filename": file.filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal mengunggah dokumen: {str(e)}")
 
 # Contact Submissions / Leads API Endpoints
 class ContactSubmissionRequest(BaseModel):

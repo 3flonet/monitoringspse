@@ -443,6 +443,9 @@ def init_db():
             is_published INTEGER DEFAULT 1,
             image_url TEXT,
             youtube_embed TEXT,
+            document_title TEXT,
+            document_url TEXT,
+            document_type TEXT,
             created_at TEXT,
             updated_at TEXT
         )
@@ -695,6 +698,9 @@ def init_db():
             is_published INTEGER DEFAULT 1,
             image_url TEXT,
             youtube_embed TEXT,
+            document_title TEXT,
+            document_url TEXT,
+            document_type TEXT,
             created_at TEXT,
             updated_at TEXT
         )
@@ -771,6 +777,13 @@ def init_db():
             cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_active BOOLEAN DEFAULT TRUE")
         except Exception as e:
             logging.warning(f"PG alerts migration warning: {e}")
+            
+        try:
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_title TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_url TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_type TEXT")
+        except Exception as e:
+            logging.warning(f"PG articles migration warning: {e}")
     else:
         try:
             cursor.execute("PRAGMA table_info(alerts)")
@@ -787,6 +800,18 @@ def init_db():
                 cursor.execute("ALTER TABLE alerts ADD COLUMN wa_active INTEGER DEFAULT 1")
         except Exception as e:
             logging.warning(f"SQLite alerts migration warning: {e}")
+
+        try:
+            cursor.execute("PRAGMA table_info(articles)")
+            cols = [c[1] for c in cursor.fetchall()]
+            if 'document_title' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN document_title TEXT")
+            if 'document_url' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN document_url TEXT")
+            if 'document_type' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN document_type TEXT")
+        except Exception as e:
+            logging.warning(f"SQLite articles migration warning: {e}")
         
     # Seed default system settings
     default_settings = {
@@ -1191,7 +1216,7 @@ def get_all_vouchers():
     return [dict(r) for r in rows]
 
 # Article Helpers
-def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None):
+def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     now_str = datetime.now().isoformat()
@@ -1201,8 +1226,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
         cursor.execute("""
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
-                is_pinned, is_published, image_url, youtube_embed, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type,
+                created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1214,6 +1240,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             is_published,
             image_url,
             youtube_embed,
+            clean_str(document_title) if document_title else None,
+            document_url,
+            clean_str(document_type) if document_type else None,
             now_str,
             now_str
         ))
@@ -1222,8 +1251,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
         cursor.execute("""
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
-                is_pinned, is_published, image_url, youtube_embed, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type,
+                created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1235,6 +1265,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             is_published,
             image_url,
             youtube_embed,
+            clean_str(document_title) if document_title else None,
+            document_url,
+            clean_str(document_type) if document_type else None,
             now_str,
             now_str
         ))
@@ -1266,7 +1299,7 @@ def get_all_articles(include_unpublished=False):
     conn.close()
     return [dict(r) for r in rows]
 
-def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None):
+def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None):
     if article_id is not None:
         article_id = int(article_id)
     conn = get_db_connection()
@@ -1284,6 +1317,9 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
             is_published = ?,
             image_url = ?,
             youtube_embed = ?,
+            document_title = ?,
+            document_url = ?,
+            document_type = ?,
             updated_at = ?
         WHERE id = ?
     """, (
@@ -1297,6 +1333,9 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
         is_published,
         image_url,
         youtube_embed,
+        clean_str(document_title) if document_title else None,
+        document_url,
+        clean_str(document_type) if document_type else None,
         now_str,
         article_id
     ))
