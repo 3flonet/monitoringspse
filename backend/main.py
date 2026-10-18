@@ -19,7 +19,7 @@ from backend.database import (
     get_db_connection, DB_PATH, get_setting, set_setting,
     create_user, get_user_by_email, get_user_by_id, get_user_subscription, update_user_subscription,
     create_voucher, get_voucher, increment_voucher_usage, delete_voucher, get_all_vouchers, get_transaction,
-    create_article, get_article_by_slug, get_all_articles, update_article, delete_article, clean_str,
+    create_article, get_article_by_slug, get_all_articles, update_article, delete_article, clean_str, get_article_categories,
     create_password_reset, get_password_reset_by_hash, mark_password_reset_used, update_user_password,
     create_contact_submission, get_all_contact_submissions, update_contact_submission_status, delete_contact_submission,
     get_company_leads, get_all_company_leads_for_export, upsert_company_contact,
@@ -202,6 +202,7 @@ class ArticleCreateReq(BaseModel):
     document_title: Optional[str] = None
     document_url: Optional[str] = None
     document_type: Optional[str] = None
+    category: Optional[str] = None
 
 class CompanyContactUpdate(BaseModel):
     company_name: str
@@ -2834,11 +2835,17 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
 
 # ARTICLES / BLOG ENDPOINTS
 @app.get("/api/public/articles")
-def list_public_articles(limit: Optional[int] = Query(None)):
+def list_public_articles(limit: Optional[int] = Query(None), category: Optional[str] = Query(None)):
     articles = get_all_articles(include_unpublished=False)
+    if category:
+        articles = [a for a in articles if (a.get("category") or "").strip().lower() == category.strip().lower()]
     if limit is not None:
         articles = articles[:limit]
     return articles
+
+@app.get("/api/public/article-categories")
+def list_public_article_categories():
+    return get_article_categories()
 
 @app.get("/api/public/articles/{slug}")
 def get_public_article(slug: str):
@@ -2874,7 +2881,8 @@ def admin_create_article(req: ArticleCreateReq, current_user: dict = Depends(get
             youtube_embed=req.youtube_embed,
             document_title=req.document_title,
             document_url=req.document_url,
-            document_type=req.document_type
+            document_type=req.document_type,
+            category=req.category
         )
         return {"status": "success", "article_id": article_id}
     except Exception as e:
@@ -2903,7 +2911,8 @@ def admin_update_article(id: int, req: ArticleCreateReq, current_user: dict = De
             youtube_embed=req.youtube_embed,
             document_title=req.document_title,
             document_url=req.document_url,
-            document_type=req.document_type
+            document_type=req.document_type,
+            category=req.category
         )
         return {"status": "success", "message": "Artikel berhasil diperbarui."}
     except Exception as e:

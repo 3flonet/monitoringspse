@@ -1061,9 +1061,28 @@ const PublicHeader = ({ adminSettings, onNavigate, userToken, activePage }) => {
 
 const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNavigate, userToken }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
+    const [selectedCategory, setSelectedCategory] = React.useState('ALL');
 
-    const filteredArticles = publicArticles
-        .filter(art => (art.title && art.title.toLowerCase().includes(searchTerm.toLowerCase())) || (art.content && art.content.toLowerCase().includes(searchTerm.toLowerCase())))
+    const availableCategories = React.useMemo(() => {
+        const set = new Set();
+        if (publicArticles && publicArticles.length) {
+            publicArticles.forEach(a => {
+                if (a.category && a.category.trim()) {
+                    set.add(a.category.trim());
+                }
+            });
+        }
+        return Array.from(set);
+    }, [publicArticles]);
+
+    const filteredArticles = (publicArticles || [])
+        .filter(art => {
+            const matchesSearch = (art.title && art.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (art.content && art.content.toLowerCase().includes(searchTerm.toLowerCase()));
+            const matchesCategory = selectedCategory === 'ALL' ||
+                ((art.category || '').trim().toLowerCase() === selectedCategory.trim().toLowerCase());
+            return matchesSearch && matchesCategory;
+        })
         .sort((a, b) => {
             if (a.is_pinned !== b.is_pinned) {
                 return b.is_pinned - a.is_pinned;
@@ -1083,30 +1102,85 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
         }}>
             <PublicHeader adminSettings={adminSettings} onNavigate={onNavigate} userToken={userToken} activePage="blog" />
 
-            <main style={{ flexGrow: 1, padding: '60px 20px', maxWidth: '1100px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-                <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-                    <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '42px', fontWeight: '800', margin: '0 0 12px', background: 'linear-gradient(135deg, #fff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>💡 Insight & Panduan Tender</h1>
-                    <p style={{ color: '#9ca3af', fontSize: '16px', maxWidth: '600px', margin: '0 auto 30px' }}>Dapatkan analisis mendalam, strategi memenangkan tender SPSE Indonesia.</p>
+            <main style={{ flexGrow: 1, padding: '60px 20px', maxWidth: '1150px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '6px 16px', borderRadius: '30px', color: '#a5b4fc', fontSize: '12px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px' }}>
+                        <span>⚡</span> Wawasan Intelijen Tender &amp; Regulasi Pengadaan
+                    </div>
+                    <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '42px', fontWeight: '800', margin: '0 0 12px', background: 'linear-gradient(135deg, #fff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
+                        Insight &amp; Panduan Pengadaan SPSE
+                    </h1>
+                    <p style={{ color: '#9ca3af', fontSize: '16px', maxWidth: '640px', margin: '0 auto 28px', lineHeight: '1.6' }}>
+                        Dapatkan analisis mendalam, pembaruan regulasi LKPP, serta strategi taktis memenangkan tender pemerintah.
+                    </p>
 
-                    <div style={{ maxWidth: '500px', margin: '0 auto', position: 'relative' }}>
+                    {/* Search Input */}
+                    <div style={{ maxWidth: '540px', margin: '0 auto 24px', position: 'relative' }}>
                         <input
                             type="text"
-                            placeholder="Cari artikel..."
+                            placeholder="Cari judul, topik regulasi, atau isi panduan..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
                                 width: '100%',
-                                padding: '14px 20px',
-                                borderRadius: '12px',
-                                background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                padding: '14px 22px',
+                                borderRadius: '14px',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.1)',
                                 color: '#fff',
                                 fontSize: '15px',
                                 outline: 'none',
-                                boxSizing: 'border-box'
+                                boxSizing: 'border-box',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                                transition: 'all 0.2s'
                             }}
+                            onFocus={(e) => e.currentTarget.style.borderColor = '#6366f1'}
+                            onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                         />
                     </div>
+
+                    {/* Category Filter Pills */}
+                    {availableCategories.length > 0 && (
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '900px', margin: '0 auto' }}>
+                            <button
+                                onClick={() => setSelectedCategory('ALL')}
+                                style={{
+                                    background: selectedCategory === 'ALL' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(255, 255, 255, 0.04)',
+                                    color: selectedCategory === 'ALL' ? '#ffffff' : '#94a3b8',
+                                    border: `1px solid ${selectedCategory === 'ALL' ? '#818cf8' : 'rgba(255, 255, 255, 0.08)'}`,
+                                    padding: '7px 16px',
+                                    borderRadius: '24px',
+                                    fontSize: '13px',
+                                    fontWeight: selectedCategory === 'ALL' ? '700' : '500',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: selectedCategory === 'ALL' ? '0 4px 12px rgba(79, 70, 229, 0.35)' : 'none'
+                                }}
+                            >
+                                Semua Topik ({publicArticles.length})
+                            </button>
+                            {availableCategories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    style={{
+                                        background: selectedCategory === cat ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(255, 255, 255, 0.04)',
+                                        color: selectedCategory === cat ? '#ffffff' : '#94a3b8',
+                                        border: `1px solid ${selectedCategory === cat ? '#818cf8' : 'rgba(255, 255, 255, 0.08)'}`,
+                                        padding: '7px 16px',
+                                        borderRadius: '24px',
+                                        fontSize: '13px',
+                                        fontWeight: selectedCategory === cat ? '700' : '500',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        boxShadow: selectedCategory === cat ? '0 4px 12px rgba(79, 70, 229, 0.35)' : 'none'
+                                    }}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {isLoadingArticles ? (
@@ -1137,78 +1211,118 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
                         ))}
                     </div>
                 ) : filteredArticles.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: '#6b7280', padding: '40px 0' }}>Tidak ditemukan artikel yang cocok.</div>
+                    <div style={{ textAlign: 'center', color: '#94a3b8', padding: '60px 0', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
+                        <h3 style={{ color: '#fff', fontSize: '18px', margin: '0 0 6px' }}>Tidak Ada Artikel yang Cocok</h3>
+                        <p style={{ fontSize: '14px', margin: 0 }}>Coba ubah kata kunci pencarian atau pilih kategori lain.</p>
+                    </div>
                 ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
                         {filteredArticles.map((art) => (
                             <div key={art.id} style={{
-                                background: '#0f1322',
-                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                background: '#0e1424',
+                                border: '1px solid rgba(255, 255, 255, 0.06)',
                                 borderRadius: '16px',
                                 overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                transition: 'all 0.3s ease'
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
                             }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-5px)';
-                                    e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
+                                    e.currentTarget.style.transform = 'translateY(-6px)';
+                                    e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
+                                    e.currentTarget.style.boxShadow = '0 16px 40px rgba(79,70,229,0.2)';
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.35)';
                                 }}>
-                                {art.image_url ? (
-                                    <img src={art.image_url} alt={art.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                                ) : (
-                                    <div style={{ width: '100%', height: '200px', background: 'linear-gradient(135deg, #1e1b4b, #311042)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <span style={{ fontSize: '56px' }}>📝</span>
-                                    </div>
-                                )}
-                                <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                                <div style={{ position: 'relative', width: '100%', height: '210px', overflow: 'hidden', background: '#070a13' }}>
+                                    {art.image_url ? (
+                                        <img
+                                            src={art.image_url}
+                                            alt={art.title}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                        />
+                                    ) : (
+                                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1e1b4b, #311042)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <span style={{ fontSize: '56px' }}>📰</span>
+                                        </div>
+                                    )}
+                                    {art.category && (
+                                        <span style={{
+                                            position: 'absolute',
+                                            top: '12px',
+                                            left: '12px',
+                                            background: 'rgba(15, 23, 42, 0.85)',
+                                            backdropFilter: 'blur(8px)',
+                                            color: '#c7d2fe',
+                                            border: '1px solid rgba(129, 140, 248, 0.35)',
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            padding: '4px 10px',
+                                            borderRadius: '8px',
+                                            letterSpacing: '0.02em'
+                                        }}>
+                                            {art.category}
+                                        </span>
+                                    )}
+                                </div>
+                                <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                                     <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                                         {art.is_pinned === 1 && (
-                                            <span style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px' }}>📌 PINNED</span>
+                                            <span style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px' }}>📌 PINNED</span>
                                         )}
                                         {art.document_url && (
                                             <span style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.3)', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                                 <span>📄</span> Dokumen Resmi
                                             </span>
                                         )}
-                                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
-                                            {art.created_at ? new Date(art.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                                        <span style={{ color: '#64748b', fontSize: '12px' }}>
+                                            {art.created_at ? new Date(art.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                                         </span>
                                     </div>
-                                    <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: '0 0 10px', lineHeight: '1.4' }}>
+                                    <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '19px', fontWeight: '700', color: '#fff', margin: '0 0 10px', lineHeight: '1.4' }}>
                                         {art.title.replace(/{lpse_name}/g, 'Indonesia')}
                                     </h2>
-                                    <p style={{ color: '#9ca3af', fontSize: '13px', lineHeight: '1.6', margin: '0 0 20px', flexGrow: 1 }}>
+                                    <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: '0 0 20px', flexGrow: 1 }}>
                                         {art.meta_description || (() => {
                                             const plain = (art.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
-                                            return plain.length > 130 ? plain.substring(0, 130) + '...' : plain;
+                                            return plain.length > 120 ? plain.substring(0, 120) + '...' : plain;
                                         })()}
                                     </p>
                                     <button onClick={() => { window.location.hash = `#/artikel/${art.slug}`; }} style={{
-                                        background: 'rgba(99,102,241,0.1)',
+                                        background: 'rgba(99,102,241,0.12)',
                                         color: '#a5b4fc',
-                                        border: 'none',
-                                        padding: '10px 20px',
-                                        borderRadius: '8px',
+                                        border: '1px solid rgba(99,102,241,0.25)',
+                                        padding: '10px 18px',
+                                        borderRadius: '10px',
                                         cursor: 'pointer',
                                         fontWeight: '600',
                                         fontSize: '13px',
                                         transition: 'all 0.2s',
-                                        outline: 'none'
+                                        outline: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px'
                                     }}
                                         onMouseEnter={(e) => {
                                             e.currentTarget.style.background = '#6366f1';
                                             e.currentTarget.style.color = '#fff';
+                                            e.currentTarget.style.borderColor = '#6366f1';
                                         }}
                                         onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = 'rgba(99,102,241,0.1)';
+                                            e.currentTarget.style.background = 'rgba(99,102,241,0.12)';
                                             e.currentTarget.style.color = '#a5b4fc';
+                                            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)';
                                         }}>
-                                        Baca Artikel Selengkapnya
+                                        <span>Baca Selengkapnya</span>
+                                        <span>&rarr;</span>
                                     </button>
                                 </div>
                             </div>
@@ -1223,14 +1337,36 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
     );
 };
 
-const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArticleLpseSlug, lpseInstances, isLoadingArticles, onNavigate, userToken }) => {
+const PublicArticleDetailPage = ({
+    adminSettings,
+    selectedArticle,
+    selectedArticleLpseSlug,
+    lpseInstances,
+    isLoadingArticles,
+    onNavigate,
+    userToken,
+    publicArticles = []
+}) => {
     const [selectedLpse, setSelectedLpse] = React.useState(selectedArticleLpseSlug || 'nasional');
+    const [copiedLink, setCopiedLink] = React.useState(false);
+    const [allArticles, setAllArticles] = React.useState(publicArticles || []);
 
     React.useEffect(() => {
         if (selectedArticleLpseSlug) {
             setSelectedLpse(selectedArticleLpseSlug);
         }
     }, [selectedArticleLpseSlug]);
+
+    React.useEffect(() => {
+        if (publicArticles && publicArticles.length > 0) {
+            setAllArticles(publicArticles);
+        } else {
+            fetch('/api/public/articles')
+                .then(r => r.json())
+                .then(data => { if (Array.isArray(data)) setAllArticles(data); })
+                .catch(() => {});
+        }
+    }, [publicArticles]);
 
     if (isLoadingArticles) {
         return (
@@ -1244,42 +1380,23 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
                 width: '100%'
             }}>
                 <PublicHeader adminSettings={adminSettings} onNavigate={onNavigate} userToken={userToken} activePage="blog" />
-                <main style={{ flexGrow: 1, padding: '40px 20px', maxWidth: '850px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-                    <div style={{
-                        background: 'rgba(99, 102, 241, 0.08)',
-                        border: '1px solid rgba(99, 102, 241, 0.2)',
-                        borderRadius: '12px',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '15px',
-                        marginBottom: '32px'
-                    }}>
-                        <div className="skeleton-box" style={{ width: '220px', height: '18px' }} />
-                        <div className="skeleton-box" style={{ width: '160px', height: '36px', borderRadius: '8px' }} />
-                    </div>
-
+                <main style={{ flexGrow: 1, padding: '40px 20px', maxWidth: '880px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
                     <div style={{ marginBottom: '28px' }}>
-                        <div className="skeleton-badge" style={{ width: '120px', height: '18px', marginBottom: '12px' }} />
-                        <div className="skeleton-box" style={{ width: '90%', height: '36px', marginBottom: '12px' }} />
-                        <div className="skeleton-box" style={{ width: '65%', height: '36px', marginBottom: '18px' }} />
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <div className="skeleton-box" style={{ width: '130px', height: '14px' }} />
-                            <div className="skeleton-box" style={{ width: '100px', height: '14px' }} />
+                        <div className="skeleton-badge" style={{ width: '120px', height: '24px', marginBottom: '14px', borderRadius: '16px' }} />
+                        <div className="skeleton-box" style={{ width: '92%', height: '40px', marginBottom: '14px' }} />
+                        <div className="skeleton-box" style={{ width: '65%', height: '40px', marginBottom: '20px' }} />
+                        <div style={{ display: 'flex', gap: '14px' }}>
+                            <div className="skeleton-box" style={{ width: '160px', height: '16px' }} />
+                            <div className="skeleton-box" style={{ width: '120px', height: '16px' }} />
                         </div>
                     </div>
-
-                    <div className="skeleton-box" style={{ width: '100%', height: '320px', borderRadius: '16px', marginBottom: '32px' }} />
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+                    <div className="skeleton-box" style={{ width: '100%', height: '360px', borderRadius: '16px', marginBottom: '36px' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '40px' }}>
                         <div className="skeleton-box" style={{ width: '100%', height: '16px' }} />
                         <div className="skeleton-box" style={{ width: '96%', height: '16px' }} />
                         <div className="skeleton-box" style={{ width: '92%', height: '16px' }} />
                         <div className="skeleton-box" style={{ width: '70%', height: '16px', marginBottom: '16px' }} />
                         <div className="skeleton-box" style={{ width: '98%', height: '16px' }} />
-                        <div className="skeleton-box" style={{ width: '94%', height: '16px' }} />
-                        <div className="skeleton-box" style={{ width: '60%', height: '16px' }} />
                     </div>
                 </main>
                 <PremiumFooter adminSettings={adminSettings} onNavigate={onNavigate} />
@@ -1290,23 +1407,54 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
     if (!selectedArticle) {
         return (
             <div style={{ minHeight: '100vh', background: '#070a13', color: '#f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' }}>
-                <h2>Artikel Tidak Ditemukan</h2>
-                <button onClick={() => { window.location.hash = '#/blog'; }} className="btn-primary">Kembali ke Blog</button>
+                <h2 style={{ fontFamily: 'Outfit, sans-serif' }}>Artikel Tidak Ditemukan</h2>
+                <p style={{ color: '#94a3b8' }}>Artikel yang Anda tuju mungkin telah dipindahkan atau belum dipublikasikan.</p>
+                <button onClick={() => { window.location.hash = '#/blog'; }} className="btn-primary">Kembali ke Panduan &amp; Berita</button>
             </div>
         );
     }
 
-    const lpseInstanceObj = lpseInstances.find(i => i.slug === selectedLpse);
+    const lpseInstanceObj = (lpseInstances || []).find(i => i.slug === selectedLpse);
     const lpseName = lpseInstanceObj ? lpseInstanceObj.name : 'Indonesia';
 
-    const resolvedTitle = selectedArticle.title.replace(/{lpse_name}/g, lpseName);
-    const resolvedContent = selectedArticle.content.replace(/{lpse_name}/g, lpseName);
+    const resolvedTitle = (selectedArticle.title || '').replace(/{lpse_name}/g, lpseName);
+    const resolvedContent = (selectedArticle.content || '').replace(/{lpse_name}/g, lpseName);
 
     const handleLpseChange = (e) => {
         const val = e.target.value;
         setSelectedLpse(val);
         window.location.hash = val === 'nasional' ? `#/artikel/${selectedArticle.slug}` : `#/artikel/${selectedArticle.slug}/lpse/${val}`;
     };
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+    };
+
+    // Calculate approximate reading time
+    const readTimeMinutes = (() => {
+        if (!resolvedContent) return 2;
+        const words = resolvedContent.replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+        return Math.max(1, Math.ceil(words / 190));
+    })();
+
+    // Recommendations (prioritize same category first)
+    const recommendedArticles = (() => {
+        if (!allArticles || !allArticles.length) return [];
+        const others = allArticles.filter(a => a.id !== selectedArticle.id && a.slug !== selectedArticle.slug);
+        const currentCat = (selectedArticle.category || '').toLowerCase().trim();
+
+        let sameCategory = [];
+        let diffCategory = [];
+        if (currentCat) {
+            sameCategory = others.filter(a => (a.category || '').toLowerCase().trim() === currentCat);
+            diffCategory = others.filter(a => (a.category || '').toLowerCase().trim() !== currentCat);
+        } else {
+            diffCategory = others;
+        }
+        return [...sameCategory, ...diffCategory].slice(0, 3);
+    })();
 
     const getYoutubeEmbedUrl = (urlStr) => {
         if (!urlStr) return null;
@@ -1329,7 +1477,7 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+            background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent), #070a13',
             color: '#f3f4f6',
             fontFamily: "'Inter', sans-serif",
             display: 'flex',
@@ -1338,71 +1486,220 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
         }}>
             <PublicHeader adminSettings={adminSettings} onNavigate={onNavigate} userToken={userToken} activePage="blog" />
 
-            <main style={{ flexGrow: 1, padding: '40px 20px', maxWidth: '850px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-                <div style={{
-                    background: 'rgba(99, 102, 241, 0.08)',
-                    border: '1px solid rgba(99, 102, 241, 0.2)',
-                    borderRadius: '12px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '15px',
-                    flexWrap: 'wrap',
-                    marginBottom: '32px'
-                }}>
-                    <div>
-                        <strong style={{ color: '#fff', fontSize: '14px', display: 'block', marginBottom: '2px' }}>📍 Penargetan Wilayah LPSE Dinamis</strong>
-                        <span style={{ fontSize: '12px', color: '#9ca3af' }}>Pilih wilayah untuk mengubah konten artikel secara lokal</span>
-                    </div>
-                    <div>
-                        <select
-                            value={selectedLpse}
-                            onChange={handleLpseChange}
-                            style={{
-                                background: '#0f1322',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                padding: '8px 16px',
-                                outline: 'none',
-                                fontSize: '14px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <option value="nasional">Nasional (Default)</option>
-                            {lpseInstances.map((inst) => (
-                                <option key={inst.slug} value={inst.slug}>{inst.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+            <main style={{ flexGrow: 1, padding: '40px 20px 80px', maxWidth: '880px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+                
+                {/* 1. Breadcrumbs */}
+                <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#94a3b8', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <a href="#/" onClick={(e) => { e.preventDefault(); onNavigate('landing'); }} style={{ color: '#94a3b8', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#fff'} onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}>
+                        Beranda
+                    </a>
+                    <span style={{ color: '#475569' }}>/</span>
+                    <a href="#/blog" onClick={(e) => { e.preventDefault(); onNavigate('blog'); }} style={{ color: '#94a3b8', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#fff'} onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}>
+                        Berita &amp; Panduan
+                    </a>
+                    {selectedArticle.category && (
+                        <>
+                            <span style={{ color: '#475569' }}>/</span>
+                            <span style={{ color: '#a5b4fc', fontWeight: '600' }}>{selectedArticle.category}</span>
+                        </>
+                    )}
+                </nav>
 
                 <article>
-                    <div style={{ marginBottom: '28px' }}>
-                        <span style={{ color: '#818cf8', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Insight & Analisis</span>
-                        <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '36px', fontWeight: '800', color: '#fff', margin: '8px 0 16px', lineHeight: '1.3' }}>
+                    {/* 2. Editorial Header */}
+                    <header style={{ marginBottom: '28px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                            <span style={{
+                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25))',
+                                color: '#c7d2fe',
+                                border: '1px solid rgba(129, 140, 248, 0.4)',
+                                borderRadius: '20px',
+                                padding: '4px 14px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                letterSpacing: '0.04em',
+                                textTransform: 'uppercase'
+                            }}>
+                                🏷️ {selectedArticle.category || 'Panduan Pengadaan & Regulasi'}
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <span style={{ color: '#10b981', fontSize: '10px' }}>●</span> Edisi Resmi Spy SPSE
+                            </span>
+                        </div>
+
+                        <h1 style={{
+                            fontFamily: "'Outfit', sans-serif",
+                            fontSize: '38px',
+                            fontWeight: '800',
+                            color: '#ffffff',
+                            margin: '0 0 20px',
+                            lineHeight: '1.28',
+                            letterSpacing: '-0.02em'
+                        }}>
                             {resolvedTitle}
                         </h1>
-                        <div style={{ display: 'flex', gap: '12px', color: '#6b7280', fontSize: '13px' }}>
-                            <span>Oleh: Admin {adminSettings.app_name || 'Spy SPSE'}</span>
-                            <span>•</span>
-                            <span>{selectedArticle.created_at ? new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</span>
+
+                        {/* Journalistic Byline & Social Share Bar */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '16px',
+                            paddingBottom: '20px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: '42px',
+                                    height: '42px',
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: '800',
+                                    color: '#fff',
+                                    fontSize: '15px',
+                                    boxShadow: '0 2px 10px rgba(79, 70, 229, 0.35)',
+                                    flexShrink: 0
+                                }}>
+                                    SP
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>
+                                        Redaksi &amp; Tim Riset {adminSettings.app_name || 'Spy SPSE'}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
+                                        <span>🗓️ {selectedArticle.created_at ? new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Terbaru'}</span>
+                                        <span>•</span>
+                                        <span>⏱️ {readTimeMinutes} menit baca</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Share Buttons */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <a
+                                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\nBaca artikel selengkapnya di Spy SPSE: ' + window.location.href)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        background: 'rgba(37, 211, 102, 0.12)',
+                                        color: '#25d366',
+                                        border: '1px solid rgba(37, 211, 102, 0.3)',
+                                        padding: '7px 14px',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <span>💬</span> Bagikan
+                                </a>
+                                <button
+                                    onClick={handleCopyLink}
+                                    style={{
+                                        background: copiedLink ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                        color: copiedLink ? '#34d399' : '#e2e8f0',
+                                        border: `1px solid ${copiedLink ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                        padding: '7px 14px',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <span>{copiedLink ? '✓' : '🔗'}</span> {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 3. Penargetan Wilayah LPSE Dinamis */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04))',
+                        border: '1px solid rgba(99, 102, 241, 0.22)',
+                        borderRadius: '14px',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '16px',
+                        flexWrap: 'wrap',
+                        marginBottom: '32px'
+                    }}>
+                        <div>
+                            <div style={{ color: '#fff', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                <span>📍</span> Edisi Penargetan Wilayah LPSE
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                Pilih wilayah spesifik untuk melihat konten dan simulasi tender lokal secara dinamis.
+                            </div>
+                        </div>
+                        <div>
+                            <select
+                                value={selectedLpse}
+                                onChange={handleLpseChange}
+                                style={{
+                                    background: '#090e1a',
+                                    border: '1px solid rgba(129, 140, 248, 0.35)',
+                                    borderRadius: '10px',
+                                    color: '#fff',
+                                    padding: '9px 18px',
+                                    outline: 'none',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="nasional">🇮🇩 Seluruh Indonesia (Nasional)</option>
+                                {(lpseInstances || []).map((inst) => (
+                                    <option key={inst.slug} value={inst.slug}>{inst.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
+                    {/* 4. Hero Cover Image */}
                     {selectedArticle.image_url && (
-                        <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '32px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <img src={selectedArticle.image_url} alt={resolvedTitle} style={{ width: '100%', maxHeight: '420px', objectFit: 'cover' }} />
+                        <div style={{ marginBottom: '36px' }}>
+                            <div style={{
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                boxShadow: '0 12px 35px rgba(0, 0, 0, 0.45)',
+                                maxHeight: '460px',
+                                background: '#090e1a'
+                            }}>
+                                <img
+                                    src={selectedArticle.image_url}
+                                    alt={resolvedTitle}
+                                    style={{ width: '100%', height: '100%', maxHeight: '460px', objectFit: 'cover', display: 'block' }}
+                                />
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '10px', textAlign: 'center', fontStyle: 'italic' }}>
+                                📸 Dokumentasi &amp; Analisis Pengadaan Barang/Jasa Pemerintah • Platform {adminSettings.app_name || 'Spy SPSE'}
+                            </div>
                         </div>
                     )}
 
+                    {/* 5. Article Body */}
                     <div
                         className="article-rich-body"
-                        style={{ marginBottom: '40px' }}
+                        style={{ marginBottom: '44px' }}
                         dangerouslySetInnerHTML={{ __html: resolvedContent }}
                     />
 
+                    {/* 6. Lampiran Dokumen Resmi / Siaran Pers */}
                     {selectedArticle.document_url && (
                         <div style={{
                             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.04))',
@@ -1468,10 +1765,11 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
                         </div>
                     )}
 
+                    {/* 7. Video Embed */}
                     {embedUrl && (
-                        <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '30px' }}>
-                            <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>🎥 Tonton Video Terkait</h3>
-                            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '30px', marginBottom: '40px' }}>
+                            <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>🎥 Video Paparan &amp; Analisis Terkait</h3>
+                            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
                                 <iframe
                                     src={embedUrl}
                                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
@@ -1482,31 +1780,259 @@ const PublicArticleDetailPage = ({ adminSettings, selectedArticle, selectedArtic
                             </div>
                         </div>
                     )}
+
+                    {/* 8. Editorial & Platform Intelligence Bio Box */}
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px',
+                        margin: '40px 0',
+                        flexWrap: 'wrap'
+                    }}>
+                        <div style={{
+                            width: '56px',
+                            height: '56px',
+                            borderRadius: '14px',
+                            background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '28px',
+                            flexShrink: 0
+                        }}>
+                            🛡️
+                        </div>
+                        <div style={{ flex: 1, minWidth: '240px' }}>
+                            <div style={{ fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
+                                Diterbitkan oleh Redaksi &amp; Analis Intelijen Spy SPSE
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+                                Spy SPSE adalah platform analitik dan radar pemantau tender pemerintah nomor #1 di Indonesia. Memantau ratusan portal LPSE secara otomatis dan real-time agar kontraktor &amp; vendor dapat mendominasi lelang pengadaan.
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 9. Share & Navigation Buttons */}
+                    <div style={{
+                        padding: '24px 0',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '14px',
+                        marginBottom: '60px'
+                    }}>
+                        <button
+                            onClick={() => { window.location.hash = '#/blog'; }}
+                            style={{
+                                background: 'transparent',
+                                color: '#e2e8f0',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                padding: '10px 22px',
+                                borderRadius: '10px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = '#6366f1';
+                                e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                                e.currentTarget.style.background = 'transparent';
+                            }}
+                        >
+                            <span>&larr;</span> Kembali ke Semua Artikel
+                        </button>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Bagikan wawasan ini:</span>
+                            <a
+                                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\n' + window.location.href)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    background: '#25d366',
+                                    color: '#fff',
+                                    padding: '8px 14px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    fontWeight: '700',
+                                    textDecoration: 'none',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                WhatsApp
+                            </a>
+                            <button
+                                onClick={handleCopyLink}
+                                style={{
+                                    background: 'rgba(255,255,255,0.06)',
+                                    color: '#fff',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    padding: '8px 14px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {copiedLink ? '✓ Tersalin' : 'Salin Link'}
+                            </button>
+                        </div>
+                    </div>
                 </article>
 
-                <div style={{ marginTop: '50px', padding: '30px 0', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'center' }}>
-                    <button onClick={() => { window.location.hash = '#/blog'; }} style={{
-                        background: 'transparent',
-                        color: '#fff',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        padding: '12px 30px',
-                        borderRadius: '10px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                    }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = '#6366f1';
-                            e.currentTarget.style.background = 'rgba(99,102,241,0.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                            e.currentTarget.style.background = 'transparent';
-                        }}>
-                        ← Kembali ke Semua Panduan & Artikel
-                    </button>
-                </div>
+                {/* 10. ⭐ SECTION: REKOMENDASI ARTIKEL LAINNYA (Thumbnail Grid) */}
+                {recommendedArticles.length > 0 && (
+                    <section style={{ marginTop: '10px' }}>
+                        <div style={{ marginBottom: '28px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#818cf8', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                                <span>📰</span> Bacaan Terkait &amp; Rekomendasi Pilihan
+                            </div>
+                            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '26px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                                Artikel &amp; Panduan Terkait Lainnya
+                            </h2>
+                            <p style={{ color: '#94a3b8', fontSize: '14px', margin: '6px 0 0' }}>
+                                Tingkatkan wawasan lelang dan kepatuhan regulasi tender LPSE dengan artikel pilihan berikut.
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '22px' }}>
+                            {recommendedArticles.map((rec) => {
+                                const recTitle = (rec.title || '').replace(/{lpse_name}/g, lpseName);
+                                const recPlain = (rec.content || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                                const recSnippet = rec.meta_description || (recPlain.length > 95 ? recPlain.substring(0, 95) + '...' : recPlain);
+                                const recWords = recPlain.split(/\s+/).filter(Boolean).length;
+                                const recReadTime = Math.max(1, Math.ceil(recWords / 190));
+
+                                return (
+                                    <div
+                                        key={rec.id}
+                                        onClick={() => {
+                                            window.location.hash = selectedLpse === 'nasional' ? `#/artikel/${rec.slug}` : `#/artikel/${rec.slug}/lpse/${selectedLpse}`;
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        style={{
+                                            background: '#0d1322',
+                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                            borderRadius: '14px',
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-5px)';
+                                            e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+                                            e.currentTarget.style.boxShadow = '0 12px 30px rgba(79, 70, 229, 0.25)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+                                        }}
+                                    >
+                                        <div style={{ position: 'relative', width: '100%', height: '160px', overflow: 'hidden', background: '#090e1a' }}>
+                                            {rec.image_url ? (
+                                                <img
+                                                    src={rec.image_url}
+                                                    alt={recTitle}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1e1b4b, #2e1065)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <span style={{ fontSize: '42px' }}>📖</span>
+                                                </div>
+                                            )}
+                                            {rec.category && (
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    top: '10px',
+                                                    left: '10px',
+                                                    background: 'rgba(15, 23, 42, 0.85)',
+                                                    backdropFilter: 'blur(6px)',
+                                                    color: '#c7d2fe',
+                                                    border: '1px solid rgba(129, 140, 248, 0.3)',
+                                                    fontSize: '10px',
+                                                    fontWeight: '700',
+                                                    padding: '3px 8px',
+                                                    borderRadius: '6px'
+                                                }}>
+                                                    {rec.category}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                                            <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '8px' }}>
+                                                <span>{rec.created_at ? new Date(rec.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+                                                <span>•</span>
+                                                <span>⏱️ {recReadTime} mnt baca</span>
+                                            </div>
+
+                                            <h4 style={{
+                                                fontFamily: "'Outfit', sans-serif",
+                                                fontSize: '15px',
+                                                fontWeight: '700',
+                                                color: '#ffffff',
+                                                margin: '0 0 8px',
+                                                lineHeight: '1.4',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden'
+                                            }}>
+                                                {recTitle}
+                                            </h4>
+
+                                            <p style={{
+                                                fontSize: '12px',
+                                                color: '#94a3b8',
+                                                lineHeight: '1.5',
+                                                margin: '0 0 16px',
+                                                flexGrow: 1,
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden'
+                                            }}>
+                                                {recSnippet}
+                                            </p>
+
+                                            <div style={{
+                                                fontSize: '12px',
+                                                fontWeight: '700',
+                                                color: '#818cf8',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}>
+                                                <span>Baca Artikel</span>
+                                                <span>&rarr;</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
             </main>
 
             <PremiumFooter adminSettings={adminSettings} onNavigate={onNavigate} />
@@ -1534,10 +2060,33 @@ const AdminArticlesManager = ({
     const [isUploading, setIsUploading] = React.useState(false);
     const [isUploadingDoc, setIsUploadingDoc] = React.useState(false);
     const [coverSourceType, setCoverSourceType] = React.useState('upload'); // 'upload' | 'link'
+    const [isNewCategoryMode, setIsNewCategoryMode] = React.useState(false);
+
+    const defaultCategories = [
+        "Regulasi & Kebijakan LPSE",
+        "Strategi Tender & Kemenangan",
+        "E-Katalog & Pengadaan Pemerintah",
+        "Tips & Tutorial SPSE",
+        "Berita & Pengumuman Resmi",
+        "Analisis Pasar & Kompetitor"
+    ];
+
+    const availableCategories = React.useMemo(() => {
+        const set = new Set(defaultCategories);
+        if (adminArticles && adminArticles.length) {
+            adminArticles.forEach(art => {
+                if (art.category && art.category.trim()) {
+                    set.add(art.category.trim());
+                }
+            });
+        }
+        return Array.from(set);
+    }, [adminArticles]);
 
     const openCreateForm = () => {
         setEditingArticleId(null);
         setCoverSourceType('upload');
+        setIsNewCategoryMode(false);
         setAdminArticleForm({
             title: '',
             slug: '',
@@ -1551,7 +2100,8 @@ const AdminArticlesManager = ({
             youtube_embed: '',
             document_title: '',
             document_url: '',
-            document_type: 'pdf'
+            document_type: 'pdf',
+            category: ''
         });
         setArticleMsg(null);
         setIsFormOpen(true);
@@ -1560,6 +2110,7 @@ const AdminArticlesManager = ({
     const openEditForm = (art) => {
         setEditingArticleId(art.id);
         setCoverSourceType(art.image_url && !art.image_url.includes('/static/uploads/') ? 'link' : 'upload');
+        setIsNewCategoryMode(false);
         setAdminArticleForm({
             title: art.title || '',
             slug: art.slug || '',
@@ -1573,7 +2124,8 @@ const AdminArticlesManager = ({
             youtube_embed: art.youtube_embed || '',
             document_title: art.document_title || '',
             document_url: art.document_url || '',
-            document_type: art.document_type || 'pdf'
+            document_type: art.document_type || 'pdf',
+            category: art.category || ''
         });
         setArticleMsg(null);
         setIsFormOpen(true);
@@ -1674,7 +2226,7 @@ const AdminArticlesManager = ({
                     </div>
                     <form onSubmit={(e) => { e.preventDefault(); handleSaveArticle(e); setIsFormOpen(false); }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
                             <div className="form-group">
                                 <label>Judul Artikel <span style={{ color: '#ef4444' }}>*</span></label>
                                 <input
@@ -1696,6 +2248,65 @@ const AdminArticlesManager = ({
                                     onChange={(e) => setAdminArticleForm(prev => ({ ...prev, slug: e.target.value }))}
                                     required
                                 />
+                            </div>
+                            <div className="form-group">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <label style={{ margin: 0 }}>Kategori Artikel</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsNewCategoryMode(!isNewCategoryMode)}
+                                        style={{
+                                            background: isNewCategoryMode ? 'rgba(239, 68, 68, 0.12)' : 'rgba(99, 102, 241, 0.15)',
+                                            color: isNewCategoryMode ? '#ef4444' : '#818cf8',
+                                            border: `1px solid ${isNewCategoryMode ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.35)'}`,
+                                            borderRadius: '6px',
+                                            padding: '2px 8px',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {isNewCategoryMode ? '← Pilih dari Daftar' : '+ Buat Kategori Baru'}
+                                    </button>
+                                </div>
+                                {isNewCategoryMode ? (
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Ketik kategori baru (contoh: Regulasi Pengadaan)..."
+                                        value={adminArticleForm.category || ''}
+                                        onChange={(e) => setAdminArticleForm(prev => ({ ...prev, category: e.target.value }))}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <select
+                                        className="form-control"
+                                        value={adminArticleForm.category || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '__CREATE_NEW__') {
+                                                setIsNewCategoryMode(true);
+                                                setAdminArticleForm(prev => ({ ...prev, category: '' }));
+                                            } else {
+                                                setAdminArticleForm(prev => ({ ...prev, category: val }));
+                                            }
+                                        }}
+                                        style={{ background: '#090e1a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+                                    >
+                                        <option value="">-- Pilih Kategori Artikel (Opsional) --</option>
+                                        {availableCategories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                        <option value="__CREATE_NEW__">➕ + Buat Kategori Baru...</option>
+                                    </select>
+                                )}
+                                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                                    {adminArticleForm.category ? (
+                                        <span>Kategori aktif: <strong style={{ color: '#818cf8' }}>{adminArticleForm.category}</strong></span>
+                                    ) : (
+                                        <span>Pilih dari dropdown atau buat kategori baru</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -2021,6 +2632,7 @@ const AdminArticlesManager = ({
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}>
                                         <th style={{ padding: '12px 8px' }}>Judul</th>
+                                        <th style={{ padding: '12px 8px' }}>Kategori</th>
                                         <th style={{ padding: '12px 8px' }}>Slug</th>
                                         <th style={{ padding: '12px 8px', width: '80px', textAlign: 'center' }}>Pinned</th>
                                         <th style={{ padding: '12px 8px', width: '90px', textAlign: 'center' }}>Status</th>
@@ -2032,6 +2644,24 @@ const AdminArticlesManager = ({
                                     {filtered.map((art) => (
                                         <tr key={art.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                                             <td style={{ padding: '12px 8px', fontWeight: '600', color: '#fff' }}>{art.title}</td>
+                                            <td style={{ padding: '12px 8px' }}>
+                                                {art.category ? (
+                                                    <span style={{
+                                                        background: 'rgba(99, 102, 241, 0.15)',
+                                                        color: '#a5b4fc',
+                                                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                        borderRadius: '6px',
+                                                        padding: '2px 8px',
+                                                        fontSize: '11px',
+                                                        fontWeight: '600',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        {art.category}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: '#64748b', fontSize: '11px' }}>—</span>
+                                                )}
+                                            </td>
                                             <td style={{ padding: '12px 8px', color: '#818cf8' }}>{art.slug}</td>
                                             <td style={{ padding: '12px 8px', textAlign: 'center' }}>{art.is_pinned === 1 ? '📌 Ya' : '—'}</td>
                                             <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -4506,7 +5136,8 @@ function App() {
         youtube_embed: '',
         document_title: '',
         document_url: '',
-        document_type: 'pdf'
+        document_type: 'pdf',
+        category: ''
     });
 
     // Server Monitoring & Telemetry States
@@ -5677,7 +6308,8 @@ function App() {
                     youtube_embed: '',
                     document_title: '',
                     document_url: '',
-                    document_type: 'pdf'
+                    document_type: 'pdf',
+                    category: ''
                 });
                 fetchAdminArticles();
                 fetchPublicArticles();
@@ -7526,6 +8158,7 @@ function App() {
                     isLoadingArticles={isLoadingArticles}
                     onNavigate={handlePublicNavigate}
                     userToken={userToken}
+                    publicArticles={publicArticles}
                 />
             );
         }
@@ -13489,6 +14122,7 @@ function App() {
                         isLoadingArticles={isLoadingArticles}
                         onNavigate={handlePublicNavigate}
                         userToken={userToken}
+                        publicArticles={publicArticles}
                     />
                 )}
 

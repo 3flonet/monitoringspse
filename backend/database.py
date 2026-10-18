@@ -446,6 +446,7 @@ def init_db():
             document_title TEXT,
             document_url TEXT,
             document_type TEXT,
+            category VARCHAR(100),
             created_at TEXT,
             updated_at TEXT
         )
@@ -701,6 +702,7 @@ def init_db():
             document_title TEXT,
             document_url TEXT,
             document_type TEXT,
+            category TEXT,
             created_at TEXT,
             updated_at TEXT
         )
@@ -782,6 +784,7 @@ def init_db():
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_title TEXT")
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_url TEXT")
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_type TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS category TEXT")
         except Exception as e:
             logging.warning(f"PG articles migration warning: {e}")
     else:
@@ -810,6 +813,8 @@ def init_db():
                 cursor.execute("ALTER TABLE articles ADD COLUMN document_url TEXT")
             if 'document_type' not in cols:
                 cursor.execute("ALTER TABLE articles ADD COLUMN document_type TEXT")
+            if 'category' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN category TEXT")
         except Exception as e:
             logging.warning(f"SQLite articles migration warning: {e}")
         
@@ -1216,7 +1221,7 @@ def get_all_vouchers():
     return [dict(r) for r in rows]
 
 # Article Helpers
-def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None):
+def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     now_str = datetime.now().isoformat()
@@ -1226,9 +1231,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
         cursor.execute("""
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
-                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type,
+                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type, category,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1243,6 +1248,7 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             clean_str(document_title) if document_title else None,
             document_url,
             clean_str(document_type) if document_type else None,
+            clean_str(category) if category else None,
             now_str,
             now_str
         ))
@@ -1251,9 +1257,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
         cursor.execute("""
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
-                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type,
+                is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type, category,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1268,6 +1274,7 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             clean_str(document_title) if document_title else None,
             document_url,
             clean_str(document_type) if document_type else None,
+            clean_str(category) if category else None,
             now_str,
             now_str
         ))
@@ -1299,7 +1306,20 @@ def get_all_articles(include_unpublished=False):
     conn.close()
     return [dict(r) for r in rows]
 
-def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None):
+def get_article_categories():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT category FROM articles WHERE category IS NOT NULL AND category != '' ORDER BY category ASC")
+    rows = cursor.fetchall()
+    conn.close()
+    cats = []
+    for r in rows:
+        val = r[0] if isinstance(r, (tuple, list)) else (r['category'] if isinstance(r, dict) else getattr(r, 'category', None))
+        if val and str(val).strip():
+            cats.append(str(val).strip())
+    return cats
+
+def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None):
     if article_id is not None:
         article_id = int(article_id)
     conn = get_db_connection()
@@ -1320,6 +1340,7 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
             document_title = ?,
             document_url = ?,
             document_type = ?,
+            category = ?,
             updated_at = ?
         WHERE id = ?
     """, (
@@ -1336,6 +1357,7 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
         clean_str(document_title) if document_title else None,
         document_url,
         clean_str(document_type) if document_type else None,
+        clean_str(category) if category else None,
         now_str,
         article_id
     ))
