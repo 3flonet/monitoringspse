@@ -13364,7 +13364,7 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="panel" data-tour="competitor-search-box" style={{ width: '100%', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent), #0d121f', border: '1px solid rgba(99, 102, 241, 0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
+                        <div className="panel" data-tour="competitor-search-box" style={{ width: '100%', position: 'relative', zIndex: 50, background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent), #0d121f', border: '1px solid rgba(99, 102, 241, 0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
                             <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                                 <div style={{ width: '72px', height: '72px', borderRadius: '20px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))', border: '1px solid rgba(99, 102, 241, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.2)' }}>
                                     🔍
@@ -13380,7 +13380,7 @@ function App() {
                                             handleOpenCompetitorProfile(competitorSearch.trim());
                                         }
                                     }}
-                                    style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}
+                                    style={{ position: 'relative', maxWidth: '800px', margin: '0 auto', zIndex: 60 }}
                                 >
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
                                         <div style={{ position: 'relative', flexGrow: 1 }}>
@@ -13400,7 +13400,7 @@ function App() {
                                                     padding: '16px 44px 16px 46px',
                                                     borderRadius: '12px',
                                                     fontSize: '15px',
-                                                    background: 'rgba(15,23,42,0.9)',
+                                                    background: 'rgba(15,23,42,0.95)',
                                                     borderColor: 'rgba(99,102,241,0.3)',
                                                     color: '#fff',
                                                     boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
@@ -13467,14 +13467,14 @@ function App() {
                                             top: '100%',
                                             left: 0,
                                             right: 0,
-                                            background: '#0f172a',
-                                            border: '1px solid rgba(99,102,241,0.3)',
+                                            background: '#0d1527',
+                                            border: '1px solid rgba(99,102,241,0.45)',
                                             borderRadius: '12px',
                                             marginTop: '8px',
-                                            zIndex: 30,
+                                            zIndex: 999,
                                             textAlign: 'left',
-                                            boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-                                            maxHeight: '320px',
+                                            boxShadow: '0 20px 45px rgba(0,0,0,0.9), 0 0 0 1px rgba(99,102,241,0.25)',
+                                            maxHeight: '340px',
                                             overflowY: 'auto'
                                         }}>
                                             <div style={{ padding: '8px 14px', fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -13523,7 +13523,9 @@ function App() {
                             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                             gap: '20px',
                             width: '100%',
-                            margin: '32px 0 0'
+                            margin: '32px 0 0',
+                            position: 'relative',
+                            zIndex: 1
                         }}>
                             <div style={{
                                 background: 'rgba(15, 23, 42, 0.6)',
