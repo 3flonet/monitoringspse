@@ -126,6 +126,15 @@ class SettingsUpdate(BaseModel):
     custom_body_scripts: Optional[str] = None
     powered_by_text: Optional[str] = None
     powered_by_url: Optional[str] = None
+    chatbot_active: Optional[str] = None
+    chatbot_name: Optional[str] = None
+    chatbot_avatar: Optional[str] = None
+    chatbot_initial_greeting: Optional[str] = None
+    chatbot_ask_name_message: Optional[str] = None
+    chatbot_ask_phone_message: Optional[str] = None
+    chatbot_ask_email_message: Optional[str] = None
+    chatbot_ask_reason_message: Optional[str] = None
+    chatbot_final_message: Optional[str] = None
 
 class MaintenanceToggleReq(BaseModel):
     maintenance_mode: bool
@@ -421,7 +430,16 @@ def get_admin_settings(current_user: dict = Depends(get_current_user)):
         "custom_head_scripts": get_setting("custom_head_scripts", ""),
         "custom_body_scripts": get_setting("custom_body_scripts", ""),
         "powered_by_text": get_setting("powered_by_text", "3flo.net") or "3flo.net",
-        "powered_by_url": get_setting("powered_by_url", "https://3flo.net") or "https://3flo.net"
+        "powered_by_url": get_setting("powered_by_url", "https://3flo.net") or "https://3flo.net",
+        "chatbot_active": get_setting("chatbot_active", "true"),
+        "chatbot_name": get_setting("chatbot_name", "Nadia"),
+        "chatbot_avatar": get_setting("chatbot_avatar", ""),
+        "chatbot_initial_greeting": get_setting("chatbot_initial_greeting", "Halo! Saya Nadia, asisten virtual Spy SPSE. Ada yang bisa saya bantu terkait pemantauan tender LPSE?"),
+        "chatbot_ask_name_message": get_setting("chatbot_ask_name_message", "Boleh tahu siapa nama Anda?"),
+        "chatbot_ask_phone_message": get_setting("chatbot_ask_phone_message", "Boleh minta nomor WhatsApp Anda yang aktif? (Contoh: 08123456789)"),
+        "chatbot_ask_email_message": get_setting("chatbot_ask_email_message", "Bisa infokan juga alamat email Anda?"),
+        "chatbot_ask_reason_message": get_setting("chatbot_ask_reason_message", "Terima kasih! Silakan ceritakan apa yang ingin Anda tanyakan atau konsultasikan mengenai pemantauan tender LPSE?"),
+        "chatbot_final_message": get_setting("chatbot_final_message", "Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp.")
     }
 
 @app.post("/api/admin/settings")
@@ -489,6 +507,24 @@ def update_admin_settings(req: SettingsUpdate, current_user: dict = Depends(get_
         set_setting("powered_by_text", req.powered_by_text.strip())
     if req.powered_by_url is not None:
         set_setting("powered_by_url", req.powered_by_url.strip())
+    if req.chatbot_active is not None:
+        set_setting("chatbot_active", req.chatbot_active)
+    if req.chatbot_name is not None:
+        set_setting("chatbot_name", req.chatbot_name)
+    if req.chatbot_avatar is not None:
+        set_setting("chatbot_avatar", req.chatbot_avatar)
+    if req.chatbot_initial_greeting is not None:
+        set_setting("chatbot_initial_greeting", req.chatbot_initial_greeting)
+    if req.chatbot_ask_name_message is not None:
+        set_setting("chatbot_ask_name_message", req.chatbot_ask_name_message)
+    if req.chatbot_ask_phone_message is not None:
+        set_setting("chatbot_ask_phone_message", req.chatbot_ask_phone_message)
+    if req.chatbot_ask_email_message is not None:
+        set_setting("chatbot_ask_email_message", req.chatbot_ask_email_message)
+    if req.chatbot_ask_reason_message is not None:
+        set_setting("chatbot_ask_reason_message", req.chatbot_ask_reason_message)
+    if req.chatbot_final_message is not None:
+        set_setting("chatbot_final_message", req.chatbot_final_message)
         
     return {"status": "success", "message": "Pengaturan berhasil diperbarui."}
 
