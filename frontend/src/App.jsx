@@ -13359,45 +13359,127 @@ function App() {
                     <div>
                         <div className="header-dash">
                             <div className="header-title">
-                                <h1>Analisis Perusahaan &amp; Kompetitor</h1>
-                                <p>Cari profil badan usaha peserta lelang, pantau track record penawaran, tingkat kemenangan, dan competitor maps</p>
+                                <h1>🏢 Analisis Perusahaan &amp; Kompetitor</h1>
+                                <p>Cari profil badan usaha peserta lelang, pantau track record penawaran, tingkat kemenangan (Win Rate), dan competitor maps</p>
                             </div>
                         </div>
 
-                        <div className="panel" data-tour="competitor-search-box" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                                <span style={{ fontSize: '64px', display: 'block', marginBottom: '20px' }}>🔍</span>
-                                <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '24px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Cari Profil Kompetitor</h2>
-                                <p style={{ color: '#9ca3af', marginBottom: '30px', fontSize: '14px' }}>Masukkan nama perusahaan atau NPWP kompetitor untuk melihat analisis detail</p>
+                        <div className="panel" data-tour="competitor-search-box" style={{ maxWidth: '860px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent), #0d121f', border: '1px solid rgba(99, 102, 241, 0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
+                            <div style={{ textAlign: 'center', padding: '44px 24px' }}>
+                                <div style={{ width: '72px', height: '72px', borderRadius: '20px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))', border: '1px solid rgba(99, 102, 241, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.2)' }}>
+                                    🔍
+                                </div>
+                                <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '26px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Cari Profil Badan Usaha &amp; Kompetitor</h2>
+                                <p style={{ color: '#94a3b8', marginBottom: '32px', fontSize: '14.5px', maxWidth: '540px', margin: '0 auto 32px' }}>Masukkan nama perusahaan atau NPWP peserta lelang untuk membedah histori kemenangan, pagu kontrak, dan deteksi keguguran Pokja</p>
 
-                                <div style={{ position: 'relative', maxWidth: '600px', margin: '0 auto' }}>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Contoh: PT. Global Teknologi, CV. Digital Solusindo..."
-                                        value={competitorSearch}
-                                        onChange={(e) => {
-                                            setCompetitorSearch(e.target.value);
-                                            fetchCompetitorSuggestions(e.target.value);
-                                        }}
-                                        style={{ padding: '16px 20px', borderRadius: '12px', fontSize: '16px', background: 'rgba(15,23,42,0.8)', borderColor: 'rgba(255,255,255,0.1)' }}
-                                    />
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        if (competitorSearch && competitorSearch.trim()) {
+                                            setCompetitorSuggestions([]);
+                                            handleOpenCompetitorProfile(competitorSearch.trim());
+                                        }
+                                    }}
+                                    style={{ position: 'relative', maxWidth: '640px', margin: '0 auto' }}
+                                >
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
+                                        <div style={{ position: 'relative', flexGrow: 1 }}>
+                                            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px', color: '#64748b', pointerEvents: 'none' }}>
+                                                🔍
+                                            </span>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="Ketik nama PT / CV atau NPWP..."
+                                                value={competitorSearch}
+                                                onChange={(e) => {
+                                                    setCompetitorSearch(e.target.value);
+                                                    fetchCompetitorSuggestions(e.target.value);
+                                                }}
+                                                style={{
+                                                    padding: '16px 44px 16px 46px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '15px',
+                                                    background: 'rgba(15,23,42,0.9)',
+                                                    borderColor: 'rgba(99,102,241,0.3)',
+                                                    color: '#fff',
+                                                    boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+                                                    width: '100%',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            />
+                                            {competitorSearch && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCompetitorSearch('');
+                                                        setCompetitorSuggestions([]);
+                                                    }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        right: '14px',
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        background: 'rgba(255,255,255,0.1)',
+                                                        border: 'none',
+                                                        color: '#94a3b8',
+                                                        borderRadius: '50%',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '12px',
+                                                        padding: 0
+                                                    }}
+                                                    title="Hapus pencarian"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={!competitorSearch || !competitorSearch.trim()}
+                                            style={{
+                                                background: competitorSearch && competitorSearch.trim() ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(99,102,241,0.3)',
+                                                color: '#fff',
+                                                border: 'none',
+                                                padding: '0 24px',
+                                                borderRadius: '12px',
+                                                fontWeight: '700',
+                                                fontSize: '14px',
+                                                cursor: competitorSearch && competitorSearch.trim() ? 'pointer' : 'not-allowed',
+                                                boxShadow: competitorSearch && competitorSearch.trim() ? '0 4px 14px rgba(79,70,229,0.4)' : 'none',
+                                                transition: 'all 0.2s ease',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            Analisis Profil ➔
+                                        </button>
+                                    </div>
+
+                                    {/* Suggestion Dropdown */}
                                     {competitorSuggestions.length > 0 && (
                                         <div style={{
                                             position: 'absolute',
                                             top: '100%',
                                             left: 0,
                                             right: 0,
-                                            background: '#0f1322',
-                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            background: '#0f172a',
+                                            border: '1px solid rgba(99,102,241,0.3)',
                                             borderRadius: '12px',
                                             marginTop: '8px',
-                                            zIndex: 10,
+                                            zIndex: 30,
                                             textAlign: 'left',
-                                            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-                                            maxHeight: '300px',
+                                            boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                                            maxHeight: '320px',
                                             overflowY: 'auto'
                                         }}>
+                                            <div style={{ padding: '8px 14px', fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                                Hasil Rekomendasi Badan Usaha:
+                                            </div>
                                             {competitorSuggestions.map((name, idx) => (
                                                 <div
                                                     key={idx}
@@ -13412,17 +13494,137 @@ function App() {
                                                         borderBottom: idx === competitorSuggestions.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)',
                                                         color: '#fff',
                                                         fontSize: '14px',
-                                                        transition: 'background 0.2s'
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        transition: 'background 0.15s'
                                                     }}
-                                                    onMouseEnter={(e) => e.target.style.background = 'rgba(99,102,241,0.1)'}
-                                                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.18)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                 >
-                                                    🏢 {name}
+                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span>🏢</span>
+                                                        <strong>{name}</strong>
+                                                    </span>
+                                                    <span style={{ fontSize: '11px', color: '#818cf8', background: 'rgba(99,102,241,0.15)', padding: '3px 8px', borderRadius: '4px' }}>
+                                                        Buka Profil ➔
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
+                                </form>
+
+                                {/* Quick suggestion chips */}
+                                <div style={{ marginTop: '28px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '10px' }}>
+                                        💡 Contoh Badan Usaha Terpantau di Database (Klik untuk membuka profil):
+                                    </span>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                                        {[
+                                            'CV. GLOBAL MULTI SARANA',
+                                            'PT. NUSINDO REKATAMA SEMESTA',
+                                            'PT. NUSA KREASI PERSADA',
+                                            'CV. AGADI INSAN SEJATI',
+                                            'PT. ADHI KARYA (PERSERO) TBK',
+                                            'PT. WIJAYA KARYA (PERSERO) TBK'
+                                        ].map((sampleName, sIdx) => (
+                                            <button
+                                                key={sIdx}
+                                                type="button"
+                                                onClick={() => {
+                                                    setCompetitorSearch(sampleName);
+                                                    handleOpenCompetitorProfile(sampleName);
+                                                }}
+                                                style={{
+                                                    background: 'rgba(99, 102, 241, 0.08)',
+                                                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                                                    color: '#c7d2fe',
+                                                    padding: '6px 14px',
+                                                    borderRadius: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)';
+                                                    e.currentTarget.style.borderColor = '#818cf8';
+                                                    e.currentTarget.style.color = '#fff';
+                                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.08)';
+                                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.25)';
+                                                    e.currentTarget.style.color = '#c7d2fe';
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                }}
+                                            >
+                                                🏢 {sampleName}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Feature Cards Grid */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                            gap: '20px',
+                            maxWidth: '1000px',
+                            margin: '32px auto 0'
+                        }}>
+                            <div style={{
+                                background: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+                                <h3 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '17px', color: '#fff', margin: '0 0 8px 0', fontWeight: '700' }}>
+                                    Win Success Rate Akurat
+                                </h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                                    Ketahui rasio efektivitas kemenangan lelang dari total seluruh tender yang pernah diikuti oleh badan usaha pesaing.
+                                </p>
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ fontSize: '32px', marginBottom: '12px' }}>❌</div>
+                                <h3 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '17px', color: '#fff', margin: '0 0 8px 0', fontWeight: '700' }}>
+                                    Analisis Alasan Gugur Pokja
+                                </h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                                    Bongkar catatan evaluasi Pokja mengapa kompetitor digugurkan di evaluasi administrasi, teknis, kualifikasi, atau harga.
+                                </p>
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚔️</div>
+                                <h3 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '17px', color: '#fff', margin: '0 0 8px 0', fontWeight: '700' }}>
+                                    Rivalitas Head-to-Head &amp; Wilayah
+                                </h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                                    Petakan siapa kompetitor terberat yang paling sering bentrok serta instansi LPSE mana yang menjadi sarang kemenangannya.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -13431,18 +13633,103 @@ function App() {
                 {/* TAB: COMPETITOR PROFILE DASHBOARD */}
                 {activeTab === 'competitor-profile' && (
                     <div>
-                        <div className="header-dash">
-                            <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <button
-                                    onClick={() => setActiveTab('competitors')}
-                                    className="form-control"
-                                    style={{ width: 'auto', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
-                                >
-                                    ← Kembali
-                                </button>
+                        {/* Top Breadcrumb */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
+                            <span
+                                onClick={() => setActiveTab('competitors')}
+                                style={{ color: '#818cf8', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            >
+                                🏢 Analisis Kompetitor
+                            </span>
+                            <span>›</span>
+                            <span style={{ color: '#cbd5e1', fontWeight: '600' }}>
+                                Profil: {competitorProfile?.name || selectedCompetitorName || 'Badan Usaha'}
+                            </span>
+                        </div>
+
+                        {/* Highlighted Header with Prominent Back Button */}
+                        <div className="header-dash" style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                                    <button
+                                        onClick={() => setActiveTab('competitors')}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            padding: '11px 22px',
+                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                            border: '1px solid #818cf8',
+                                            borderRadius: '12px',
+                                            color: '#ffffff',
+                                            fontSize: '13.5px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 18px rgba(79, 70, 229, 0.45)',
+                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            outline: 'none',
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateX(-3px) scale(1.02)';
+                                            e.currentTarget.style.boxShadow = '0 6px 24px rgba(99, 102, 241, 0.65)';
+                                            e.currentTarget.style.background = 'linear-gradient(135deg, #4338ca, #4f46e5)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                                            e.currentTarget.style.boxShadow = '0 4px 18px rgba(79, 70, 229, 0.45)';
+                                            e.currentTarget.style.background = 'linear-gradient(135deg, #4f46e5, #6366f1)';
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px', lineHeight: 1 }}>⬅</span>
+                                        <span>Kembali ke Pencarian</span>
+                                    </button>
+
+                                    <div>
+                                        <h1 style={{ margin: 0, fontSize: '24px', fontFamily: "'Outfit', sans-serif" }}>
+                                            Profil Kompetitor &amp; Badan Usaha
+                                        </h1>
+                                        <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '13px' }}>
+                                            Statistik agregat, win rate, dan rekam jejak lelang di LPSE
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <h1>Profil Kompetitor &amp; Badan Usaha</h1>
-                                    <p>Aggregated statistics &amp; track record lelang perusahaan di LPSE</p>
+                                    <button
+                                        onClick={() => {
+                                            setCompetitorSearch('');
+                                            setActiveTab('competitors');
+                                        }}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '9px 18px',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                                            borderRadius: '10px',
+                                            color: '#cbd5e1',
+                                            fontSize: '13px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                                            e.currentTarget.style.color = '#ffffff';
+                                            e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                            e.currentTarget.style.color = '#cbd5e1';
+                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                                        }}
+                                    >
+                                        <span>🔍</span>
+                                        <span>Cari Badan Usaha Lain</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -13491,9 +13778,12 @@ function App() {
                                             </div>
                                         </div>
 
-                                        <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', padding: '16px 24px', borderRadius: '12px', textAlign: 'center' }}>
-                                            <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase' }}>Win Success Rate</div>
+                                        <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', padding: '16px 24px', borderRadius: '12px', textAlign: 'center', minWidth: '160px', boxShadow: '0 4px 16px rgba(251,191,36,0.08)' }}>
+                                            <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Win Success Rate</div>
                                             <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>{competitorProfile.win_rate}%</div>
+                                            <div style={{ fontSize: '11px', color: '#fcd34d', marginTop: '4px', fontWeight: '600' }}>
+                                                {competitorProfile.total_wins} Menang dari {competitorProfile.total_tenders} Lelang
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -13909,7 +14199,29 @@ function App() {
                                 )}
                             </div>
                         ) : (
-                            <p style={{ color: '#6b7280', fontStyle: 'italic', textAlign: 'center', padding: '40px 0' }}>Badan usaha kompetitor tidak ditemukan.</p>
+                            <div className="panel" style={{ textAlign: 'center', padding: '60px 20px', maxWidth: '600px', margin: '40px auto' }}>
+                                <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🏢</span>
+                                <h3 style={{ color: '#fff', fontFamily: 'Outfit, sans-serif', fontSize: '20px', marginBottom: '8px' }}>Badan Usaha Tidak Ditemukan</h3>
+                                <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '24px' }}>
+                                    Data rekam jejak untuk badan usaha ini belum tercatat dalam arsip lelang SPSE yang telah discrape.
+                                </p>
+                                <button
+                                    onClick={() => setActiveTab('competitors')}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '12px 28px',
+                                        borderRadius: '10px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)'
+                                    }}
+                                >
+                                    ⬅ Kembali ke Pencarian Kompetitor
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
