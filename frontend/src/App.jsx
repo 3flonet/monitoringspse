@@ -6640,6 +6640,31 @@ function App() {
         return { daysLeft, totalDays, percent, color };
     };
 
+    const formatSubscriptionDays = (days) => {
+        if (days == null || isNaN(days)) return '0 hari';
+        const d = Math.max(0, parseInt(days, 10));
+        if (d === 0) return '0 hari';
+        if (d >= 365) {
+            const years = Math.floor(d / 365);
+            const remDays = d % 365;
+            const months = Math.floor(remDays / 30);
+            const remainingDays = remDays % 30;
+            const parts = [`${years} tahun`];
+            if (months > 0) parts.push(`${months} bulan`);
+            if (remainingDays > 0 && years < 2) parts.push(`${remainingDays} hari`);
+            return `${parts.join(' ')} (${d.toLocaleString('id-ID')} hari)`;
+        }
+        if (d >= 30) {
+            const months = Math.floor(d / 30);
+            const remDays = d % 30;
+            if (remDays > 0) {
+                return `${months} bulan ${remDays} hari (${d} hari)`;
+            }
+            return `${months} bulan (${d} hari)`;
+        }
+        return `${d} hari`;
+    };
+
     const handlePublicNavigate = (target, subView, anchor) => {
         if (target === 'tenders') {
             window.location.hash = '#/explorer';
@@ -7910,7 +7935,9 @@ function App() {
                             return (
                                 <div style={{ marginTop: '8px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>
-                                        <span>Aktif: {progress.daysLeft} / {progress.totalDays} H</span>
+                                        <span title={`Sisa ${formatSubscriptionDays(progress.daysLeft)} dari ${formatSubscriptionDays(progress.totalDays)}`}>
+                                            Aktif: {progress.daysLeft >= 365 ? `${(progress.daysLeft / 365).toFixed(1)} Thn` : `${progress.daysLeft} / ${progress.totalDays} H`}
+                                        </span>
                                         <span style={{ color: progress.color }}>{Math.round(progress.percent)}%</span>
                                     </div>
                                     <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -8236,7 +8263,7 @@ function App() {
                                             </div>
                                             <div className="sub-banner-progress">
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', marginBottom: '6px' }}>
-                                                    <span>Sisa {progress.daysLeft} dari {progress.totalDays} hari</span>
+                                                    <span>Sisa <strong style={{ color: '#fff' }}>{formatSubscriptionDays(progress.daysLeft)}</strong> dari {formatSubscriptionDays(progress.totalDays)}</span>
                                                     <span style={{ color: progress.color, fontWeight: '600' }}>{Math.round(progress.percent)}% tersisa</span>
                                                 </div>
                                                 <div style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -9942,9 +9969,9 @@ function App() {
                                                 {currentUser?.subscription?.plan_type === 'premium' ? 'Premium Plan' : 'Free / Trial'}
                                             </span>
                                         </h3>
-                                        <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#9ca3af', lineHeight: '1.5' }}>
-                                            Masa aktif tersisa **{progress.daysLeft} hari** (dari total durasi {progress.totalDays} hari).<br />
-                                            Berakhir pada: **{new Date(currentUser.subscription.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}**.
+                                        <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
+                                            Masa aktif tersisa <strong style={{ color: '#fff', fontWeight: '700' }}>{formatSubscriptionDays(progress.daysLeft)}</strong> (dari total durasi {formatSubscriptionDays(progress.totalDays)}).<br />
+                                            Berakhir pada: <strong style={{ color: '#fff', fontWeight: '700' }}>{new Date(currentUser.subscription.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>.
                                         </p>
                                     </div>
                                     <div style={{ flex: '2 1 300px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
