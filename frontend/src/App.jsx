@@ -1533,9 +1533,11 @@ const AdminArticlesManager = ({
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isUploading, setIsUploading] = React.useState(false);
     const [isUploadingDoc, setIsUploadingDoc] = React.useState(false);
+    const [coverSourceType, setCoverSourceType] = React.useState('upload'); // 'upload' | 'link'
 
     const openCreateForm = () => {
         setEditingArticleId(null);
+        setCoverSourceType('upload');
         setAdminArticleForm({
             title: '',
             slug: '',
@@ -1557,6 +1559,7 @@ const AdminArticlesManager = ({
 
     const openEditForm = (art) => {
         setEditingArticleId(art.id);
+        setCoverSourceType(art.image_url && !art.image_url.includes('/static/uploads/') ? 'link' : 'upload');
         setAdminArticleForm({
             title: art.title || '',
             slug: art.slug || '',
@@ -1813,33 +1816,95 @@ const AdminArticlesManager = ({
 
                         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
                             <h4 style={{ fontFamily: 'Outfit, sans-serif', color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '16px' }}>⚙️ Pengaturan Media &amp; Tampilan</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                                 <div className="form-group">
-                                    <label>Gambar Cover Utama (Opsional)</label>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={onUploadClick}
-                                            style={{ display: 'none' }}
-                                            id="article-cover-upload"
-                                        />
-                                        <label htmlFor="article-cover-upload" className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', margin: 0 }}>
-                                            {isUploading ? 'Mengunggah...' : '📤 Upload Gambar'}
+                                    <label style={{ display: 'block', marginBottom: '8px' }}>Gambar Cover Utama (Opsional)</label>
+                                    
+                                    {/* Toggle Opsi: Upload vs Link URL */}
+                                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '10px', fontSize: '13px' }}>
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: coverSourceType === 'upload' ? '#818cf8' : '#94a3b8', fontWeight: coverSourceType === 'upload' ? '600' : 'normal' }}>
+                                            <input
+                                                type="radio"
+                                                name="coverSourceType"
+                                                value="upload"
+                                                checked={coverSourceType === 'upload'}
+                                                onChange={() => setCoverSourceType('upload')}
+                                            />
+                                            <span>📤 Upload File</span>
                                         </label>
-                                        {adminArticleForm.image_url && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setAdminArticleForm(prev => ({ ...prev, image_url: '' }))}
-                                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
-                                            >
-                                                Hapus
-                                            </button>
-                                        )}
+                                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: coverSourceType === 'link' ? '#818cf8' : '#94a3b8', fontWeight: coverSourceType === 'link' ? '600' : 'normal' }}>
+                                            <input
+                                                type="radio"
+                                                name="coverSourceType"
+                                                value="link"
+                                                checked={coverSourceType === 'link'}
+                                                onChange={() => setCoverSourceType('link')}
+                                            />
+                                            <span>🔗 Tautan / URL Gambar Luar</span>
+                                        </label>
                                     </div>
+
+                                    {coverSourceType === 'upload' ? (
+                                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={onUploadClick}
+                                                style={{ display: 'none' }}
+                                                id="article-cover-upload"
+                                            />
+                                            <label htmlFor="article-cover-upload" className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px', cursor: 'pointer', margin: 0 }}>
+                                                {isUploading ? 'Mengunggah...' : '📤 Upload Gambar'}
+                                            </label>
+                                            {adminArticleForm.image_url && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAdminArticleForm(prev => ({ ...prev, image_url: '' }))}
+                                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+                                                >
+                                                    Hapus
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                            <input
+                                                type="url"
+                                                className="form-control"
+                                                placeholder="https://example.com/images/foto-cover.jpg"
+                                                value={adminArticleForm.image_url || ''}
+                                                onChange={(e) => setAdminArticleForm(prev => ({ ...prev, image_url: e.target.value }))}
+                                                style={{ flex: 1 }}
+                                            />
+                                            {adminArticleForm.image_url && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAdminArticleForm(prev => ({ ...prev, image_url: '' }))}
+                                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}
+                                                >
+                                                    Hapus
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Preview Thumbnail */}
                                     {adminArticleForm.image_url && (
-                                        <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <img src={adminArticleForm.image_url} alt="Cover Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', border: '1px solid rgba(255,255,255,0.1)', background: '#090e1a', flexShrink: 0 }}>
+                                                <img
+                                                    src={adminArticleForm.image_url}
+                                                    alt="Cover Preview"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                <span style={{ color: '#34d399', fontWeight: '600' }}>✓ Cover terpasang</span>
+                                                <div style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px', color: '#64748b' }}>
+                                                    {adminArticleForm.image_url}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -1852,6 +1917,9 @@ const AdminArticlesManager = ({
                                         value={adminArticleForm.youtube_embed}
                                         onChange={(e) => setAdminArticleForm(prev => ({ ...prev, youtube_embed: e.target.value }))}
                                     />
+                                    <small style={{ color: '#64748b', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                                        Tautkan video penjelasan atau tutorial resmi tender
+                                    </small>
                                 </div>
                             </div>
                         </div>
