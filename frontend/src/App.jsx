@@ -4631,7 +4631,10 @@ function App() {
         chatbot_ask_phone_message: 'Boleh minta nomor WhatsApp Anda yang aktif? (Contoh: 08123456789)',
         chatbot_ask_email_message: 'Bisa infokan juga alamat email Anda?',
         chatbot_ask_reason_message: 'Terima kasih! Silakan ceritakan apa yang ingin Anda tanyakan atau konsultasikan mengenai pemantauan tender LPSE?',
-        chatbot_final_message: 'Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp.'
+        chatbot_final_message: 'Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp.',
+        gtm_id: '',
+        custom_head_scripts: '',
+        custom_body_scripts: ''
     });
     const [leads, setLeads] = useState([]);
     const [isLoadingLeads, setIsLoadingLeads] = useState(false);
@@ -6138,7 +6141,10 @@ function App() {
                     chatbot_ask_phone_message: data.chatbot_ask_phone_message || '',
                     chatbot_ask_email_message: data.chatbot_ask_email_message || '',
                     chatbot_ask_reason_message: data.chatbot_ask_reason_message || '',
-                    chatbot_final_message: data.chatbot_final_message || ''
+                    chatbot_final_message: data.chatbot_final_message || '',
+                    gtm_id: data.gtm_id || '',
+                    custom_head_scripts: data.custom_head_scripts || '',
+                    custom_body_scripts: data.custom_body_scripts || ''
                 }));
                 if (data.lpse_instances) {
                     if (typeof data.lpse_instances === 'string') {
@@ -6158,7 +6164,7 @@ function App() {
         }
     };
 
-    // Inject SEO Meta Tags dynamically whenever adminSettings changes
+    // Inject SEO Meta Tags, GTM, and Custom Scripts dynamically whenever adminSettings changes
     useEffect(() => {
         if (adminSettings.app_name) {
             document.title = `${adminSettings.app_name} ${adminSettings.app_tagline ? '- ' + adminSettings.app_tagline : ''}`;
@@ -6196,7 +6202,85 @@ function App() {
             }
             metaGeo.content = adminSettings.geo_placename;
         }
-    }, [adminSettings.app_name, adminSettings.app_tagline, adminSettings.seo_description, adminSettings.seo_keywords, adminSettings.geo_placename]);
+
+        // Update GTM & Custom Scripts (Tawk.to, Analytics, Tracking, etc.)
+        const applyCustomScripts = (gtmId, headScripts, bodyScripts) => {
+            // 1. GTM Automatic Injection
+            const cleanGtm = (gtmId || '').trim();
+            const gtmScriptId = 'gtm-injected-script';
+            const gtmNoscriptId = 'gtm-injected-noscript';
+
+            const prevGtmScript = document.getElementById(gtmScriptId);
+            if (prevGtmScript) prevGtmScript.remove();
+            const prevGtmNoscript = document.getElementById(gtmNoscriptId);
+            if (prevGtmNoscript) prevGtmNoscript.remove();
+
+            if (cleanGtm) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+
+                const script = document.createElement('script');
+                script.id = gtmScriptId;
+                script.async = true;
+                script.src = `https://www.googletagmanager.com/gtm.js?id=${cleanGtm}`;
+                document.head.appendChild(script);
+
+                const noscript = document.createElement('noscript');
+                noscript.id = gtmNoscriptId;
+                noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${cleanGtm}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
+                document.body.insertAdjacentElement('afterbegin', noscript);
+            }
+
+            // Helper to safely execute script blocks & HTML
+            const runScriptBlock = (codeString, containerId, targetParent) => {
+                const prev = document.getElementById(containerId);
+                if (prev) prev.remove();
+
+                if (!codeString || !codeString.trim()) return;
+
+                const container = document.createElement('div');
+                container.id = containerId;
+                container.style.display = 'none';
+
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(`<div>${codeString}</div>`, 'text/html');
+                    const nodes = Array.from(doc.body.childNodes[0].childNodes);
+
+                    nodes.forEach(node => {
+                        if (node.nodeName.toLowerCase() === 'script') {
+                            const newScript = document.createElement('script');
+                            Array.from(node.attributes).forEach(attr => {
+                                newScript.setAttribute(attr.name, attr.value);
+                            });
+                            newScript.textContent = node.textContent;
+                            container.appendChild(newScript);
+                        } else {
+                            container.appendChild(node.cloneNode(true));
+                        }
+                    });
+
+                    targetParent.appendChild(container);
+                } catch (e) {
+                    console.error(`Failed to inject script (${containerId}):`, e);
+                }
+            };
+
+            runScriptBlock(headScripts, 'custom-head-scripts-container', document.head);
+            runScriptBlock(bodyScripts, 'custom-body-scripts-container', document.body);
+        };
+
+        applyCustomScripts(adminSettings.gtm_id, adminSettings.custom_head_scripts, adminSettings.custom_body_scripts);
+    }, [
+        adminSettings.app_name,
+        adminSettings.app_tagline,
+        adminSettings.seo_description,
+        adminSettings.seo_keywords,
+        adminSettings.geo_placename,
+        adminSettings.gtm_id,
+        adminSettings.custom_head_scripts,
+        adminSettings.custom_body_scripts
+    ]);
 
     const fetchAdminSettings = async () => {
         try {
@@ -11376,6 +11460,107 @@ function App() {
                                             onChange={e => setAdminSettings(p => ({ ...p, geo_placename: e.target.value }))}
                                             placeholder="Contoh: Indonesia, Jakarta"
                                         />
+                                    </div>
+
+                                    {/* SECTION: GOOGLE TAG MANAGER & CUSTOM SCRIPTS (TAWK.TO / ANALYTICS) */}
+                                    <div style={{
+                                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                        paddingTop: '24px',
+                                        marginTop: '10px',
+                                        marginBottom: '28px'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ fontSize: '20px' }}>🏷️</span>
+                                                <h4 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '16px', fontWeight: '700', color: '#ffffff', margin: 0 }}>
+                                                    Google Tag Manager &amp; Custom Scripts (Tawk.to / Tracking)
+                                                </h4>
+                                            </div>
+                                            {adminSettings.gtm_id && (
+                                                <span style={{
+                                                    background: 'rgba(16, 185, 129, 0.15)',
+                                                    color: '#34d399',
+                                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                                    padding: '3px 10px',
+                                                    borderRadius: '6px',
+                                                    fontSize: '11px',
+                                                    fontWeight: '700',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px'
+                                                }}>
+                                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
+                                                    GTM Aktif: {adminSettings.gtm_id}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: '1.6', margin: '0 0 20px 0' }}>
+                                            Hubungkan Google Tag Manager untuk analytics &amp; tracking konversi, serta tambahkan script pihak ketiga seperti <strong>Tawk.to Live Chat</strong>, Meta Pixel, atau Google Analytics.
+                                        </p>
+
+                                        {/* Input 1: GTM Container ID */}
+                                        <div className="form-group" style={{ marginBottom: '18px' }}>
+                                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>Google Tag Manager (GTM) Container ID</span>
+                                                <a
+                                                    href="https://tagmanager.google.com/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ fontSize: '12px', color: '#818cf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    Buka GTM Console ↗
+                                                </a>
+                                            </label>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="Contoh: GTM-KMHSGCGS"
+                                                    value={adminSettings.gtm_id || ''}
+                                                    onChange={e => setAdminSettings(p => ({ ...p, gtm_id: e.target.value }))}
+                                                    style={{ fontFamily: 'monospace', letterSpacing: '0.05em', fontWeight: '600' }}
+                                                />
+                                            </div>
+                                            <small style={{ color: '#64748b', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                                💡 Cukup masukkan Container ID Anda (misal: <code>GTM-KMHSGCGS</code>). Script &lt;head&gt; dan &lt;noscript&gt; body otomatis dipasang di seluruh halaman website.
+                                            </small>
+                                        </div>
+
+                                        {/* Input 2: Custom Head Scripts */}
+                                        <div className="form-group" style={{ marginBottom: '18px' }}>
+                                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>Custom Script Tag &lt;head&gt; (Opsional)</span>
+                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Ditempatkan di dalam &lt;head&gt;</span>
+                                            </label>
+                                            <textarea
+                                                className="form-control"
+                                                style={{ minHeight: '90px', fontFamily: 'monospace', fontSize: '12px', lineHeight: '1.5', background: '#090e1a', color: '#a5f3fc' }}
+                                                value={adminSettings.custom_head_scripts || ''}
+                                                onChange={e => setAdminSettings(p => ({ ...p, custom_head_scripts: e.target.value }))}
+                                                placeholder="<!-- Tempel script head di sini, contoh: Google Site Verification, Meta Pixel, atau custom tracking head -->&#10;<script>...</script>"
+                                            />
+                                            <small style={{ color: '#64748b', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                                Dijalankan pada bagian atas dokumen. Cocok untuk tag verifikasi Google Search Console, Meta Pixel, atau custom header JS.
+                                            </small>
+                                        </div>
+
+                                        {/* Input 3: Custom Body Scripts (Tawk.to, Livechat, dll) */}
+                                        <div className="form-group" style={{ marginBottom: '20px' }}>
+                                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>Custom Script &lt;body&gt; / Live Chat Widget (Tawk.to / Lainnya)</span>
+                                                <span style={{ fontSize: '11px', color: '#34d399', fontWeight: '600' }}>💬 Tawk.to / Live Chat Ready</span>
+                                            </label>
+                                            <textarea
+                                                className="form-control"
+                                                style={{ minHeight: '110px', fontFamily: 'monospace', fontSize: '12px', lineHeight: '1.5', background: '#090e1a', color: '#a5f3fc' }}
+                                                value={adminSettings.custom_body_scripts || ''}
+                                                onChange={e => setAdminSettings(p => ({ ...p, custom_body_scripts: e.target.value }))}
+                                                placeholder="<!-- Tempel script widget Tawk.to atau widget livechat lainnya di sini -->&#10;<script type=&quot;text/javascript&quot;>&#10;var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();&#10;...&#10;</script>"
+                                            />
+                                            <small style={{ color: '#64748b', fontSize: '12px', marginTop: '6px', display: 'block' }}>
+                                                Dijalankan pada bagian &lt;body&gt;. Sangat direkomendasikan untuk menempelkan kode integrasi <strong>Tawk.to</strong>, Crisp, WhatsApp floating widget, atau skrip eksternal lainnya.
+                                            </small>
+                                        </div>
                                     </div>
 
                                     {/* Preview sidebar mini */}

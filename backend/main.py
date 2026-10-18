@@ -121,6 +121,9 @@ class SettingsUpdate(BaseModel):
     contact_email: Optional[str] = None
     contact_maps_embed: Optional[str] = None
     spse_proxy: Optional[str] = None
+    gtm_id: Optional[str] = None
+    custom_head_scripts: Optional[str] = None
+    custom_body_scripts: Optional[str] = None
 
 class MaintenanceToggleReq(BaseModel):
     maintenance_mode: bool
@@ -367,7 +370,10 @@ def get_public_settings():
         "chatbot_ask_phone_message": get_setting("chatbot_ask_phone_message", "Boleh minta nomor WhatsApp Anda yang aktif? (Contoh: 08123456789)"),
         "chatbot_ask_email_message": get_setting("chatbot_ask_email_message", "Bisa infokan juga alamat email Anda?"),
         "chatbot_ask_reason_message": get_setting("chatbot_ask_reason_message", "Terima kasih! Silakan ceritakan apa yang ingin Anda tanyakan atau konsultasikan mengenai pemantauan tender LPSE?"),
-        "chatbot_final_message": get_setting("chatbot_final_message", "Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp.")
+        "chatbot_final_message": get_setting("chatbot_final_message", "Terima kasih! Informasi Anda sudah kami simpan. Silakan klik tombol di bawah untuk langsung terhubung dengan tim teknis kami di WhatsApp."),
+        "gtm_id": get_setting("gtm_id", ""),
+        "custom_head_scripts": get_setting("custom_head_scripts", ""),
+        "custom_body_scripts": get_setting("custom_body_scripts", "")
     }
 
 
@@ -405,7 +411,10 @@ def get_admin_settings(current_user: dict = Depends(get_current_user)):
         "contact_whatsapp": get_setting("contact_whatsapp", ""),
         "contact_email": get_setting("contact_email", ""),
         "contact_maps_embed": get_setting("contact_maps_embed", ""),
-        "spse_proxy": get_setting("spse_proxy", "")
+        "spse_proxy": get_setting("spse_proxy", ""),
+        "gtm_id": get_setting("gtm_id", ""),
+        "custom_head_scripts": get_setting("custom_head_scripts", ""),
+        "custom_body_scripts": get_setting("custom_body_scripts", "")
     }
 
 @app.post("/api/admin/settings")
@@ -463,6 +472,12 @@ def update_admin_settings(req: SettingsUpdate, current_user: dict = Depends(get_
         set_setting("contact_maps_embed", req.contact_maps_embed)
     if req.spse_proxy is not None:
         set_setting("spse_proxy", req.spse_proxy)
+    if req.gtm_id is not None:
+        set_setting("gtm_id", req.gtm_id.strip())
+    if req.custom_head_scripts is not None:
+        set_setting("custom_head_scripts", req.custom_head_scripts)
+    if req.custom_body_scripts is not None:
+        set_setting("custom_body_scripts", req.custom_body_scripts)
         
     return {"status": "success", "message": "Pengaturan berhasil diperbarui."}
 
