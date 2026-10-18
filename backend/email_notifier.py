@@ -1,7 +1,9 @@
 import smtplib
 import logging
+import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formatdate, make_msgid
 from pathlib import Path
 from datetime import datetime
 
@@ -72,13 +74,47 @@ def _build_html_email(app_name, keyword, tender):
     """
 
 
-def _send_via_smtp(smtp, to_email, subject, html_content):
-    """Internal SMTP sending helper. Raises exception on failure."""
+def _html_to_plain(html: str) -> str:
+    """Extract readable plain text from HTML content for email clients."""
+    text = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'</p>', '\n\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'</div>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+
+def _send_via_smtp(smtp, to_email, subject, html_content, text_content=None):
+    """Internal SMTP sending helper with RFC compliant headers. Raises exception on failure."""
+    from backend.database import get_setting
+    app_name = get_setting("app_name", "Spy SPSE")
+
+    sender = (smtp.get("sender") or "admin@spyspse.com").strip()
+    if "<" in sender and ">" in sender:
+        sender_email = sender.split("<")[1].split(">")[0].strip()
+        formatted_from = sender
+    else:
+        sender_email = sender
+        formatted_from = f"{app_name} <{sender_email}>"
+
+    domain = sender_email.split("@")[1] if "@" in sender_email else "spyspse.com"
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = smtp["sender"]
+    msg["From"] = formatted_from
     msg["To"] = to_email
-    msg.attach(MIMEText(html_content, "html"))
+    msg["Reply-To"] = sender_email
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid(domain=domain)
+    msg["MIME-Version"] = "1.0"
+
+    # RFC multipart/alternative: plain text MUST precede html
+    if not text_content:
+        text_content = _html_to_plain(html_content)
+    msg.attach(MIMEText(text_content, "plain", "utf-8"))
+    msg.attach(MIMEText(html_content, "html", "utf-8"))
 
     try:
         port = int(smtp["port"])
@@ -94,7 +130,7 @@ def _send_via_smtp(smtp, to_email, subject, html_content):
 
     with server:
         server.login(smtp["user"], smtp["password"])
-        server.sendmail(smtp["sender"], [to_email], msg.as_string())
+        server.sendmail(sender_email, [to_email], msg.as_string())
 
 
 def _write_mock_log(smtp_from, to_email, subject, keyword, tender):
