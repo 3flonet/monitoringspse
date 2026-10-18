@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * ArticleRichEditor
@@ -463,28 +464,43 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
             )}
 
             {/* MODAL: Sisipkan Gambar (Upload / Link & Alt Text SEO) */}
-            {isImageModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(6px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 99999,
-                    padding: '20px'
-                }}>
-                    <div style={{
-                        background: '#0f172a',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
-                        borderRadius: '16px',
-                        width: '100%',
-                        maxWidth: '520px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-                        overflow: 'hidden',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }}>
+            {isImageModalOpen && typeof document !== 'undefined' && createPortal(
+                <div
+                    onClick={() => setIsImageModalOpen(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        background: 'rgba(0, 0, 0, 0.82)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 999999,
+                        padding: '16px',
+                        boxSizing: 'border-box'
+                    }}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: '#0d1527',
+                            border: '1px solid rgba(99, 102, 241, 0.35)',
+                            borderRadius: '16px',
+                            width: '100%',
+                            maxWidth: '520px',
+                            maxHeight: '90vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(99, 102, 241, 0.2)',
+                            overflow: 'hidden',
+                            animation: 'fadeIn 0.2s ease-out'
+                        }}
+                    >
                         {/* Modal Header */}
                         <div style={{
                             padding: '16px 20px',
@@ -492,7 +508,8 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                             display: 'flex',
                             justifyContent: 'space-between',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            flexShrink: 0
                         }}>
                             <h3 style={{ margin: 0, fontSize: '16px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span>🖼️</span> Sisipkan Foto ke Dalam Konten
@@ -500,14 +517,15 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             <button
                                 type="button"
                                 onClick={() => setIsImageModalOpen(false)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer', padding: '4px' }}
+                                title="Tutup"
                             >
                                 ✕
                             </button>
                         </div>
 
-                        {/* Modal Body */}
-                        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* Modal Body with internal scroll */}
+                        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
                             {/* Tab Selection */}
                             <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '8px', padding: '4px' }}>
                                 <button
@@ -662,12 +680,13 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
 
                         {/* Modal Footer */}
                         <div style={{
-                            padding: '16px 20px',
+                            padding: '14px 20px',
                             background: 'rgba(255, 255, 255, 0.02)',
                             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                             display: 'flex',
                             justifyContent: 'flex-end',
-                            gap: '12px'
+                            gap: '12px',
+                            flexShrink: 0
                         }}>
                             <button
                                 type="button"
@@ -704,31 +723,45 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* MODAL: Sisipkan Link */}
-            {isLinkModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.75)',
-                    backdropFilter: 'blur(6px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 99999,
-                    padding: '20px'
-                }}>
-                    <div style={{
-                        background: '#0f172a',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
-                        borderRadius: '16px',
-                        width: '100%',
-                        maxWidth: '460px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-                        overflow: 'hidden'
-                    }}>
+            {isLinkModalOpen && typeof document !== 'undefined' && createPortal(
+                <div
+                    onClick={() => setIsLinkModalOpen(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        background: 'rgba(0, 0, 0, 0.82)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 999999,
+                        padding: '16px',
+                        boxSizing: 'border-box'
+                    }}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: '#0d1527',
+                            border: '1px solid rgba(99, 102, 241, 0.35)',
+                            borderRadius: '16px',
+                            width: '100%',
+                            maxWidth: '460px',
+                            boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(99, 102, 241, 0.2)',
+                            overflow: 'hidden',
+                            animation: 'fadeIn 0.2s ease-out'
+                        }}
+                    >
                         <div style={{
                             padding: '16px 20px',
                             background: 'rgba(255, 255, 255, 0.03)',
@@ -741,7 +774,8 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             <button
                                 type="button"
                                 onClick={() => setIsLinkModalOpen(false)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer', padding: '4px' }}
+                                title="Tutup"
                             >
                                 ✕
                             </button>
@@ -781,7 +815,7 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             </label>
                         </div>
                         <div style={{
-                            padding: '16px 20px',
+                            padding: '14px 20px',
                             background: 'rgba(255, 255, 255, 0.02)',
                             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                             display: 'flex',
@@ -805,7 +839,8 @@ export default function ArticleRichEditor({ value = '', onChange, placeholder = 
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
