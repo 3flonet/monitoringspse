@@ -13364,13 +13364,13 @@ function App() {
                             </div>
                         </div>
 
-                        <div className="panel" data-tour="competitor-search-box" style={{ maxWidth: '860px', margin: '0 auto', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent), #0d121f', border: '1px solid rgba(99, 102, 241, 0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
-                            <div style={{ textAlign: 'center', padding: '44px 24px' }}>
+                        <div className="panel" data-tour="competitor-search-box" style={{ width: '100%', background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent), #0d121f', border: '1px solid rgba(99, 102, 241, 0.25)', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
+                            <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                                 <div style={{ width: '72px', height: '72px', borderRadius: '20px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))', border: '1px solid rgba(99, 102, 241, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(99, 102, 241, 0.2)' }}>
                                     🔍
                                 </div>
                                 <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '26px', fontWeight: '800', marginBottom: '8px', color: '#fff' }}>Cari Profil Badan Usaha &amp; Kompetitor</h2>
-                                <p style={{ color: '#94a3b8', marginBottom: '32px', fontSize: '14.5px', maxWidth: '540px', margin: '0 auto 32px' }}>Masukkan nama perusahaan atau NPWP peserta lelang untuk membedah histori kemenangan, pagu kontrak, dan deteksi keguguran Pokja</p>
+                                <p style={{ color: '#94a3b8', marginBottom: '32px', fontSize: '14.5px', maxWidth: '640px', margin: '0 auto 32px' }}>Masukkan nama perusahaan atau NPWP peserta lelang untuk membedah histori kemenangan, pagu kontrak, dan deteksi keguguran Pokja</p>
 
                                 <form
                                     onSubmit={(e) => {
@@ -13380,7 +13380,7 @@ function App() {
                                             handleOpenCompetitorProfile(competitorSearch.trim());
                                         }
                                     }}
-                                    style={{ position: 'relative', maxWidth: '640px', margin: '0 auto' }}
+                                    style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}
                                 >
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
                                         <div style={{ position: 'relative', flexGrow: 1 }}>
@@ -13390,7 +13390,7 @@ function App() {
                                             <input
                                                 type="text"
                                                 className="form-control"
-                                                placeholder="Ketik nama PT / CV atau NPWP..."
+                                                placeholder="Ketikkan nama PT/CV badan usaha..."
                                                 value={competitorSearch}
                                                 onChange={(e) => {
                                                     setCompetitorSearch(e.target.value);
@@ -13446,7 +13446,7 @@ function App() {
                                                 background: competitorSearch && competitorSearch.trim() ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(99,102,241,0.3)',
                                                 color: '#fff',
                                                 border: 'none',
-                                                padding: '0 24px',
+                                                padding: '0 28px',
                                                 borderRadius: '12px',
                                                 fontWeight: '700',
                                                 fontSize: '14px',
@@ -13514,57 +13514,6 @@ function App() {
                                         </div>
                                     )}
                                 </form>
-
-                                {/* Quick suggestion chips */}
-                                <div style={{ marginTop: '28px', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '10px' }}>
-                                        💡 Contoh Badan Usaha Terpantau di Database (Klik untuk membuka profil):
-                                    </span>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-                                        {[
-                                            'CV. GLOBAL MULTI SARANA',
-                                            'PT. NUSINDO REKATAMA SEMESTA',
-                                            'PT. NUSA KREASI PERSADA',
-                                            'CV. AGADI INSAN SEJATI',
-                                            'PT. ADHI KARYA (PERSERO) TBK',
-                                            'PT. WIJAYA KARYA (PERSERO) TBK'
-                                        ].map((sampleName, sIdx) => (
-                                            <button
-                                                key={sIdx}
-                                                type="button"
-                                                onClick={() => {
-                                                    setCompetitorSearch(sampleName);
-                                                    handleOpenCompetitorProfile(sampleName);
-                                                }}
-                                                style={{
-                                                    background: 'rgba(99, 102, 241, 0.08)',
-                                                    border: '1px solid rgba(99, 102, 241, 0.25)',
-                                                    color: '#c7d2fe',
-                                                    padding: '6px 14px',
-                                                    borderRadius: '20px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '600',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.15s ease'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)';
-                                                    e.currentTarget.style.borderColor = '#818cf8';
-                                                    e.currentTarget.style.color = '#fff';
-                                                    e.currentTarget.style.transform = 'translateY(-1px)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.08)';
-                                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.25)';
-                                                    e.currentTarget.style.color = '#c7d2fe';
-                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                }}
-                                            >
-                                                🏢 {sampleName}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
@@ -13573,8 +13522,8 @@ function App() {
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                             gap: '20px',
-                            maxWidth: '1000px',
-                            margin: '32px auto 0'
+                            width: '100%',
+                            margin: '32px 0 0'
                         }}>
                             <div style={{
                                 background: 'rgba(15, 23, 42, 0.6)',
