@@ -5922,9 +5922,19 @@ function App() {
         }
     }, [selectedArticleSlug]);
 
-    // SEO Head Meta update
+    // Comprehensive SEO Head Meta & Structured Data update
     useEffect(() => {
-        if ((activeTab === 'article-detail' || publicView === 'article-detail') && selectedArticle) {
+        const appName = adminSettings.app_name || "Spy SPSE";
+        let pageTitle = `${appName} - Platform Intelijen & Monitoring Tender LPSE Indonesia`;
+        let pageDesc = adminSettings.seo_description || "Spy SPSE adalah platform intelijen dan monitoring tender LPSE Indonesia terdepan. Pantau peluang pengadaan barang/jasa seluruh LPSE, analisis kompetitor & win rate, deteksi keguguran Pokja, dan radar notifikasi WhatsApp realtime.";
+
+        const isArticleView = (activeTab === 'article-detail' || publicView === 'article-detail') && selectedArticle;
+        const isBlogView = activeTab === 'blog' || publicView === 'blog';
+        const isCompetitorView = activeTab === 'competitors' || activeTab === 'competitor-profile';
+        const isExplorerView = activeTab === 'explorer';
+        const isDocsView = activeTab === 'docs';
+
+        if (isArticleView) {
             const currentLpseName = selectedArticleLpseSlug
                 ? (lpseInstances.find(i => i.slug === selectedArticleLpseSlug)?.name || 'Indonesia')
                 : 'Indonesia';
@@ -5937,18 +5947,78 @@ function App() {
                 ? selectedArticle.meta_description.replace(/{lpse_name}/g, currentLpseName)
                 : selectedArticle.content.substring(0, 160).replace(/{lpse_name}/g, currentLpseName);
 
-            document.title = resolvedTitle + " | " + (adminSettings.app_name || "Spy SPSE");
+            pageTitle = `${resolvedTitle} | ${appName}`;
+            pageDesc = resolvedDesc;
 
-            let metaDesc = document.querySelector('meta[name="description"]');
-            if (!metaDesc) {
-                metaDesc = document.createElement('meta');
-                metaDesc.setAttribute('name', 'description');
-                document.head.appendChild(metaDesc);
+            // Inject or update dynamic JSON-LD for Article Rich Snippet
+            let articleJsonLd = document.getElementById('dynamic-article-jsonld');
+            if (!articleJsonLd) {
+                articleJsonLd = document.createElement('script');
+                articleJsonLd.id = 'dynamic-article-jsonld';
+                articleJsonLd.type = 'application/ld+json';
+                document.head.appendChild(articleJsonLd);
             }
-            metaDesc.setAttribute('content', resolvedDesc);
+            articleJsonLd.textContent = JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": resolvedTitle,
+                "description": resolvedDesc,
+                "image": [selectedArticle.image_url || "https://spyspse.com/static/og-banner.png"],
+                "datePublished": selectedArticle.created_at || new Date().toISOString(),
+                "author": {
+                    "@type": "Organization",
+                    "name": appName,
+                    "url": "https://spyspse.com/"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": appName,
+                    "url": "https://spyspse.com/",
+                    "logo": "https://spyspse.com/favicon.svg"
+                }
+            });
         } else {
-            document.title = adminSettings.app_name || "TenderKu";
+            // Remove article JSON-LD if leaving article detail
+            const existingArticleJsonLd = document.getElementById('dynamic-article-jsonld');
+            if (existingArticleJsonLd) {
+                existingArticleJsonLd.remove();
+            }
+
+            if (isBlogView) {
+                pageTitle = `Blog & Panduan Pemenangan Tender LPSE | ${appName}`;
+                pageDesc = "Kumpulan artikel edukasi pengadaan barang dan jasa, strategi sanggah Pokja, panduan evaluasi tender, dan tips menangkan proyek pemerintah di seluruh LPSE.";
+            } else if (isCompetitorView) {
+                pageTitle = `Analisis Profil Perusahaan & Kompetitor Tender LPSE | ${appName}`;
+                pageDesc = "Cari profil badan usaha peserta lelang, pantau track record penawaran, tingkat kemenangan (Win Rate), dan pemetaan rivalitas tender LPSE.";
+            } else if (isExplorerView) {
+                pageTitle = `Explorer & Monitoring Tender LPSE Nasional | ${appName}`;
+                pageDesc = "Cari dan filter ribuan paket tender LPSE aktif di seluruh Indonesia berdasarkan pagu, HPS, instansi, dan status lelang.";
+            } else if (isDocsView) {
+                pageTitle = `Panduan & Dokumentasi Resmi | ${appName}`;
+                pageDesc = "Panduan lengkap cara menggunakan Spy SPSE untuk memantau lelang tender dan mengaktifkan notifikasi WhatsApp otomatis.";
+            }
         }
+
+        document.title = pageTitle;
+
+        // Meta Description
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.setAttribute('name', 'description');
+            document.head.appendChild(metaDesc);
+        }
+        metaDesc.setAttribute('content', pageDesc);
+
+        // OpenGraph Title & Description
+        let ogTitle = document.querySelector('meta[property="og:title"]');
+        if (ogTitle) ogTitle.setAttribute('content', pageTitle);
+        let ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogDesc) ogDesc.setAttribute('content', pageDesc);
+        let twTitle = document.querySelector('meta[name="twitter:title"]');
+        if (twTitle) twTitle.setAttribute('content', pageTitle);
+        let twDesc = document.querySelector('meta[name="twitter:description"]');
+        if (twDesc) twDesc.setAttribute('content', pageDesc);
     }, [selectedArticle, selectedArticleLpseSlug, activeTab, publicView, adminSettings, lpseInstances]);
 
 

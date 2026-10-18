@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Any
 
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Depends, Query, UploadFile, File, status, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -2596,6 +2596,241 @@ def get_latest_winners():
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+# ========================================================
+# SEO, SITEMAP & AI SEARCH (GEO) ENDPOINTS
+# ========================================================
+
+@app.get("/sitemap.xml")
+def get_sitemap():
+    base_url = "https://spyspse.com"
+    today_iso = datetime.now().strftime("%Y-%m-%d")
+    
+    # Static public routes
+    urls = [
+        {"loc": f"{base_url}/", "changefreq": "daily", "priority": "1.0", "lastmod": today_iso},
+        {"loc": f"{base_url}/#/blog", "changefreq": "daily", "priority": "0.9", "lastmod": today_iso},
+        {"loc": f"{base_url}/#/competitors", "changefreq": "weekly", "priority": "0.85", "lastmod": today_iso},
+        {"loc": f"{base_url}/#/docs", "changefreq": "monthly", "priority": "0.8", "lastmod": today_iso},
+    ]
+    
+    # Dynamic published articles
+    try:
+        articles = get_all_articles(include_unpublished=False)
+        for art in articles:
+            slug = art.get("slug")
+            if not slug:
+                continue
+            updated_at = art.get("updated_at") or art.get("created_at")
+            lastmod = today_iso
+            if updated_at:
+                try:
+                    lastmod = str(updated_at)[:10]
+                except Exception:
+                    pass
+            # Clean server-friendly link
+            urls.append({
+                "loc": f"{base_url}/artikel/{slug}",
+                "changefreq": "weekly",
+                "priority": "0.9",
+                "lastmod": lastmod
+            })
+            # SPA hash link
+            urls.append({
+                "loc": f"{base_url}/#/artikel/{slug}",
+                "changefreq": "weekly",
+                "priority": "0.85",
+                "lastmod": lastmod
+            })
+    except Exception as e:
+        logging.error(f"Sitemap articles error: {e}")
+
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for u in urls:
+        xml_lines.append("  <url>")
+        xml_lines.append(f"    <loc>{u['loc']}</loc>")
+        xml_lines.append(f"    <lastmod>{u['lastmod']}</lastmod>")
+        xml_lines.append(f"    <changefreq>{u['changefreq']}</changefreq>")
+        xml_lines.append(f"    <priority>{u['priority']}</priority>")
+        xml_lines.append("  </url>")
+    xml_lines.append("</urlset>")
+    
+    xml_content = "\n".join(xml_lines)
+    return Response(content=xml_content, media_type="application/xml; charset=utf-8")
+
+
+@app.get("/robots.txt")
+def get_robots_txt():
+    content = """# robots.txt for Spy SPSE (https://spyspse.com)
+User-agent: *
+Allow: /
+Allow: /blog
+Allow: /artikel/
+Allow: /llms.txt
+Allow: /.well-known/llms.txt
+Allow: /sitemap.xml
+Disallow: /api/admin/
+Disallow: /admin/
+
+# AI Search Crawlers & LLM Engines (GEO - Generative Engine Optimization)
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://spyspse.com/sitemap.xml
+"""
+    return Response(content=content, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms.txt")
+@app.get("/.well-known/llms.txt")
+def get_llms_txt():
+    llms_path = Path(__file__).resolve().parent.parent / "frontend" / "public" / "llms.txt"
+    if llms_path.exists():
+        content = llms_path.read_text(encoding="utf-8")
+    else:
+        content = """# Spy SPSE (https://spyspse.com)
+> Spy SPSE adalah platform intelijen pengadaan dan pemantauan tender SPSE (LPSE) se-Indonesia yang dirancang untuk membantu kontraktor, konsultan, dan vendor pengadaan pemerintah memenangkan tender secara efisien dan berbasis data akurat.
+"""
+    return Response(content=content, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/blog")
+def redirect_to_blog():
+    return HTMLResponse(content='<script>window.location.replace("/#/blog");</script>', status_code=200)
+
+
+@app.get("/artikel/{slug}", response_class=HTMLResponse)
+@app.get("/artikel/{slug}/lpse/{lpse_slug}", response_class=HTMLResponse)
+def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
+    article = get_article_by_slug(slug)
+    if not article or article.get("is_published") != 1:
+        return HTMLResponse(content='<script>window.location.replace("/#/blog");</script>', status_code=200)
+    
+    # Resolve dynamic LPSE name
+    lpse_name = "Indonesia"
+    if lpse_slug and lpse_slug != "nasional":
+        try:
+            instances = json.loads(get_setting("lpse_instances", "[]"))
+            for inst in instances:
+                if inst.get("slug") == lpse_slug:
+                    lpse_name = inst.get("name", "Indonesia")
+                    break
+        except Exception:
+            pass
+            
+    title = (article.get("title") or "Artikel Tender LPSE").replace("{lpse_name}", lpse_name)
+    meta_desc = article.get("meta_description") or ""
+    if not meta_desc:
+        raw_content = article.get("content") or ""
+        import re
+        plain = re.sub(r'<[^>]+>', ' ', raw_content).replace("{lpse_name}", lpse_name)
+        plain = ' '.join(plain.split())
+        meta_desc = (plain[:155] + "...") if len(plain) > 155 else plain
+    else:
+        meta_desc = meta_desc.replace("{lpse_name}", lpse_name)
+        
+    image_url = article.get("image_url") or "https://spyspse.com/static/og-banner.png"
+    if image_url.startswith("/"):
+        image_url = f"https://spyspse.com{image_url}"
+        
+    canonical_url = f"https://spyspse.com/artikel/{slug}" + (f"/lpse/{lpse_slug}" if lpse_slug and lpse_slug != 'nasional' else "")
+    spa_target_hash = f"/#/artikel/{slug}" + (f"/lpse/{lpse_slug}" if lpse_slug and lpse_slug != 'nasional' else "")
+    
+    html = f"""<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title} | Spy SPSE</title>
+    <meta name="description" content="{meta_desc}">
+    <link rel="canonical" href="{canonical_url}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    
+    <!-- OpenGraph Facebook / WhatsApp -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Spy SPSE">
+    <meta property="og:title" content="{title}">
+    <meta property="og:description" content="{meta_desc}">
+    <meta property="og:image" content="{image_url}">
+    <meta property="og:url" content="{canonical_url}">
+    <meta property="og:locale" content="id_ID">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{title}">
+    <meta name="twitter:description" content="{meta_desc}">
+    <meta name="twitter:image" content="{image_url}">
+    
+    <!-- JSON-LD Article for Google & AI Engines -->
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": {json.dumps(title)},
+      "description": {json.dumps(meta_desc)},
+      "image": [{json.dumps(image_url)}],
+      "url": {json.dumps(canonical_url)},
+      "publisher": {{
+        "@type": "Organization",
+        "name": "Spy SPSE",
+        "url": "https://spyspse.com/",
+        "logo": "https://spyspse.com/favicon.svg"
+      }}
+    }}
+    </script>
+    
+    <!-- Instant Client Redirect to SPA Interactive View -->
+    <script>
+      window.location.replace('{spa_target_hash}');
+    </script>
+    <style>
+      body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #fff; padding: 40px 20px; text-align: center; }}
+      a {{ color: #818cf8; text-decoration: none; font-weight: 600; }}
+      .btn {{ display: inline-block; background: #4f46e5; color: #fff; padding: 12px 24px; border-radius: 8px; margin-top: 20px; }}
+    </style>
+</head>
+<body>
+    <h1>{title}</h1>
+    <p>{meta_desc}</p>
+    <p><a href="{spa_target_hash}" class="btn">Buka Artikel Lengkap di Spy SPSE &rarr;</a></p>
+</body>
+</html>"""
+    return HTMLResponse(content=html)
+
 
 # ARTICLES / BLOG ENDPOINTS
 @app.get("/api/public/articles")

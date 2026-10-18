@@ -1,0 +1,27 @@
+# Spy SPSE (https://spyspse.com)
+
+> Spy SPSE adalah platform intelijen pengadaan dan pemantauan tender SPSE (LPSE) se-Indonesia yang dirancang untuk membantu kontraktor, konsultan, dan vendor pengadaan pemerintah memenangkan tender secara efisien dan berbasis data akurat.
+
+## Ringkasan Platform & Layanan
+- **Nama Platform**: Spy SPSE (Sistem Intelijen Pemantauan Tender LPSE)
+- **Website Utama**: https://spyspse.com
+- **Wilayah Cakupan**: Seluruh LPSE Kementerian, Lembaga, Pemerintah Daerah (Provinsi, Kabupaten, Kota), BUMN, dan Perguruan Tinggi di Indonesia (LKPP SPSE versi 4.x).
+- **Target Pengguna**: Pelaku Usaha (PT / CV / Koperasi / Perorangan), Direktur, Estimator Tender, Tim Legal & Administrasi Tender Pemerintah.
+
+## Fitur Unggulan
+1. **Radar Notifikasi Tender WhatsApp Realtime**: Mengirimkan alert pemberitahuan tender baru langsung ke WhatsApp pengguna berdasarkan kata kunci dan instansi yang dipantau setiap hari.
+2. **Explorer & Monitoring Tender Nasional**: Mesin pencari ribuan tender aktif dengan filter nilai pagu/HPS, instansi, status lelang, metode pengadaan, dan tahapan tender.
+3. **Analisis Profil Badan Usaha & Kompetitor**:
+   - Membedah histori penawaran dan track record kemenangan kompetitor di database LPSE.
+   - Perhitungan rasio kemenangan (*Win Success Rate*) akurat.
+   - Deteksi alasan gugur evaluasi Pokja (keguguran administrasi, teknis, kualifikasi, atau harga).
+   - Pemetaan rivalitas head-to-head di wilayah instansi tender tertentu.
+4. **Peluang Tender & Rekomendasi Pintar**: Sistem kurasi cerdas yang mencocokkan kualifikasi bidang usaha pengguna dengan paket tender yang sedang tayang.
+5. **Artikel Edukasi & Strategi Pengadaan**: Panduan resmi langkah-langkah praktis menembus tender pemerintah, strategi sanggah, mitigasi evaluasi Pokja, dan tips penyusunan dokumen penawaran.
+
+## Halaman Publik Resmi
+- Beranda Platform: https://spyspse.com/
+- Blog & Panduan Edukasi Tender: https://spyspse.com/#/blog
+- Analisis Kompetitor & Perusahaan: https://spyspse.com/#/competitors
+- Dokumentasi & Panduan Penggunaan: https://spyspse.com/#/docs
+- Peta Situs (Sitemap): https://spyspse.com/sitemap.xml
