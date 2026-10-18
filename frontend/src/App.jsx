@@ -1384,6 +1384,41 @@ const PublicArticleDetailPage = ({
         }
     }, [publicArticles]);
 
+    // Sidebar Category Counts & List (Must be declared before early returns)
+    const categoryCounts = React.useMemo(() => {
+        const counts = {};
+        (allArticles || []).forEach(art => {
+            const cat = (art.category || 'Tips & Tutorial').trim();
+            counts[cat] = (counts[cat] || 0) + 1;
+        });
+        return counts;
+    }, [allArticles]);
+
+    // Sidebar Trending / Popular Articles (Must be declared before early returns)
+    const sidebarArticles = React.useMemo(() => {
+        if (!allArticles || !allArticles.length) return [];
+        return allArticles
+            .filter(a => !selectedArticle || (a.id !== selectedArticle.id && a.slug !== selectedArticle.slug))
+            .slice(0, 4);
+    }, [allArticles, selectedArticle]);
+
+    // Recommendations (Must be declared before early returns)
+    const recommendedArticles = React.useMemo(() => {
+        if (!allArticles || !allArticles.length) return [];
+        const others = allArticles.filter(a => !selectedArticle || (a.id !== selectedArticle.id && a.slug !== selectedArticle.slug));
+        const currentCat = (selectedArticle?.category || '').toLowerCase().trim();
+
+        let sameCategory = [];
+        let diffCategory = [];
+        if (currentCat) {
+            sameCategory = others.filter(a => (a.category || '').toLowerCase().trim() === currentCat);
+            diffCategory = others.filter(a => (a.category || '').toLowerCase().trim() !== currentCat);
+        } else {
+            diffCategory = others;
+        }
+        return [...sameCategory, ...diffCategory].slice(0, 3);
+    }, [allArticles, selectedArticle]);
+
     if (isLoadingArticles) {
         return (
             <div style={{
@@ -1453,40 +1488,6 @@ const PublicArticleDetailPage = ({
         if (!resolvedContent) return 2;
         const words = resolvedContent.replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
         return Math.max(1, Math.ceil(words / 190));
-    })();
-
-    // Sidebar Category Counts & List
-    const categoryCounts = React.useMemo(() => {
-        const counts = {};
-        (allArticles || []).forEach(art => {
-            const cat = (art.category || 'Tips & Tutorial').trim();
-            counts[cat] = (counts[cat] || 0) + 1;
-        });
-        return counts;
-    }, [allArticles]);
-
-    // Sidebar Trending / Popular Articles (excluding current article)
-    const sidebarArticles = React.useMemo(() => {
-        return (allArticles || [])
-            .filter(a => a.id !== selectedArticle.id && a.slug !== selectedArticle.slug)
-            .slice(0, 4);
-    }, [allArticles, selectedArticle]);
-
-    // Recommendations (prioritize same category first)
-    const recommendedArticles = (() => {
-        if (!allArticles || !allArticles.length) return [];
-        const others = allArticles.filter(a => a.id !== selectedArticle.id && a.slug !== selectedArticle.slug);
-        const currentCat = (selectedArticle.category || '').toLowerCase().trim();
-
-        let sameCategory = [];
-        let diffCategory = [];
-        if (currentCat) {
-            sameCategory = others.filter(a => (a.category || '').toLowerCase().trim() === currentCat);
-            diffCategory = others.filter(a => (a.category || '').toLowerCase().trim() !== currentCat);
-        } else {
-            diffCategory = others;
-        }
-        return [...sameCategory, ...diffCategory].slice(0, 3);
     })();
 
     const getYoutubeEmbedUrl = (urlStr) => {
