@@ -647,6 +647,20 @@ def get_server_monitoring(current_user: dict = Depends(get_current_user)):
     scheduler_state = get_setting("scheduler_state", "idle")
     scheduler_last_run_at = get_setting("scheduler_last_run_at", None)
     scheduler_last_run_summary = get_setting("scheduler_last_run_summary", None)
+    if scheduler_last_run_summary:
+        try:
+            summary_obj = json.loads(scheduler_last_run_summary) if isinstance(scheduler_last_run_summary, str) else scheduler_last_run_summary
+            if isinstance(summary_obj, dict) and "duration_seconds" in summary_obj and "duration_formatted" not in summary_obj:
+                sec = int(round(float(summary_obj["duration_seconds"])))
+                if sec < 60:
+                    summary_obj["duration_formatted"] = f"{sec}s"
+                else:
+                    m, s = divmod(sec, 60)
+                    h, m = divmod(m, 60)
+                    summary_obj["duration_formatted"] = f"{h}j {m}m {s}s" if h > 0 else f"{m}m {s}s"
+                scheduler_last_run_summary = json.dumps(summary_obj)
+        except Exception:
+            pass
     scheduler_next_run_at = get_setting("scheduler_next_run_at", None)
     
     log_feed = []

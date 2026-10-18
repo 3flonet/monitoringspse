@@ -5208,6 +5208,37 @@ function App() {
         }
     };
 
+    const formatDurationHuman = (val) => {
+        if (val == null || val === undefined) return '-';
+        const num = parseFloat(val);
+        if (isNaN(num)) return String(val);
+        if (num < 1 && num > 0) return `${Math.round(num * 1000)}ms`;
+        if (num < 60) {
+            return num < 10 && num > 0 ? `${num.toFixed(1)}s` : `${Math.round(num)}s`;
+        }
+        const h = Math.floor(num / 3600);
+        const m = Math.floor((num % 3600) / 60);
+        const s = Math.round(num % 60);
+        if (h > 0) {
+            return `${h}j ${m}m ${s > 0 ? `${s}s` : ''}`.trim();
+        }
+        return `${m}m ${s > 0 ? `${s}s` : ''}`.trim();
+    };
+
+    const getDurationTooltip = (val) => {
+        if (val == null || val === undefined) return '';
+        const num = parseFloat(val);
+        if (isNaN(num)) return String(val);
+        const h = Math.floor(num / 3600);
+        const m = Math.floor((num % 3600) / 60);
+        const s = Math.round(num % 60);
+        const parts = [];
+        if (h > 0) parts.push(`${h} Jam`);
+        if (m > 0) parts.push(`${m} Menit`);
+        if (s > 0 || parts.length === 0) parts.push(`${s} Detik`);
+        return `${parts.join(' ')} (Total ${num} detik)`;
+    };
+
     const handleForceRunScheduler = async () => {
         setIsForceRunningScheduler(true);
         setForceRunMsg(null);
@@ -10835,7 +10866,12 @@ function App() {
                                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
                                                             <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
                                                                 <div style={{ fontSize: '10px', color: '#a5b4fc', fontWeight: '600' }}>⏱️ DURASI</div>
-                                                                <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px' }}>{summary.duration_seconds ?? 0}s</div>
+                                                                <div
+                                                                    style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginTop: '2px', cursor: 'help' }}
+                                                                    title={getDurationTooltip(summary.duration_seconds)}
+                                                                >
+                                                                    {summary.duration_formatted || formatDurationHuman(summary.duration_seconds)}
+                                                                </div>
                                                             </div>
                                                             <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 6px', borderRadius: '8px', textAlign: 'center' }}>
                                                                 <div style={{ fontSize: '10px', color: '#4ade80', fontWeight: '600' }}>💾 BARU</div>
@@ -10931,14 +10967,17 @@ function App() {
                                     </div>
                                     <div className="crawler-log-panel" style={{ height: '240px', overflowY: 'auto' }}>
                                         {serverMonitoring.log_feed && serverMonitoring.log_feed.length > 0 ? (
-                                            serverMonitoring.log_feed.map((line, idx) => (
-                                                <div className="crawler-log-line" key={idx} style={{
-                                                    color: line.toLowerCase().includes('error') || line.toLowerCase().includes('fail') ? '#ef4444' :
-                                                        line.toLowerCase().includes('warning') ? '#f59e0b' : '#a7f3d0'
-                                                }}>
-                                                    {line}
-                                                </div>
-                                            ))
+                                            serverMonitoring.log_feed.map((line, idx) => {
+                                                const formattedLine = line.replace(/\(Duration:\s*([\d\.]+)s\)/gi, (_, sec) => `(Durasi: ${formatDurationHuman(sec)})`);
+                                                return (
+                                                    <div className="crawler-log-line" key={idx} style={{
+                                                        color: line.toLowerCase().includes('error') || line.toLowerCase().includes('fail') ? '#ef4444' :
+                                                            line.toLowerCase().includes('warning') ? '#f59e0b' : '#a7f3d0'
+                                                    }}>
+                                                        {formattedLine}
+                                                    </div>
+                                                );
+                                            })
                                         ) : (
                                             <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '60px' }}>📭 Log kosong atau file tidak ditemukan.</div>
                                         )}

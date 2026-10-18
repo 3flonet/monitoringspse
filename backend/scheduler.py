@@ -6,6 +6,16 @@ from backend.crawl_coordinator import run_crawl
 
 logger = logging.getLogger("scheduler")
 
+def format_duration(seconds: float) -> str:
+    sec = int(round(seconds))
+    if sec < 60:
+        return f"{sec}s"
+    m, s = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    if h > 0:
+        return f"{h}j {m}m {s}s" if s > 0 else f"{h}j {m}m"
+    return f"{m}m {s}s" if s > 0 else f"{m}m"
+
 async def run_daily_scraping():
     """
     Automated background scraper:
@@ -104,10 +114,13 @@ async def run_daily_scraping():
             # Polite delay between LPSE instances to avoid aggressive rate-limiting
             await asyncio.sleep(2.5)
             
+        duration_sec = round((datetime.now() - start_time).total_seconds(), 2)
+        duration_str = format_duration(duration_sec)
         summary = {
             "status": "success",
             "message": f"Berhasil memindai {total_lpse_success} LPSE ({total_tenders_saved} tender baru, {total_tenders_updated} diperbarui, {total_alerts_triggered} alert terkirim)",
-            "duration_seconds": round((datetime.now() - start_time).total_seconds(), 2),
+            "duration_seconds": duration_sec,
+            "duration_formatted": duration_str,
             "tenders_saved": total_tenders_saved,
             "tenders_updated": total_tenders_updated,
             "alerts_triggered": total_alerts_triggered,
@@ -121,14 +134,17 @@ async def run_daily_scraping():
         log_dir = Path("logs")
         log_dir.mkdir(parents=True, exist_ok=True)
         with open(log_dir / "crawl_errors.log", "a", encoding="utf-8") as f:
-            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - SCHEDULER INFO: {summary['message']} (Duration: {summary['duration_seconds']}s)\n")
+            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - SCHEDULER INFO: {summary['message']} (Durasi: {duration_str})\n")
     except Exception as e:
         logger.error(f"Scheduler job failed: {e}")
         set_setting("scheduler_state", "ERROR")
+        duration_sec = round((datetime.now() - start_time).total_seconds(), 2)
+        duration_str = format_duration(duration_sec)
         summary = {
             "status": "error",
             "message": str(e),
-            "duration_seconds": round((datetime.now() - start_time).total_seconds(), 2)
+            "duration_seconds": duration_sec,
+            "duration_formatted": duration_str
         }
         set_setting("scheduler_last_run_summary", json.dumps(summary))
         
