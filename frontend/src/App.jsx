@@ -1063,6 +1063,22 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
     const [searchTerm, setSearchTerm] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState('ALL');
 
+    React.useEffect(() => {
+        try {
+            const hash = window.location.hash || '';
+            if (hash.includes('category=')) {
+                const parts = hash.split('?');
+                if (parts[1]) {
+                    const params = new URLSearchParams(parts[1]);
+                    const catParam = params.get('category');
+                    if (catParam) {
+                        setSelectedCategory(decodeURIComponent(catParam));
+                    }
+                }
+            }
+        } catch (e) {}
+    }, []);
+
     const availableCategories = React.useMemo(() => {
         const set = new Set();
         if (publicArticles && publicArticles.length) {
@@ -1380,7 +1396,7 @@ const PublicArticleDetailPage = ({
                 width: '100%'
             }}>
                 <PublicHeader adminSettings={adminSettings} onNavigate={onNavigate} userToken={userToken} activePage="blog" />
-                <main style={{ flexGrow: 1, padding: '40px 20px', maxWidth: '880px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+                <main style={{ flexGrow: 1, padding: '40px 20px', maxWidth: '1240px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
                     <div style={{ marginBottom: '28px' }}>
                         <div className="skeleton-badge" style={{ width: '120px', height: '24px', marginBottom: '14px', borderRadius: '16px' }} />
                         <div className="skeleton-box" style={{ width: '92%', height: '40px', marginBottom: '14px' }} />
@@ -1439,6 +1455,23 @@ const PublicArticleDetailPage = ({
         return Math.max(1, Math.ceil(words / 190));
     })();
 
+    // Sidebar Category Counts & List
+    const categoryCounts = React.useMemo(() => {
+        const counts = {};
+        (allArticles || []).forEach(art => {
+            const cat = (art.category || 'Tips & Tutorial').trim();
+            counts[cat] = (counts[cat] || 0) + 1;
+        });
+        return counts;
+    }, [allArticles]);
+
+    // Sidebar Trending / Popular Articles (excluding current article)
+    const sidebarArticles = React.useMemo(() => {
+        return (allArticles || [])
+            .filter(a => a.id !== selectedArticle.id && a.slug !== selectedArticle.slug)
+            .slice(0, 4);
+    }, [allArticles, selectedArticle]);
+
     // Recommendations (prioritize same category first)
     const recommendedArticles = (() => {
         if (!allArticles || !allArticles.length) return [];
@@ -1486,7 +1519,7 @@ const PublicArticleDetailPage = ({
         }}>
             <PublicHeader adminSettings={adminSettings} onNavigate={onNavigate} userToken={userToken} activePage="blog" />
 
-            <main style={{ flexGrow: 1, padding: '40px 20px 80px', maxWidth: '880px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+            <main style={{ flexGrow: 1, padding: '40px 20px 80px', maxWidth: '1240px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
                 
                 {/* 1. Breadcrumbs */}
                 <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#94a3b8', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -1505,400 +1538,594 @@ const PublicArticleDetailPage = ({
                     )}
                 </nav>
 
-                <article>
-                    {/* 2. Editorial Header */}
-                    <header style={{ marginBottom: '28px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                            <span style={{
-                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25))',
-                                color: '#c7d2fe',
-                                border: '1px solid rgba(129, 140, 248, 0.4)',
-                                borderRadius: '20px',
-                                padding: '4px 14px',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                letterSpacing: '0.04em',
-                                textTransform: 'uppercase'
-                            }}>
-                                🏷️ {selectedArticle.category || 'Panduan Pengadaan & Regulasi'}
-                            </span>
-                            <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <span style={{ color: '#10b981', fontSize: '10px' }}>●</span> Edisi Resmi Spy SPSE
-                            </span>
-                        </div>
+                {/* 2-Column Editorial & Interactive Sidebar Layout */}
+                <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    
+                    {/* LEFT COLUMN: Main Article Content */}
+                    <div style={{ flex: '1 1 760px', minWidth: 0 }}>
+                        <article>
+                            {/* 2. Editorial Header */}
+                            <header style={{ marginBottom: '28px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                                    <span style={{
+                                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25))',
+                                        color: '#c7d2fe',
+                                        border: '1px solid rgba(129, 140, 248, 0.4)',
+                                        borderRadius: '20px',
+                                        padding: '4px 14px',
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        letterSpacing: '0.04em',
+                                        textTransform: 'uppercase'
+                                    }}>
+                                        🏷️ {selectedArticle.category || 'Panduan Pengadaan & Regulasi'}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <span style={{ color: '#10b981', fontSize: '10px' }}>●</span> Edisi Resmi Spy SPSE
+                                    </span>
+                                </div>
 
-                        <h1 style={{
-                            fontFamily: "'Outfit', sans-serif",
-                            fontSize: '38px',
-                            fontWeight: '800',
-                            color: '#ffffff',
-                            margin: '0 0 20px',
-                            lineHeight: '1.28',
-                            letterSpacing: '-0.02em'
-                        }}>
-                            {resolvedTitle}
-                        </h1>
-
-                        {/* Journalistic Byline & Social Share Bar */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flexWrap: 'wrap',
-                            gap: '16px',
-                            paddingBottom: '20px',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '42px',
-                                    height: '42px',
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                <h1 style={{
+                                    fontFamily: "'Outfit', sans-serif",
+                                    fontSize: '36px',
                                     fontWeight: '800',
-                                    color: '#fff',
-                                    fontSize: '15px',
-                                    boxShadow: '0 2px 10px rgba(79, 70, 229, 0.35)',
-                                    flexShrink: 0
+                                    color: '#ffffff',
+                                    margin: '0 0 20px',
+                                    lineHeight: '1.28',
+                                    letterSpacing: '-0.02em'
                                 }}>
-                                    SP
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>
-                                        Redaksi &amp; Tim Riset {adminSettings.app_name || 'Spy SPSE'}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
-                                        <span>🗓️ {selectedArticle.created_at ? new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Terbaru'}</span>
-                                        <span>•</span>
-                                        <span>⏱️ {readTimeMinutes} menit baca</span>
-                                    </div>
-                                </div>
-                            </div>
+                                    {resolvedTitle}
+                                </h1>
 
-                            {/* Share Buttons */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <a
-                                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\nBaca artikel selengkapnya di Spy SPSE: ' + window.location.href)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        background: 'rgba(37, 211, 102, 0.12)',
-                                        color: '#25d366',
-                                        border: '1px solid rgba(37, 211, 102, 0.3)',
-                                        padding: '7px 14px',
-                                        borderRadius: '8px',
-                                        fontSize: '12px',
-                                        fontWeight: '600',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        textDecoration: 'none',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <span>💬</span> Bagikan
-                                </a>
-                                <button
-                                    onClick={handleCopyLink}
-                                    style={{
-                                        background: copiedLink ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                                        color: copiedLink ? '#34d399' : '#e2e8f0',
-                                        border: `1px solid ${copiedLink ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
-                                        padding: '7px 14px',
-                                        borderRadius: '8px',
-                                        fontSize: '12px',
-                                        fontWeight: '600',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <span>{copiedLink ? '✓' : '🔗'}</span> {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
-                                </button>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* 3. Penargetan Wilayah LPSE Dinamis */}
-                    <div style={{
-                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04))',
-                        border: '1px solid rgba(99, 102, 241, 0.22)',
-                        borderRadius: '14px',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '16px',
-                        flexWrap: 'wrap',
-                        marginBottom: '32px'
-                    }}>
-                        <div>
-                            <div style={{ color: '#fff', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                                <span>📍</span> Edisi Penargetan Wilayah LPSE
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                                Pilih wilayah spesifik untuk melihat konten dan simulasi tender lokal secara dinamis.
-                            </div>
-                        </div>
-                        <div>
-                            <select
-                                value={selectedLpse}
-                                onChange={handleLpseChange}
-                                style={{
-                                    background: '#090e1a',
-                                    border: '1px solid rgba(129, 140, 248, 0.35)',
-                                    borderRadius: '10px',
-                                    color: '#fff',
-                                    padding: '9px 18px',
-                                    outline: 'none',
-                                    fontSize: '13px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <option value="nasional">🇮🇩 Seluruh Indonesia (Nasional)</option>
-                                {(lpseInstances || []).map((inst) => (
-                                    <option key={inst.slug} value={inst.slug}>{inst.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 4. Hero Cover Image */}
-                    {selectedArticle.image_url && (
-                        <div style={{ marginBottom: '36px' }}>
-                            <div style={{
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                boxShadow: '0 12px 35px rgba(0, 0, 0, 0.45)',
-                                maxHeight: '460px',
-                                background: '#090e1a'
-                            }}>
-                                <img
-                                    src={selectedArticle.image_url}
-                                    alt={resolvedTitle}
-                                    style={{ width: '100%', height: '100%', maxHeight: '460px', objectFit: 'cover', display: 'block' }}
-                                />
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '10px', textAlign: 'center', fontStyle: 'italic' }}>
-                                📸 Dokumentasi &amp; Analisis Pengadaan Barang/Jasa Pemerintah • Platform {adminSettings.app_name || 'Spy SPSE'}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 5. Article Body */}
-                    <div
-                        className="article-rich-body"
-                        style={{ marginBottom: '44px' }}
-                        dangerouslySetInnerHTML={{ __html: resolvedContent }}
-                    />
-
-                    {/* 6. Lampiran Dokumen Resmi / Siaran Pers */}
-                    {selectedArticle.document_url && (
-                        <div style={{
-                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.04))',
-                            border: '1px solid rgba(99, 102, 241, 0.25)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            marginBottom: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flexWrap: 'wrap',
-                            gap: '16px'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                {/* Journalistic Byline & Social Share Bar */}
                                 <div style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '12px',
-                                    background: selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                                    border: `1px solid ${selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'}`,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '24px',
-                                    flexShrink: 0
+                                    justifyContent: 'space-between',
+                                    flexWrap: 'wrap',
+                                    gap: '16px',
+                                    paddingBottom: '20px',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
                                 }}>
-                                    {selectedArticle.document_type === 'pdf' ? '📄' : '🔗'}
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: '700', marginBottom: '4px' }}>
-                                        {selectedArticle.document_type === 'pdf' ? 'DOKUMEN RESMI / SIARAN PERS' : 'RUJUKAN TAUTAN EKSTERNAL'}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{
+                                            width: '42px',
+                                            height: '42px',
+                                            borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: '800',
+                                            color: '#fff',
+                                            fontSize: '15px',
+                                            boxShadow: '0 2px 10px rgba(79, 70, 229, 0.35)',
+                                            flexShrink: 0
+                                        }}>
+                                            SP
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>
+                                                Redaksi &amp; Tim Riset {adminSettings.app_name || 'Spy SPSE'}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
+                                                <span>🗓️ {selectedArticle.created_at ? new Date(selectedArticle.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Terbaru'}</span>
+                                                <span>•</span>
+                                                <span>⏱️ {readTimeMinutes} menit baca</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', marginBottom: '2px' }}>
-                                        {selectedArticle.document_title || 'Dokumen Informasi Terlampir'}
+
+                                    {/* Share Buttons */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <a
+                                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\nBaca artikel selengkapnya di Spy SPSE: ' + window.location.href)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                background: 'rgba(37, 211, 102, 0.12)',
+                                                color: '#25d366',
+                                                border: '1px solid rgba(37, 211, 102, 0.3)',
+                                                padding: '7px 14px',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                                fontWeight: '600',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                textDecoration: 'none',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <span>💬</span> Bagikan
+                                        </a>
+                                        <button
+                                            onClick={handleCopyLink}
+                                            style={{
+                                                background: copiedLink ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                                                color: copiedLink ? '#34d399' : '#e2e8f0',
+                                                border: `1px solid ${copiedLink ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.1)'}`,
+                                                padding: '7px 14px',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                                fontWeight: '600',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <span>{copiedLink ? '✓' : '🔗'}</span> {copiedLink ? 'Tersalin!' : 'Salin Tautan'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </header>
+
+                            {/* 3. Penargetan Wilayah LPSE Dinamis */}
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.04))',
+                                border: '1px solid rgba(99, 102, 241, 0.22)',
+                                borderRadius: '14px',
+                                padding: '16px 20px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                gap: '16px',
+                                flexWrap: 'wrap',
+                                marginBottom: '32px'
+                            }}>
+                                <div>
+                                    <div style={{ color: '#fff', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                        <span>📍</span> Edisi Penargetan Wilayah LPSE
                                     </div>
                                     <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                                        Format: {selectedArticle.document_type === 'pdf' ? 'Dokumen PDF / Siaran Pers Resmi' : 'Tautan Rujukan Resmi'}
+                                        Pilih wilayah spesifik untuk melihat konten dan simulasi tender lokal secara dinamis.
                                     </div>
                                 </div>
+                                <div>
+                                    <select
+                                        value={selectedLpse}
+                                        onChange={handleLpseChange}
+                                        style={{
+                                            background: '#090e1a',
+                                            border: '1px solid rgba(129, 140, 248, 0.35)',
+                                            borderRadius: '10px',
+                                            color: '#fff',
+                                            padding: '9px 18px',
+                                            outline: 'none',
+                                            fontSize: '13px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value="nasional">🇮🇩 Seluruh Indonesia (Nasional)</option>
+                                        {(lpseInstances || []).map((inst) => (
+                                            <option key={inst.slug} value={inst.slug}>{inst.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                            <a
-                                href={selectedArticle.document_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                    display: 'inline-flex',
+
+                            {/* 4. Hero Cover Image */}
+                            {selectedArticle.image_url && (
+                                <div style={{ marginBottom: '36px' }}>
+                                    <div style={{
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                                        boxShadow: '0 12px 35px rgba(0, 0, 0, 0.45)',
+                                        maxHeight: '480px',
+                                        background: '#090e1a'
+                                    }}>
+                                        <img
+                                            src={selectedArticle.image_url}
+                                            alt={resolvedTitle}
+                                            style={{ width: '100%', height: '100%', maxHeight: '480px', objectFit: 'cover', display: 'block' }}
+                                        />
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '10px', textAlign: 'center', fontStyle: 'italic' }}>
+                                        📸 Dokumentasi &amp; Analisis Pengadaan Barang/Jasa Pemerintah • Platform {adminSettings.app_name || 'Spy SPSE'}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 5. Article Body */}
+                            <div
+                                className="article-rich-body"
+                                style={{ marginBottom: '44px' }}
+                                dangerouslySetInnerHTML={{ __html: resolvedContent }}
+                            />
+
+                            {/* 6. Lampiran Dokumen Resmi / Siaran Pers */}
+                            {selectedArticle.document_url && (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.04))',
+                                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                                    borderRadius: '16px',
+                                    padding: '24px',
+                                    marginBottom: '40px',
+                                    display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
-                                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                                    color: '#ffffff',
-                                    padding: '12px 24px',
-                                    borderRadius: '10px',
-                                    fontWeight: '600',
-                                    fontSize: '14px',
-                                    textDecoration: 'none',
-                                    boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <span>{selectedArticle.document_type === 'pdf' ? '📥 Unduh / Buka Dokumen PDF' : '🔗 Buka Tautan Dokumen'}</span>
-                                <span>&rarr;</span>
-                            </a>
-                        </div>
-                    )}
+                                    justifyContent: 'space-between',
+                                    flexWrap: 'wrap',
+                                    gap: '16px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <div style={{
+                                            width: '48px',
+                                            height: '48px',
+                                            borderRadius: '12px',
+                                            background: selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                                            border: `1px solid ${selectedArticle.document_type === 'pdf' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'}`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '24px',
+                                            flexShrink: 0
+                                        }}>
+                                            {selectedArticle.document_type === 'pdf' ? '📄' : '🔗'}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: '700', marginBottom: '4px' }}>
+                                                {selectedArticle.document_type === 'pdf' ? 'DOKUMEN RESMI / SIARAN PERS' : 'RUJUKAN TAUTAN EKSTERNAL'}
+                                            </div>
+                                            <div style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', marginBottom: '2px' }}>
+                                                {selectedArticle.document_title || 'Dokumen Informasi Terlampir'}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                Format: {selectedArticle.document_type === 'pdf' ? 'Dokumen PDF / Siaran Pers Resmi' : 'Tautan Rujukan Resmi'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a
+                                        href={selectedArticle.document_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                            color: '#ffffff',
+                                            padding: '12px 24px',
+                                            borderRadius: '10px',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            textDecoration: 'none',
+                                            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <span>{selectedArticle.document_type === 'pdf' ? '📥 Unduh / Buka Dokumen PDF' : '🔗 Buka Tautan Dokumen'}</span>
+                                        <span>&rarr;</span>
+                                    </a>
+                                </div>
+                            )}
 
-                    {/* 7. Video Embed */}
-                    {embedUrl && (
-                        <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '30px', marginBottom: '40px' }}>
-                            <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>🎥 Video Paparan &amp; Analisis Terkait</h3>
-                            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                <iframe
-                                    src={embedUrl}
-                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                    title="YouTube Video Embed"
-                                />
-                            </div>
-                        </div>
-                    )}
+                            {/* 7. Video Embed */}
+                            {embedUrl && (
+                                <div style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '30px', marginBottom: '40px' }}>
+                                    <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>🎥 Video Paparan &amp; Analisis Terkait</h3>
+                                    <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <iframe
+                                            src={embedUrl}
+                                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title="YouTube Video Embed"
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* 8. Editorial & Platform Intelligence Bio Box */}
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px',
-                        margin: '40px 0',
-                        flexWrap: 'wrap'
-                    }}>
-                        <div style={{
-                            width: '56px',
-                            height: '56px',
-                            borderRadius: '14px',
-                            background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '28px',
-                            flexShrink: 0
-                        }}>
-                            🛡️
-                        </div>
-                        <div style={{ flex: 1, minWidth: '240px' }}>
-                            <div style={{ fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
-                                Diterbitkan oleh Redaksi &amp; Analis Intelijen Spy SPSE
+                            {/* 8. Share & Navigation Buttons (Bio Redaksi Box telah dihapus) */}
+                            <div style={{
+                                padding: '24px 0',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '14px',
+                                marginBottom: '20px'
+                            }}>
+                                <button
+                                    onClick={() => { window.location.hash = '#/blog'; }}
+                                    style={{
+                                        background: 'transparent',
+                                        color: '#e2e8f0',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        padding: '10px 22px',
+                                        borderRadius: '10px',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = '#6366f1';
+                                        e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                                        e.currentTarget.style.background = 'transparent';
+                                    }}
+                                >
+                                    <span>&larr;</span> Kembali ke Semua Artikel
+                                </button>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>Bagikan artikel ini:</span>
+                                    <a
+                                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\n' + window.location.href)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            background: '#25d366',
+                                            color: '#fff',
+                                            padding: '8px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            textDecoration: 'none',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        WhatsApp
+                                    </a>
+                                    <button
+                                        onClick={handleCopyLink}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.06)',
+                                            color: '#fff',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            padding: '8px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {copiedLink ? '✓ Tersalin' : 'Salin Link'}
+                                    </button>
+                                </div>
                             </div>
-                            <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
-                                Spy SPSE adalah platform analitik dan radar pemantau tender pemerintah nomor #1 di Indonesia. Memantau ratusan portal LPSE secara otomatis dan real-time agar kontraktor &amp; vendor dapat mendominasi lelang pengadaan.
-                            </div>
-                        </div>
+                        </article>
                     </div>
 
-                    {/* 9. Share & Navigation Buttons */}
-                    <div style={{
-                        padding: '24px 0',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '14px',
-                        marginBottom: '60px'
-                    }}>
-                        <button
-                            onClick={() => { window.location.hash = '#/blog'; }}
-                            style={{
-                                background: 'transparent',
-                                color: '#e2e8f0',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                padding: '10px 22px',
-                                borderRadius: '10px',
-                                fontSize: '13px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = '#6366f1';
-                                e.currentTarget.style.background = 'rgba(99,102,241,0.08)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                                e.currentTarget.style.background = 'transparent';
-                            }}
-                        >
-                            <span>&larr;</span> Kembali ke Semua Artikel
-                        </button>
+                    {/* RIGHT COLUMN: Interactive Editorial Sidebar */}
+                    <aside style={{ width: '340px', flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '26px' }}>
+                        
+                        {/* SIDEBAR WIDGET 1: Kategori & Jumlah Artikel */}
+                        <div style={{
+                            background: '#0d1322',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '16px',
+                            padding: '22px',
+                            boxShadow: '0 8px 30px rgba(0,0,0,0.3)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                <span style={{ fontSize: '18px' }}>🏷️</span>
+                                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '16px', fontWeight: '800', color: '#fff', margin: 0 }}>
+                                    Kategori Artikel
+                                </h3>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {Object.keys(categoryCounts).length === 0 ? (
+                                    <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic' }}>Belum ada kategori</div>
+                                ) : (
+                                    Object.entries(categoryCounts).map(([catName, count]) => {
+                                        const isCurrent = (selectedArticle.category || '').trim().toLowerCase() === catName.toLowerCase();
+                                        return (
+                                            <div
+                                                key={catName}
+                                                onClick={() => {
+                                                    window.location.hash = `#/blog?category=${encodeURIComponent(catName)}`;
+                                                }}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '10px 14px',
+                                                    borderRadius: '10px',
+                                                    background: isCurrent ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)',
+                                                    border: `1px solid ${isCurrent ? 'rgba(129, 140, 248, 0.45)' : 'rgba(255, 255, 255, 0.05)'}`,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)';
+                                                    e.currentTarget.style.borderColor = 'rgba(129, 140, 248, 0.55)';
+                                                    e.currentTarget.style.transform = 'translateX(4px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = isCurrent ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)';
+                                                    e.currentTarget.style.borderColor = isCurrent ? 'rgba(129, 140, 248, 0.45)' : 'rgba(255, 255, 255, 0.05)';
+                                                    e.currentTarget.style.transform = 'translateX(0)';
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '13px', fontWeight: isCurrent ? '700' : '500', color: isCurrent ? '#a5b4fc' : '#e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span>📁</span> {catName}
+                                                </span>
+                                                <span style={{
+                                                    background: isCurrent ? '#6366f1' : 'rgba(255, 255, 255, 0.08)',
+                                                    color: isCurrent ? '#fff' : '#94a3b8',
+                                                    padding: '2px 9px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '11px',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    {count}
+                                                </span>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '12px', color: '#64748b' }}>Bagikan wawasan ini:</span>
-                            <a
-                                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(resolvedTitle + '\n\n' + window.location.href)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                        {/* SIDEBAR WIDGET 2: Artikel Populer / Terhangat */}
+                        {sidebarArticles.length > 0 && (
+                            <div style={{
+                                background: '#0d1322',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                padding: '22px',
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.3)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                    <span style={{ fontSize: '18px' }}>🔥</span>
+                                    <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '16px', fontWeight: '800', color: '#fff', margin: 0 }}>
+                                        Artikel Pilihan Terhangat
+                                    </h3>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                    {sidebarArticles.map((art) => {
+                                        const artTitle = (art.title || '').replace(/{lpse_name}/g, lpseName);
+                                        return (
+                                            <div
+                                                key={art.id}
+                                                onClick={() => {
+                                                    window.location.hash = selectedLpse === 'nasional' ? `#/artikel/${art.slug}` : `#/artikel/${art.slug}/lpse/${selectedLpse}`;
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: '12px',
+                                                    cursor: 'pointer',
+                                                    alignItems: 'center',
+                                                    padding: '6px',
+                                                    borderRadius: '10px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '68px',
+                                                    height: '52px',
+                                                    borderRadius: '8px',
+                                                    overflow: 'hidden',
+                                                    flexShrink: 0,
+                                                    background: '#090e1a',
+                                                    border: '1px solid rgba(255,255,255,0.06)'
+                                                }}>
+                                                    {art.image_url ? (
+                                                        <img src={art.image_url} alt={artTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1e1b4b, #2e1065)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                                                            📰
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '3px' }}>
+                                                        {art.created_at ? new Date(art.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : ''} {art.category ? `• ${art.category}` : ''}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        fontWeight: '700',
+                                                        color: '#e2e8f0',
+                                                        lineHeight: '1.35',
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        {artTitle}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SIDEBAR WIDGET 3: Radar Pemantau Tender SPSE (CTA Interaktif) */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.22), rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.12))',
+                            border: '1px solid rgba(129, 140, 248, 0.35)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            boxShadow: '0 12px 35px rgba(79, 70, 229, 0.15)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{
+                                position: 'absolute',
+                                top: '-20px',
+                                right: '-20px',
+                                width: '100px',
+                                height: '100px',
+                                borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.35), transparent 70%)',
+                                pointerEvents: 'none'
+                            }} />
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(99, 102, 241, 0.3)', border: '1px solid rgba(129, 140, 248, 0.4)', padding: '3px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: '800', color: '#c7d2fe', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                                <span>📡</span> RADAR MONITORING LPSE
+                            </div>
+                            <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '17px', fontWeight: '800', color: '#fff', margin: '0 0 8px', lineHeight: '1.3' }}>
+                                Pantau Tender LPSE Otomatis &amp; Real-Time
+                            </h3>
+                            <p style={{ fontSize: '12px', color: '#c7d2fe', lineHeight: '1.5', margin: '0 0 18px' }}>
+                                Dapatkan notifikasi instan tender bernilai miliaran rupiah langsung via WhatsApp &amp; Email sesuai bidang usaha Anda.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    if (userToken) {
+                                        window.location.hash = '#/dashboard';
+                                    } else {
+                                        onNavigate('auth');
+                                    }
+                                }}
                                 style={{
-                                    background: '#25d366',
+                                    width: '100%',
+                                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
                                     color: '#fff',
-                                    padding: '8px 14px',
-                                    borderRadius: '8px',
-                                    fontSize: '12px',
+                                    border: 'none',
+                                    padding: '12px',
+                                    borderRadius: '10px',
+                                    fontSize: '13px',
                                     fontWeight: '700',
-                                    textDecoration: 'none',
-                                    display: 'inline-flex',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(79, 70, 229, 0.4)',
+                                    transition: 'all 0.2s',
+                                    display: 'flex',
                                     alignItems: 'center',
+                                    justifyContent: 'center',
                                     gap: '6px'
                                 }}
-                            >
-                                WhatsApp
-                            </a>
-                            <button
-                                onClick={handleCopyLink}
-                                style={{
-                                    background: 'rgba(255,255,255,0.06)',
-                                    color: '#fff',
-                                    border: '1px solid rgba(255,255,255,0.15)',
-                                    padding: '8px 14px',
-                                    borderRadius: '8px',
-                                    fontSize: '12px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer'
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(79, 70, 229, 0.6)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(79, 70, 229, 0.4)';
                                 }}
                             >
-                                {copiedLink ? '✓ Tersalin' : 'Salin Link'}
+                                <span>🎯 Mulai Pantau Sekarang</span>
+                                <span>&rarr;</span>
                             </button>
                         </div>
-                    </div>
-                </article>
+                    </aside>
+                </div>
 
-                {/* 10. ⭐ SECTION: REKOMENDASI ARTIKEL LAINNYA (Thumbnail Grid) */}
+                {/* 9. ⭐ SECTION: REKOMENDASI ARTIKEL LAINNYA (Full Width Grid) */}
                 {recommendedArticles.length > 0 && (
-                    <section style={{ marginTop: '10px' }}>
+                    <section style={{ marginTop: '50px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '40px' }}>
                         <div style={{ marginBottom: '28px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#818cf8', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                                 <span>📰</span> Bacaan Terkait &amp; Rekomendasi Pilihan
