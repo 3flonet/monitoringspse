@@ -290,7 +290,8 @@ def check_alerts_and_notify(new_tenders):
     # Get all alerts, joining users and subscriptions to check status and active dates
     cursor.execute("""
         SELECT a.id, a.keyword, a.email, a.whatsapp as alert_whatsapp, a.instansi, a.wa_verified, u.whatsapp as user_whatsapp, u.id as user_id, 
-               s.status as sub_status, s.end_date as sub_end_date
+               s.status as sub_status, s.end_date as sub_end_date,
+               a.is_active, a.email_active, a.wa_active
         FROM alerts a
         JOIN users u ON a.user_id = u.id
         LEFT JOIN subscriptions s ON u.id = s.user_id
@@ -319,6 +320,11 @@ def check_alerts_and_notify(new_tenders):
         user_wa = alert['user_whatsapp']
         whatsapp = alert_wa if alert_wa and alert_wa.strip() else user_wa
         
+        # Check master active toggle for alert
+        is_active = alert.get('is_active')
+        if is_active is not None and not bool(is_active):
+            continue
+
         # Check subscription validity
         sub_status = alert['sub_status'] or 'expired'
         sub_end_date_str = alert['sub_end_date']
@@ -379,15 +385,21 @@ def check_alerts_and_notify(new_tenders):
             
         is_wa_verified = bool(alert.get('wa_verified'))
         has_wa = bool(whatsapp and whatsapp.strip())
+
+        email_active = alert.get('email_active')
+        should_send_email = bool(email and (email_active is None or bool(email_active)))
+
+        wa_active = alert.get('wa_active')
+        should_send_wa = bool(has_wa and (wa_active is None or bool(wa_active)))
         
         # Digest threshold: If > 3 matched tenders in single crawl, send 1 digest alert
         if len(matched_items) > 3:
             logging.info(f"Digest Alert Triggered: {len(matched_items)} tenders matched alert #{alert_id} ('{raw_kw}'). Consolidating into 1 digest alert.")
             tenders_list = [item["tender"] for item in matched_items]
             
-            email_sent = send_email_digest_alert(email, raw_kw, tenders_list)
+            email_sent = send_email_digest_alert(email, raw_kw, tenders_list) if should_send_email else False
             wa_sent = False
-            if has_wa:
+            if should_send_wa:
                 if is_wa_verified:
                     wa_sent = send_whatsapp_digest_alert(whatsapp.strip(), raw_kw, tenders_list)
                 else:
@@ -416,9 +428,9 @@ def check_alerts_and_notify(new_tenders):
                 
                 logging.info(f"Match found! Alert sub-keyword '{matched_kw}' (from '{raw_kw}') on '{tender.get('kategori', '')}' triggered by tender {nomor_pengadaan}")
                 
-                email_sent = send_email_alert(email, matched_kw, tender)
+                email_sent = send_email_alert(email, matched_kw, tender) if should_send_email else False
                 wa_sent = False
-                if has_wa:
+                if should_send_wa:
                     if is_wa_verified:
                         wa_sent = send_whatsapp_alert(whatsapp.strip(), matched_kw, tender)
                     else:

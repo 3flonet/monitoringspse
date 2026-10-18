@@ -367,6 +367,9 @@ def init_db():
             wa_verified BOOLEAN DEFAULT FALSE,
             wa_verified_at TEXT,
             created_at TEXT,
+            is_active BOOLEAN DEFAULT TRUE,
+            email_active BOOLEAN DEFAULT TRUE,
+            wa_active BOOLEAN DEFAULT TRUE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """)
@@ -616,6 +619,9 @@ def init_db():
             wa_verified INTEGER DEFAULT 0,
             wa_verified_at TEXT,
             created_at TEXT,
+            is_active INTEGER DEFAULT 1,
+            email_active INTEGER DEFAULT 1,
+            wa_active INTEGER DEFAULT 1,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """)
@@ -755,11 +761,14 @@ def init_db():
         )
         """)
         
-    # Ensure wa_verified and wa_verified_at columns exist in alerts table
+    # Ensure wa_verified, wa_verified_at, is_active, email_active, wa_active columns exist in alerts table
     if is_pg:
         try:
             cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_verified BOOLEAN DEFAULT FALSE")
             cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_verified_at TEXT")
+            cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE")
+            cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS email_active BOOLEAN DEFAULT TRUE")
+            cursor.execute("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS wa_active BOOLEAN DEFAULT TRUE")
         except Exception as e:
             logging.warning(f"PG alerts migration warning: {e}")
     else:
@@ -770,6 +779,12 @@ def init_db():
                 cursor.execute("ALTER TABLE alerts ADD COLUMN wa_verified INTEGER DEFAULT 0")
             if 'wa_verified_at' not in cols:
                 cursor.execute("ALTER TABLE alerts ADD COLUMN wa_verified_at TEXT")
+            if 'is_active' not in cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN is_active INTEGER DEFAULT 1")
+            if 'email_active' not in cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN email_active INTEGER DEFAULT 1")
+            if 'wa_active' not in cols:
+                cursor.execute("ALTER TABLE alerts ADD COLUMN wa_active INTEGER DEFAULT 1")
         except Exception as e:
             logging.warning(f"SQLite alerts migration warning: {e}")
         
@@ -1563,6 +1578,123 @@ def get_company_leads(search="", filter_status="all", page=1, limit=20):
 def get_all_company_leads_for_export(search="", filter_status="all"):
     res = get_company_leads(search=search, filter_status=filter_status, page=1, limit=100000)
     return res.get("items", [])
+
+def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    where_clauses = []
+    params = []
+    
+    if search:
+        s = f"%{search.strip().lower()}%"
+        where_clauses.append("(LOWER(a.keyword) LIKE ? OR LOWER(a.email) LIKE ? OR LOWER(COALESCE(a.whatsapp, '')) LIKE ? OR LOWER(a.instansi) LIKE ? OR LOWER(u.email) LIKE ?)")
+        params.extend([s, s, s, s, s])
+        
+    if status_filter == "active":
+        where_clauses.append("(a.is_active IS NULL OR a.is_active = 1 OR a.is_active = TRUE)")
+    elif status_filter == "inactive":
+        where_clauses.append("(a.is_active = 0 OR a.is_active = FALSE)")
+    elif status_filter == "wa_unverified":
+        where_clauses.append("(a.whatsapp IS NOT NULL AND a.whatsapp != '' AND (a.wa_verified IS NULL OR a.wa_verified = 0 OR a.wa_verified = FALSE))")
+    elif status_filter == "email_disabled":
+        where_clauses.append("(a.email_active = 0 OR a.email_active = FALSE)")
+    elif status_filter == "wa_disabled":
+        where_clauses.append("(a.wa_active = 0 OR a.wa_active = FALSE)")
+        
+    where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    
+    # Get total count
+    count_query = f"""
+        SELECT COUNT(*)
+        FROM alerts a
+        JOIN users u ON a.user_id = u.id
+        {where_sql}
+    """
+    cursor.execute(count_query, params)
+    total_count = cursor.fetchone()[0] or 0
+    
+    # Stats summary
+    cursor.execute("""
+        SELECT 
+            COUNT(*),
+            SUM(CASE WHEN (a.is_active IS NULL OR a.is_active = 1 OR a.is_active = TRUE) THEN 1 ELSE 0 END),
+            SUM(CASE WHEN (a.is_active = 0 OR a.is_active = FALSE) THEN 1 ELSE 0 END),
+            SUM(CASE WHEN (a.email_active IS NULL OR a.email_active = 1 OR a.email_active = TRUE) THEN 1 ELSE 0 END),
+            SUM(CASE WHEN (a.wa_active IS NULL OR a.wa_active = 1 OR a.wa_active = TRUE) THEN 1 ELSE 0 END),
+            SUM(CASE WHEN (a.wa_verified = 1 OR a.wa_verified = TRUE) THEN 1 ELSE 0 END)
+        FROM alerts a
+    """)
+    stats_row = cursor.fetchone()
+    stats = {
+        "total_alerts": stats_row[0] or 0,
+        "active_alerts": stats_row[1] or 0,
+        "inactive_alerts": stats_row[2] or 0,
+        "email_enabled": stats_row[3] or 0,
+        "wa_enabled": stats_row[4] or 0,
+        "wa_verified": stats_row[5] or 0
+    }
+    
+    # Fetch paginated rows with sent_count
+    query = f"""
+        SELECT a.id, a.user_id, a.keyword, a.email, a.whatsapp, a.instansi, a.wa_verified, a.wa_verified_at,
+               a.created_at, 
+               COALESCE(a.is_active, 1) as is_active, 
+               COALESCE(a.email_active, 1) as email_active, 
+               COALESCE(a.wa_active, 1) as wa_active,
+               u.email as user_email, u.role as user_role,
+               s.plan_type, s.status as sub_status, s.end_date as sub_end_date,
+               (SELECT COUNT(*) FROM sent_alerts sa WHERE sa.alert_id = a.id) as sent_count
+        FROM alerts a
+        JOIN users u ON a.user_id = u.id
+        LEFT JOIN subscriptions s ON u.id = s.user_id
+        {where_sql}
+        ORDER BY a.id DESC
+        LIMIT ? OFFSET ?
+    """
+    cursor.execute(query, params + [limit, offset])
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return {
+        "items": [dict(r) for r in rows],
+        "total": total_count,
+        "stats": stats
+    }
+
+def update_alert_toggle(alert_id: int, is_active=None, email_active=None, wa_active=None, user_id=None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    updates = []
+    params = []
+    
+    if is_active is not None:
+        updates.append("is_active = ?")
+        params.append(1 if is_active else 0)
+    if email_active is not None:
+        updates.append("email_active = ?")
+        params.append(1 if email_active else 0)
+    if wa_active is not None:
+        updates.append("wa_active = ?")
+        params.append(1 if wa_active else 0)
+        
+    if not updates:
+        conn.close()
+        return False
+        
+    where_sql = "WHERE id = ?"
+    params.append(alert_id)
+    
+    if user_id is not None:
+        where_sql += " AND user_id = ?"
+        params.append(user_id)
+        
+    cursor.execute(f"UPDATE alerts SET {', '.join(updates)} {where_sql}", params)
+    updated = cursor.rowcount > 0 if hasattr(cursor, 'rowcount') else True
+    conn.commit()
+    conn.close()
+    return updated
 
 # Initialize DB on import
 init_db()

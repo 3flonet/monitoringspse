@@ -22,7 +22,8 @@ from backend.database import (
     create_article, get_article_by_slug, get_all_articles, update_article, delete_article, clean_str,
     create_password_reset, get_password_reset_by_hash, mark_password_reset_used, update_user_password,
     create_contact_submission, get_all_contact_submissions, update_contact_submission_status, delete_contact_submission,
-    get_company_leads, get_all_company_leads_for_export, upsert_company_contact
+    get_company_leads, get_all_company_leads_for_export, upsert_company_contact,
+    get_all_alerts_for_admin, update_alert_toggle
 )
 from backend.auth import (
     hash_password, verify_password, create_access_token, get_current_user
@@ -81,6 +82,11 @@ class AlertCreate(BaseModel):
 
 class AlertUpdateWhatsapp(BaseModel):
     whatsapp: str
+
+class AlertToggleReq(BaseModel):
+    is_active: Optional[bool] = None
+    email_active: Optional[bool] = None
+    wa_active: Optional[bool] = None
 
 
 class CrawlRequest(BaseModel):
@@ -1382,11 +1388,21 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
         rows = cursor.fetchall()
         now_str = datetime.now().isoformat()
 
-        # Check if alert WA is verified
-        cursor.execute("SELECT wa_verified FROM alerts WHERE id = ?", (alert_id,))
+        # Check alert active and channel toggles
+        cursor.execute("SELECT wa_verified, is_active, email_active, wa_active FROM alerts WHERE id = ?", (alert_id,))
         alert_row = cursor.fetchone()
+        
+        if alert_row and alert_row.get("is_active") is not None and not bool(alert_row["is_active"]):
+            logging.info(f"Alert #{alert_id} is disabled by toggle. Skipping initial background alert dispatch.")
+            conn.close()
+            return
+            
         is_wa_verified = bool(alert_row["wa_verified"]) if alert_row and "wa_verified" in alert_row.keys() else False
-
+        email_active = alert_row.get("email_active") if alert_row else True
+        wa_active = alert_row.get("wa_active") if alert_row else True
+        
+        should_send_email = bool(email and (email_active is None or bool(email_active)))
+        
         # Resolve target whatsapp number
         target_wa = whatsapp
         if not target_wa:
@@ -1394,6 +1410,9 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
             user_row = cursor.fetchone()
             if user_row and user_row["whatsapp"]:
                 target_wa = user_row["whatsapp"]
+
+        has_wa = bool(target_wa and target_wa.strip())
+        should_send_wa = bool(has_wa and (wa_active is None or bool(wa_active)))
 
         matched_items = []
         for row in rows:
@@ -1414,16 +1433,14 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
             matched_kw = next((k for k in sub_keywords if k in title_lower), sub_keywords[0])
             matched_items.append({"tender": tender, "matched_kw": matched_kw})
 
-        has_wa = bool(target_wa and target_wa.strip())
-
         # Digest threshold: If > 3 matched tenders, consolidate into 1 digest alert to prevent spam reports / WhatsApp ban
         if len(matched_items) > 3:
             logging.info(f"Initial Alert Digest: {len(matched_items)} existing tenders matched alert #{alert_id}. Consolidating into 1 digest alert.")
             tenders_list = [item["tender"] for item in matched_items]
 
-            email_sent = send_email_digest_alert(email, raw_kw, tenders_list)
+            email_sent = send_email_digest_alert(email, raw_kw, tenders_list) if should_send_email else False
             wa_sent = False
-            if has_wa:
+            if should_send_wa:
                 if is_wa_verified:
                     wa_sent = send_whatsapp_digest_alert(target_wa.strip(), raw_kw, tenders_list)
                 else:
@@ -1446,9 +1463,9 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
                 matched_kw = item["matched_kw"]
                 nomor_pengadaan = tender["nomor_pengadaan"]
 
-                email_sent = send_email_alert(email, matched_kw, tender)
+                email_sent = send_email_alert(email, matched_kw, tender) if should_send_email else False
                 wa_sent = False
-                if has_wa:
+                if should_send_wa:
                     if is_wa_verified:
                         wa_sent = send_whatsapp_alert(target_wa.strip(), matched_kw, tender)
                     else:
@@ -1530,8 +1547,8 @@ def create_user_alert(req: AlertCreate, background_tasks: BackgroundTasks, curre
 
     now_str = datetime.now().isoformat()
     cursor.execute("""
-        INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at, is_active, email_active, wa_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 1)
     """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str, wa_verified, wa_verified_at))
     conn.commit()
     alert_id = cursor.lastrowid
@@ -1569,6 +1586,99 @@ def delete_user_alert(alert_id: int, current_user: dict = Depends(get_current_us
     conn.commit()
     conn.close()
     return {"status": "success", "message": "Alert berhasil dihapus."}
+
+
+@app.put("/api/alerts/{alert_id}/toggle")
+def toggle_user_alert(alert_id: int, req: AlertToggleReq, current_user: dict = Depends(get_current_user)):
+    success = update_alert_toggle(
+        alert_id=alert_id,
+        is_active=req.is_active,
+        email_active=req.email_active,
+        wa_active=req.wa_active,
+        user_id=current_user["id"]
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Alert tidak ditemukan atau tidak dapat diperbarui.")
+    return {"status": "success", "message": "Pengaturan notifikasi berhasil diperbarui."}
+
+
+# ADMIN ALERT MANAGEMENT ENDPOINTS
+@app.get("/api/admin/alerts")
+def admin_get_all_alerts(
+    search: str = "",
+    status: str = "all",
+    page: int = 1,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    offset = (page - 1) * limit
+    data = get_all_alerts_for_admin(search=search, status_filter=status, limit=limit, offset=offset)
+    return {"status": "success", "data": data}
+
+
+@app.put("/api/admin/alerts/{alert_id}/toggle")
+def admin_toggle_alert(alert_id: int, req: AlertToggleReq, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    success = update_alert_toggle(
+        alert_id=alert_id,
+        is_active=req.is_active,
+        email_active=req.email_active,
+        wa_active=req.wa_active,
+        user_id=None
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Alert tidak ditemukan.")
+    return {"status": "success", "message": "Status notifikasi alert berhasil diperbarui oleh admin."}
+
+
+@app.delete("/api/admin/alerts/{alert_id}")
+def admin_delete_alert(alert_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM alerts WHERE id = ?", (alert_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "Alert berhasil dihapus oleh admin."}
+
+
+@app.post("/api/admin/alerts/{alert_id}/test")
+def admin_test_send_alert(alert_id: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM alerts WHERE id = ?", (alert_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Alert tidak ditemukan.")
+    
+    alert = dict(row)
+    dummy_tender = {
+        "nomor_pengadaan": f"TEST-{alert_id}",
+        "nama_tender": f"[UJI COBA NOTIFIKASI] Paket Tender Pengadaan untuk Alert #{alert_id}",
+        "instansi": alert.get("instansi") or "Nasional",
+        "pagu": "Rp 1.500.000.000,00",
+        "tahap": "Pengumuman Pascakualifikasi (Uji Coba)",
+        "metode": "Tender - Pascakualifikasi Satu File"
+    }
+    
+    results = {}
+    if alert.get("email"):
+        res_email = send_email_alert(alert["email"], alert.get("keyword", "Uji Coba"), dummy_tender)
+        results["email"] = "Terkirim" if res_email else "Gagal / Dicatat ke Log Mock"
+        
+    wa_num = alert.get("whatsapp")
+    if wa_num and wa_num.strip():
+        res_wa = send_whatsapp_alert(wa_num.strip(), alert.get("keyword", "Uji Coba"), dummy_tender)
+        results["whatsapp"] = "Terkirim" if res_wa else "Gagal / Dicatat ke Log Mock"
+        
+    return {"status": "success", "message": "Uji coba pengiriman berhasil dieksekusi.", "results": results}
 
 
 @app.put("/api/alerts/{alert_id}/whatsapp")

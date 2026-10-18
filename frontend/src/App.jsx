@@ -4,6 +4,7 @@ import AdminLeadsManager from './components/AdminLeadsManager';
 import CompanyLeadsManager from './components/CompanyLeadsManager';
 import UserOnboardingTour from './components/UserOnboardingTour';
 import UserDocumentation from './components/UserDocumentation';
+import AdminAlertsManager from './components/AdminAlertsManager';
 
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
@@ -5446,6 +5447,12 @@ function App() {
                 if (userToken && currentUser?.role === 'admin') {
                     setActiveTab('articles');
                 }
+            } else if (hash.startsWith('#/admin/alerts')) {
+                setSelectedArticleSlug(null);
+                setSelectedArticleLpseSlug(null);
+                if (userToken && currentUser?.role === 'admin') {
+                    setActiveTab('admin-alerts');
+                }
             } else if (hash.startsWith('#/admin/users')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
@@ -6432,6 +6439,26 @@ function App() {
                 }
             }
         });
+    };
+
+    const handleToggleUserAlert = async (alertId, field, currentValue) => {
+        const newValue = currentValue === 0 ? 1 : (currentValue === 1 || currentValue === true ? 0 : 0);
+        setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, [field]: newValue } : a));
+        try {
+            const payload = {};
+            payload[field] = newValue === 1;
+            const res = await authFetch(`/api/alerts/${alertId}/toggle`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                fetchAlerts();
+            }
+        } catch (err) {
+            console.error("Gagal toggle alert:", err);
+            fetchAlerts();
+        }
     };
 
     // Trigger Manual Crawling
@@ -7770,6 +7797,14 @@ function App() {
                             onClick={() => { window.location.hash = '#/admin/users'; setIsMobileMenuOpen(false); }}
                         >
                             <span>👥</span> User Manager
+                        </div>
+                    )}
+                    {currentUser?.role === 'admin' && (
+                        <div
+                            className={`menu-item ${activeTab === 'admin-alerts' ? 'active' : ''}`}
+                            onClick={() => { window.location.hash = '#/admin/alerts'; setIsMobileMenuOpen(false); }}
+                        >
+                            <span>🔔</span> Radar Alerts User
                         </div>
                     )}
                     {currentUser?.role === 'admin' && (
@@ -9264,11 +9299,13 @@ function App() {
                                                     justifyContent: 'space-between',
                                                     alignItems: 'center',
                                                     padding: '16px 20px',
-                                                    background: 'rgba(30, 41, 59, 0.25)',
-                                                    border: '1px solid var(--border-color)',
+                                                    background: alert.is_active === 0 ? 'rgba(15, 23, 42, 0.45)' : 'rgba(30, 41, 59, 0.25)',
+                                                    border: `1px solid ${alert.is_active === 0 ? 'rgba(148, 163, 184, 0.15)' : 'var(--border-color)'}`,
                                                     borderRadius: '12px',
                                                     gap: '16px',
-                                                    flexWrap: 'wrap'
+                                                    flexWrap: 'wrap',
+                                                    opacity: alert.is_active === 0 ? 0.8 : 1,
+                                                    transition: 'all 0.2s'
                                                 }}
                                             >
                                                 {/* Keyword & LPSE */}
@@ -9398,6 +9435,83 @@ function App() {
                                                         ) : (
                                                             <span style={{ color: '#ef4444' }}>Belum diset</span>
                                                         )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Channels & Active Status Controls */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '0 0 auto', minWidth: '180px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleUserAlert(alert.id, 'is_active', alert.is_active !== 0)}
+                                                            style={{
+                                                                background: alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(239, 68, 68, 0.14)',
+                                                                border: `1px solid ${alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.45)' : 'rgba(239, 68, 68, 0.35)'}`,
+                                                                color: alert.is_active !== 0 ? '#4ade80' : '#f87171',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '700',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '5px'
+                                                            }}
+                                                            title={alert.is_active !== 0 ? 'Klik untuk menjeda pemantauan alert ini' : 'Klik untuk mengaktifkan kembali pemantauan alert ini'}
+                                                        >
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: alert.is_active !== 0 ? '#22c55e' : '#ef4444' }} />
+                                                            {alert.is_active !== 0 ? '🟢 Radar Aktif' : '⏸️ Radar Dijeda'}
+                                                        </button>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleUserAlert(alert.id, 'email_active', alert.email_active !== 0)}
+                                                            disabled={alert.is_active === 0}
+                                                            style={{
+                                                                background: alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.16)' : 'rgba(100, 116, 139, 0.15)',
+                                                                border: `1px solid ${alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
+                                                                color: alert.email_active !== 0 && alert.is_active !== 0 ? '#60a5fa' : '#94a3b8',
+                                                                padding: '3px 8px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '600',
+                                                                cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
+                                                                opacity: alert.is_active === 0 ? 0.5 : 1,
+                                                                transition: 'all 0.2s',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px'
+                                                            }}
+                                                            title="Aktifkan/nonaktifkan pengiriman lelang ke Email"
+                                                        >
+                                                            ✉️ {alert.email_active !== 0 ? 'Email ON' : 'Email OFF'}
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleUserAlert(alert.id, 'wa_active', alert.wa_active !== 0)}
+                                                            disabled={alert.is_active === 0}
+                                                            style={{
+                                                                background: alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(100, 116, 139, 0.15)',
+                                                                border: `1px solid ${alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
+                                                                color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#4ade80' : '#94a3b8',
+                                                                padding: '3px 8px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '600',
+                                                                cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
+                                                                opacity: alert.is_active === 0 ? 0.5 : 1,
+                                                                transition: 'all 0.2s',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px'
+                                                            }}
+                                                            title="Aktifkan/nonaktifkan pengiriman lelang ke WhatsApp"
+                                                        >
+                                                            💬 {alert.wa_active !== 0 ? 'WA ON' : 'WA OFF'}
+                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -12291,6 +12405,14 @@ function App() {
                             </div>
                         )}
                     </div>
+                )}
+
+                {/* TAB: ADMIN ALERTS MANAGER */}
+                {activeTab === 'admin-alerts' && currentUser?.role === 'admin' && (
+                    <AdminAlertsManager
+                        authFetch={authFetch}
+                        getLpseNameBySlug={getLpseNameBySlug}
+                    />
                 )}
 
                 {/* TAB: ARTICLES MANAGER */}

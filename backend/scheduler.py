@@ -54,6 +54,7 @@ async def run_daily_scraping():
                 JOIN users u ON a.user_id = u.id
                 LEFT JOIN subscriptions s ON u.id = s.user_id
                 WHERE s.status = 'active' AND a.instansi != 'all'
+                  AND (a.is_active IS NULL OR a.is_active = 1 OR a.is_active = TRUE)
             """)
             for r in cursor.fetchall():
                 ins = r["instansi"].strip().lower()
