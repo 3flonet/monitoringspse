@@ -2500,16 +2500,27 @@ def get_competitor_profile(name: str):
             "match_count": m_count
         })
     
-    # 10. History of recent tenders followed (with price or won)
+    # 10. History of won tenders (with real harga_kontrak)
     cursor.execute("""
-        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.pagu, e.harga_penawaran, e.harga_terkoreksi, e.is_winner, t.scraped_at
-        FROM competitor_evaluations e
-        JOIN tenders t ON e.nomor_pengadaan = t.nomor_pengadaan
-        WHERE e.nama_peserta = ? AND (e.harga_penawaran > 0 OR e.harga_terkoreksi > 0 OR e.is_winner = 1)
+        SELECT w.nomor_pengadaan, t.nama_tender, t.instansi, t.pagu, t.pagu_val, w.harga_kontrak, t.scraped_at
+        FROM tender_winners w
+        JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+        WHERE w.nama_pemenang = ?
         ORDER BY t.scraped_at DESC
-        LIMIT 10
+        LIMIT 15
     """, (name_clean,))
     recent_tenders = [dict(r) for r in cursor.fetchall()]
+    if not recent_tenders:
+        cursor.execute("""
+            SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.pagu, t.pagu_val, 
+                   COALESCE(NULLIF(e.harga_terkoreksi, 0), e.harga_penawaran) as harga_kontrak, t.scraped_at
+            FROM competitor_evaluations e
+            JOIN tenders t ON e.nomor_pengadaan = t.nomor_pengadaan
+            WHERE e.nama_peserta = ? AND (e.harga_penawaran > 0 OR e.harga_terkoreksi > 0)
+            ORDER BY t.scraped_at DESC
+            LIMIT 10
+        """, (name_clean,))
+        recent_tenders = [dict(r) for r in cursor.fetchall()]
     
     # 11. Monthly trend (last 12 months, with price or won)
     cursor.execute("""
@@ -3263,6 +3274,7 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
             "instansi": instansi,
             "satuan_kerja": satker,
             "pagu": pagu,
+            "pagu_val": pagu,
             "comp1_price": p1,
             "comp1_discount_pct": p1_disc,
             "comp2_price": p2,
@@ -3284,6 +3296,7 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
     if total_meetings == 0:
         verdict = f"Belum tercatat riwayat lelang di mana {name1} dan {name2} bertarung langsung dalam database SPSE."
         verdict_title = "Belum Pernah Bertemu Langsung"
+        advice = "Pelajari terlebih dahulu pola penawaran masing-masing di satker target sebelum merancang strategi penawaran."
     elif comp1_wins > comp2_wins:
         verdict_badge = "comp1"
         verdict_title = f"{name1} Unggul Head-to-Head"
@@ -3292,6 +3305,7 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
             verdict += f" {name1} terbukti lebih agresif menawarkan harga lebih hemat ({comp1_cheaper_count} kali) dengan rerata selisih Rp {avg_diff_rp:,.0f}."
         else:
             verdict += f" Meskipun {name2} sering menawar lebih rendah, {name1} lebih unggul dalam kualifikasi teknis dan keabsahan dokumen Pokja."
+        advice = f"Pertahankan margin sehat dan portofolio personil ahli yang menjadi pembeda utama dari {name2}."
     elif comp2_wins > comp1_wins:
         verdict_badge = "comp2"
         verdict_title = f"{name2} Unggul Head-to-Head"
@@ -3300,12 +3314,14 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
             verdict += f" {name2} konsisten memasang harga lebih kompetitif ({comp2_cheaper_count} kali) dengan selisih rata-rata Rp {avg_diff_rp:,.0f}."
         else:
             verdict += f" {name2} memiliki tingkat keberhasilan evaluasi spesifikasi dan personil lebih solid di hadapan Pokja."
+        advice = f"Perketat efisiensi biaya HPS dan siapkan mitigasi dokumen teknis guna menandingi agresivitas penawaran {name2}."
     else:
         verdict_badge = "draw"
         verdict_title = "Rivalitas Imbang (50:50)"
         verdict = f"Kedua perusahaan imbang dengan skor {comp1_wins} - {comp2_wins} dari total {total_meetings} tender bersama."
         if other_wins > 0:
             verdict += f" Sebanyak {other_wins} lelang berhasil dimenangkan peserta lain."
+        advice = "Gunakan strategi penawaran harga presisi pada rentang sweet spot dan cermati kelengkapan kualifikasi administratif lawan."
 
     return {
         "comp1": summary1,
@@ -3321,7 +3337,9 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
             "avg_diff_pct": avg_diff_pct,
             "verdict_title": verdict_title,
             "verdict_badge": verdict_badge,
-            "verdict_description": verdict
+            "verdict_description": verdict,
+            "strategic_verdict": verdict,
+            "advice": advice
         },
         "meetings": meetings
     }

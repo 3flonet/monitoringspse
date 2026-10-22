@@ -271,7 +271,7 @@ def generate_competitor_dossier_pdf(
 
     # 4. Peta Kandang Satker (Client & Satker Mapping)
     story.append(Paragraph("2. PETA KANDANG DINAS & SATUAN KERJA DOMINAN", h2_style))
-    satkers = client_map.get("satker_list", [])[:6]
+    satkers = (client_map.get("clients") or client_map.get("satker_list") or [])[:8]
     if satkers:
         satker_table_data = [
             [
@@ -284,20 +284,25 @@ def generate_competitor_dossier_pdf(
             ]
         ]
         for idx, s in enumerate(satkers, 1):
-            is_hg = s.get("is_homeground", False)
-            satker_name = s.get("satker", "-")
+            is_hg = s.get("is_home_ground", False) or s.get("is_homeground", False)
+            satker_name = sanitize_for_pdf(s.get("satuan_kerja") or s.get("satker", "-"))
             if is_hg:
-                satker_name = f"⭐ <b>[KANDANG UTAMA]</b> {satker_name}"
+                satker_name = f"<b>[KANDANG UTAMA]</b> {satker_name}"
+            instansi = sanitize_for_pdf(s.get("instansi", "-"))
+            total_wins = s.get("total_wins", 0)
+            contract_val = format_rupiah(s.get("total_contract_value", 0))
+            avg_disc_val = s.get("avg_discount_pct") if s.get("avg_discount_pct") is not None else s.get("avg_discount", 0)
+
             satker_table_data.append([
                 Paragraph(str(idx), table_cell),
                 Paragraph(satker_name, table_cell),
-                Paragraph(s.get("instansi", "-"), table_cell),
-                Paragraph(f"{s.get('total_wins', 0)}x", table_cell),
-                Paragraph(format_rupiah(s.get("total_contract_value", 0)), table_cell),
-                Paragraph(f"{s.get('avg_discount', 0)}%", table_cell),
+                Paragraph(instansi, table_cell),
+                Paragraph(f"{total_wins}x", table_cell),
+                Paragraph(contract_val, table_cell),
+                Paragraph(f"{avg_disc_val}%", table_cell),
             ])
         
-        satker_t = Table(satker_table_data, colWidths=[25, 180, 130, 48, 95, 45])
+        satker_t = Table(satker_table_data, colWidths=[25, 180, 130, 48, 95, 45], repeatRows=1)
         satker_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -326,11 +331,11 @@ def generate_competitor_dossier_pdf(
         for idx, cb in enumerate(co_bidders, 1):
             cb_data.append([
                 Paragraph(str(idx), table_cell),
-                Paragraph(cb.get("partner_name", "-"), table_cell),
+                Paragraph(sanitize_for_pdf(cb.get("partner_name", "-")), table_cell),
                 Paragraph(f"{cb.get('together_count', 0)} kali", table_cell),
-                Paragraph(cb.get("role_label", "Aliansi Bidding Bersama"), table_cell)
+                Paragraph(sanitize_for_pdf(cb.get("role_label", "Aliansi Bidding Bersama")), table_cell)
             ])
-        cb_t = Table(cb_data, colWidths=[25, 250, 110, 138])
+        cb_t = Table(cb_data, colWidths=[25, 250, 110, 138], repeatRows=1)
         cb_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E293B')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -346,11 +351,16 @@ def generate_competitor_dossier_pdf(
 
     # 6. Matriks Kelemahan Pokja & Amunisi Sanggahan
     story.append(Paragraph("4. MATRIKS KELEMAHAN POKJA & AMUNISI SANGGAHAN", h2_style))
-    matrix = disqualifications.get("weakness_matrix", {})
-    clusters = matrix.get("clusters", {})
+    clusters_raw = disqualifications.get("weakness_clusters") or disqualifications.get("weakness_matrix", {}).get("clusters", [])
+    if isinstance(clusters_raw, dict):
+        clusters_list = list(clusters_raw.values())
+    elif isinstance(clusters_raw, list):
+        clusters_list = clusters_raw
+    else:
+        clusters_list = []
     tactical_insights = disqualifications.get("tactical_insights", [])
 
-    if clusters:
+    if clusters_list:
         matrix_data = [
             [
                 Paragraph("<b>Klaster Kelemahan Pokja</b>", table_cell_bold),
@@ -359,16 +369,19 @@ def generate_competitor_dossier_pdf(
                 Paragraph("<b>Tingkat Risiko</b>", table_cell_bold)
             ]
         ]
-        for key, cl in clusters.items():
+        for cl in clusters_list:
             lvl = cl.get("risk_level", "info")
             lvl_color = "#DC2626" if lvl == "danger" else "#D97706" if lvl == "warning" else "#2563EB"
+            name = sanitize_for_pdf(cl.get("name", "-"))
+            count = cl.get("count", 0)
+            pct = cl.get("percentage") if cl.get("percentage") is not None else cl.get("pct", 0)
             matrix_data.append([
-                Paragraph(f"<b>{cl.get('name', key)}</b>", table_cell),
-                Paragraph(f"{cl.get('count', 0)}x", table_cell),
-                Paragraph(f"{cl.get('pct', 0)}%", table_cell),
+                Paragraph(f"<b>{name}</b>", table_cell),
+                Paragraph(f"{count}x", table_cell),
+                Paragraph(f"{pct}%", table_cell),
                 Paragraph(f"<font color='{lvl_color}'><b>{lvl.upper()}</b></font>", table_cell)
             ])
-        mat_t = Table(matrix_data, colWidths=[230, 95, 95, 103])
+        mat_t = Table(matrix_data, colWidths=[230, 95, 95, 103], repeatRows=1)
         mat_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#334155')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -383,14 +396,14 @@ def generate_competitor_dossier_pdf(
         if tactical_insights:
             story.append(Paragraph("<b>Rekomendasi Taktis & Peluang Sanggah Pokja:</b>", body_bold))
             for ins in tactical_insights:
-                story.append(Paragraph(f"• {ins}", body_style))
+                story.append(Paragraph(f"• {sanitize_for_pdf(ins)}", body_style))
     else:
         story.append(Paragraph("<i>Belum tercatat riwayat evaluasi gugur pada database SPSE.</i>", body_style))
     story.append(Spacer(1, 10))
 
     # 7. Riwayat Tender Kemenangan Terakhir
     story.append(Paragraph("5. RIWAYAT TENDER KEMENANGAN TERAKHIR", h2_style))
-    recents = profile.get("recent_tenders", [])[:8]
+    recents = profile.get("recent_tenders", [])[:10]
     if recents:
         rec_data = [
             [
@@ -401,8 +414,10 @@ def generate_competitor_dossier_pdf(
             ]
         ]
         for idx, rec in enumerate(recents, 1):
-            kontrak_val = format_rupiah(rec.get("harga_kontrak", 0))
-            pagu_str = format_rupiah(rec.get("pagu", 0)) if rec.get("pagu") else "-"
+            kontrak_num = rec.get("harga_kontrak") or 0
+            kontrak_val = format_rupiah(kontrak_num) if kontrak_num > 0 else "-"
+            pagu_num = rec.get("pagu_val") or rec.get("pagu") or 0
+            pagu_str = format_rupiah(pagu_num) if pagu_num > 0 else "-"
             rec_name = sanitize_for_pdf(rec.get("nama_tender", "-"))
             rec_inst = sanitize_for_pdf(rec.get("instansi", "-"))
             rec_data.append([
@@ -411,7 +426,7 @@ def generate_competitor_dossier_pdf(
                 Paragraph(rec_inst, table_cell),
                 Paragraph(f"Pagu: {pagu_str}<br/><b>Kontrak: {kontrak_val}</b>", table_cell)
             ])
-        rec_t = Table(rec_data, colWidths=[25, 230, 130, 138])
+        rec_t = Table(rec_data, colWidths=[25, 230, 130, 138], repeatRows=1)
         rec_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -516,16 +531,19 @@ def generate_competitor_dossier_excel(
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    for idx, s in enumerate(client_map.get("satker_list", []), 1):
-        is_hg = s.get("is_homeground", False)
+    satkers_all = client_map.get("clients") or client_map.get("satker_list") or []
+    for idx, s in enumerate(satkers_all, 1):
+        is_hg = s.get("is_home_ground", False) or s.get("is_homeground", False)
         status = "KANDANG UTAMA" if is_hg else "Satker Aktif"
+        satker_name = s.get("satuan_kerja") or s.get("satker", "-")
+        avg_disc = s.get("avg_discount_pct") if s.get("avg_discount_pct") is not None else s.get("avg_discount", 0.0)
         row_data = [
             idx,
-            s.get("satker", "-"),
+            satker_name,
             s.get("instansi", "-"),
             s.get("total_wins", 0),
             s.get("total_contract_value", 0.0),
-            s.get("avg_discount", 0.0),
+            avg_disc,
             status
         ]
         ws2.append(row_data)
@@ -580,13 +598,22 @@ def generate_competitor_dossier_excel(
         cell.fill = accent_fill
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
+    clusters_excel_raw = disqualifications.get("weakness_clusters") or disqualifications.get("weakness_matrix", {}).get("clusters", [])
+    if isinstance(clusters_excel_raw, dict):
+        clusters_excel = list(clusters_excel_raw.values())
+    elif isinstance(clusters_excel_raw, list):
+        clusters_excel = clusters_excel_raw
+    else:
+        clusters_excel = []
+
     row_count = 1
-    for key, cl in disqualifications.get("weakness_matrix", {}).get("clusters", {}).items():
+    for cl in clusters_excel:
         row_count += 1
+        pct = cl.get("percentage") if cl.get("percentage") is not None else cl.get("pct", 0)
         row_data = [
-            cl.get("name", key),
+            cl.get("name", "-"),
             cl.get("count", 0),
-            cl.get("pct", 0),
+            pct,
             cl.get("risk_level", "info").upper()
         ]
         ws4.append(row_data)
@@ -610,13 +637,15 @@ def generate_competitor_dossier_excel(
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     for idx, rec in enumerate(profile.get("recent_tenders", []), 1):
+        pagu_val = rec.get("pagu_val") or rec.get("pagu") or 0
+        kontrak_val = rec.get("harga_kontrak") or 0
         row_data = [
             idx,
             rec.get("nomor_pengadaan", "-"),
             rec.get("nama_tender", "-"),
             rec.get("instansi", "-"),
-            rec.get("pagu", 0) or 0,
-            rec.get("harga_kontrak", 0) or 0
+            pagu_val,
+            kontrak_val
         ]
         ws5.append(row_data)
         r_num = idx + 1
@@ -786,8 +815,12 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
     story.append(Spacer(1, 10))
 
     # Strategic Verdict Callout
-    verdict = sanitize_for_pdf(h2h.get("strategic_verdict", "-"))
-    advice = sanitize_for_pdf(h2h.get("advice", "-"))
+    raw_verdict = h2h.get("verdict_description") or h2h.get("strategic_verdict") or "-"
+    raw_title = h2h.get("verdict_title") or ""
+    verdict_body = sanitize_for_pdf(raw_verdict)
+    verdict_title_clean = sanitize_for_pdf(raw_title) if raw_title else ""
+    verdict = f"<b>{verdict_title_clean}</b><br/>{verdict_body}" if verdict_title_clean else verdict_body
+    advice = sanitize_for_pdf(h2h.get("advice") or "-")
     verdict_box = [
         [
             Paragraph(f"<b>DYNAMIC AI STRATEGIC VERDICT:</b><br/>{verdict}<br/><br/><b>Rekomendasi Taktis Penawaran:</b> {advice}", body_style)
@@ -819,9 +852,12 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
             ]
         ]
         for idx, m in enumerate(meetings[:15], 1):
-            p1_val = format_rupiah(m.get("comp1_price", 0)) if m.get("comp1_price") else "-"
-            p2_val = format_rupiah(m.get("comp2_price", 0)) if m.get("comp2_price") else "-"
-            pagu_val = format_rupiah(m.get("pagu_val", 0)) if m.get("pagu_val") else "-"
+            p1_num = m.get("comp1_price") or 0
+            p1_val = format_rupiah(p1_num) if p1_num > 0 else "Gugur / Rp 0"
+            p2_num = m.get("comp2_price") or 0
+            p2_val = format_rupiah(p2_num) if p2_num > 0 else "Gugur / Rp 0"
+            pagu_num = m.get("pagu_val") or m.get("pagu") or 0
+            pagu_val = format_rupiah(pagu_num) if pagu_num > 0 else "-"
             m_name = sanitize_for_pdf(m.get("nama_tender", "-"))
             winner = sanitize_for_pdf(m.get("winner_name", "-") or "Belum Ditentukan")
             meet_data.append([
@@ -832,7 +868,7 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
                 Paragraph(p2_val, table_cell),
                 Paragraph(f"<b>{winner}</b>", table_cell)
             ])
-        m_table = Table(meet_data, colWidths=[20, 163, 85, 85, 85, 85])
+        m_table = Table(meet_data, colWidths=[20, 163, 85, 85, 85, 85], repeatRows=1)
         m_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E293B')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -897,8 +933,12 @@ def generate_head_to_head_excel(data: Dict[str, Any]) -> bytes:
     ws1.append(["Dinas / Satker Dominan", c1.get("top_satker", "-"), "-", c2.get("top_satker", "-")])
     ws1.append([])
 
-    ws1.append(["DYNAMIC AI STRATEGIC VERDICT", h2h.get("strategic_verdict", "-")])
-    ws1.append(["REKOMENDASI TAKTIS", h2h.get("advice", "-")])
+    raw_verdict_xl = h2h.get("verdict_description") or h2h.get("strategic_verdict") or "-"
+    raw_title_xl = h2h.get("verdict_title") or ""
+    verdict_str = f"{raw_title_xl}: {raw_verdict_xl}" if raw_title_xl else raw_verdict_xl
+    advice_str = h2h.get("advice") or "-"
+    ws1.append(["DYNAMIC AI STRATEGIC VERDICT", verdict_str])
+    ws1.append(["REKOMENDASI TAKTIS", advice_str])
 
     # Header styling
     for col_idx in range(1, 5):
@@ -935,11 +975,12 @@ def generate_head_to_head_excel(data: Dict[str, Any]) -> bytes:
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     for idx, m in enumerate(meetings, 1):
+        pagu_num = m.get("pagu_val") or m.get("pagu") or 0
         row_data = [
             idx,
             m.get("nomor_pengadaan", "-"),
             m.get("nama_tender", "-"),
-            m.get("pagu_val", 0) or 0,
+            pagu_num,
             m.get("comp1_price", 0) or 0,
             m.get("comp2_price", 0) or 0,
             m.get("winner_name", "-") or "Belum Ditentukan",
