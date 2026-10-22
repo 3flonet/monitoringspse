@@ -3565,6 +3565,69 @@ const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNav
                                 </div>
                             </div>
                         )}
+
+                        {/* Executive Competitor Intelligence & Peta Kandang Teaser Banner */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
+                            border: '1px solid rgba(245, 158, 11, 0.35)',
+                            borderRadius: '20px',
+                            padding: '28px 32px',
+                            marginBottom: '28px',
+                            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.35)',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+                                <div style={{ flex: '1 1 500px' }}>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', marginBottom: '12px' }}>
+                                        <span>🎯 INTELIJEN PENGADAAN SPY SPSE</span>
+                                    </div>
+                                    <h3 style={{ margin: '0 0 8px 0', color: '#ffffff', fontSize: '20px', fontWeight: '800', fontFamily: "'Outfit', sans-serif" }}>
+                                        Siapa Kontraktor Langganan di {tender.nama_satker || tender.instansi || 'Satuan Kerja Ini'}?
+                                    </h3>
+                                    <p style={{ color: '#d1d5db', fontSize: '13.5px', lineHeight: '1.6', margin: '0 0 16px 0' }}>
+                                        Ketahui badan usaha mana yang memegang dominasi kemenangan (Peta Kandang), tren margin penawaran harga pemenang, serta rekam jejak alasan gugur Pokja sebelum Anda menyusun dokumen penawaran.
+                                    </p>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                        <span style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '4px 10px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '600' }}>
+                                            🏛️ Peta Kandang Satker
+                                        </span>
+                                        <span style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '4px 10px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '600' }}>
+                                            ⚔️ Head-to-Head Adu Kontraktor
+                                        </span>
+                                        <span style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '4px 10px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '600' }}>
+                                            📑 Ekspor Dossier PDF &amp; Excel
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                                    <button
+                                        onClick={() => onNavigate && onNavigate('auth')}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            padding: '14px 28px',
+                                            borderRadius: '12px',
+                                            fontWeight: '800',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 8px 24px rgba(245, 158, 11, 0.35)',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span>🔍</span>
+                                        <span>Buka Analisis Intelijen Satker</span>
+                                    </button>
+                                    <span style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'center' }}>
+                                        Dapatkan laporan eksklusif instan
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </main>
@@ -3822,6 +3885,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
     const [openFaqId, setOpenFaqId] = React.useState(null);
     const [contactForm, setContactForm] = React.useState({ name: '', email: '', phone: '', message: '' });
     const [contactSent, setContactSent] = React.useState(false);
+    const [activeIntelTab, setActiveIntelTab] = React.useState('kandang');
 
     const [latestArticles, setLatestArticles] = React.useState([]);
     const [isLoadingArticles, setIsLoadingArticles] = React.useState(false);
@@ -4724,29 +4788,252 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                 </div>
 
                 {/* Features Section */}
-                <div style={{ padding: '60px 20px', maxWidth: '1000px', margin: '0 auto' }}>
-                    <h2 style={{ textAlign: 'center', fontSize: '32px', marginBottom: '12px', fontFamily: "'Outfit', sans-serif" }}>Kenapa Harus {adminSettings.app_name || 'Spy SPSE'}?</h2>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '40px', fontSize: '15px' }}>Jangan habiskan waktu mencari secara manual.</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>🔔</div>
-                            <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>Notifikasi Real-time</h3>
-                            <p style={{ color: '#9ca3af', lineHeight: '1.6' }}>Sistem pemantauan tender otomatis yang mengirimkan notifikasi peluang proyek langsung ke WhatsApp dan Email Anda.</p>
+                <div style={{ padding: '60px 20px', maxWidth: '1100px', margin: '0 auto' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '6px 16px', borderRadius: '30px', color: '#a5b4fc', fontSize: '13px', fontWeight: '700', marginBottom: '14px' }}>
+                            <span>🚀 TEKNOLOGI INTELIJEN TENDER #1 DI INDONESIA</span>
                         </div>
-                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>🔍</div>
-                            <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>Explorer Cerdas</h3>
-                            <p style={{ color: '#9ca3af', lineHeight: '1.6' }}>Cari miliaran rupiah peluang di semua Instansi. Tanpa perlu membuka puluhan website LPSE satu per satu.</p>
+                        <h2 style={{ fontSize: '34px', marginBottom: '12px', fontFamily: "'Outfit', sans-serif", fontWeight: '800' }}>Kenapa Harus {adminSettings.app_name || 'Spy SPSE'}?</h2>
+                        <p style={{ color: '#9ca3af', fontSize: '16px', maxWidth: '680px', margin: '0 auto', lineHeight: '1.6' }}>Jangan habiskan waktu mencari tender secara manual. Dapatkan radar lelang otomatis dan keunggulan intelijen untuk mengalahkan pesaing Anda.</p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '50px' }}>
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>🔔</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#fff' }}>Notifikasi Real-time WA & Email</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Radar bot memantau LPSE 24/7 dan mengirimkan notifikasi peluang proyek yang cocok langsung ke WhatsApp Anda dalam hitungan menit.</p>
                         </div>
-                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>🏢</div>
-                            <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>Multi-Instansi</h3>
-                            <p style={{ color: '#9ca3af', lineHeight: '1.6' }}>Pantau ratusan tender dari Kementerian, Lembaga, BUMN, Pemprov, hingga Pemkab sekaligus dalam satu dasbor.</p>
+
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>🔍</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#fff' }}>Explorer Multi-LPSE Cerdas</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Cari miliaran rupiah peluang di Kementerian, Lembaga, BUMN, Pemprov, hingga Pemkab tanpa membuka puluhan website LPSE satu per satu.</p>
                         </div>
-                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '16px' }}>📊</div>
-                            <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>Analisis Kompetitor</h3>
-                            <p style={{ color: '#9ca3af', lineHeight: '1.6' }}>Lacak rekam jejak badan usaha pesaing Anda. Ketahui win success rate, histori penawaran, instansi dominasi kemenangan, serta analisis alasan detail keguguran lelang oleh Pokja.</p>
+
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 8px 24px rgba(245, 158, 11, 0.05)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>🏛️</div>
+                            <div style={{ display: 'inline-block', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', marginBottom: '8px' }}>BARU DITINGKATKAN</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#fbbf24' }}>Peta Kandang Dinas & Satker</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Deteksi dinas langganan kompetitor, persentase dominasi kemenangan, dan dapatkan rekomendasi taktis untuk menembus loyalitas Pokja di wilayah lawan.</p>
+                        </div>
+
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.05)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>⚔️</div>
+                            <div style={{ display: 'inline-block', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', marginBottom: '8px' }}>HEAD-TO-HEAD</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#f87171' }}>Head-to-Head Comparator</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Adu rekam jejak langsung dua kontraktor dalam lelang bersama. Ketahui histori kemenangan langsung, perbandingan penawaran harga, dan skor keunggulan.</p>
+                        </div>
+
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(168, 85, 247, 0.25)', boxShadow: '0 8px 24px rgba(168, 85, 247, 0.05)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>🎯</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#c084fc' }}>Matriks Kelemahan Pokja</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Petakan titik rawan mengapa lawan sering digugurkan (administrasi, kualifikasi, personil, atau harga). Jadikan amunisi audit dan sanggahan dokumen.</p>
+                        </div>
+
+                        <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(59, 130, 246, 0.25)', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.05)', transition: 'all 0.3s' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>📑</div>
+                            <div style={{ display: 'inline-block', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', marginBottom: '8px' }}>EKSEKUTIF A4</div>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#60a5fa' }}>Dossier Eksekutif PDF & Excel</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Ekspor laporan intelijen lengkap berstandar A4 resmi siap bawa ke rapat direksi, serta file Excel multi-sheet lengkap dengan formula analisis otomatis.</p>
+                        </div>
+                    </div>
+
+                    {/* Interactive Intelijen Showcase / Demo Box */}
+                    <div style={{
+                        background: 'linear-gradient(145deg, #101528, #0a0d1b)',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        borderRadius: '24px',
+                        padding: '36px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
+                            <div>
+                                <span style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '0.05em', color: '#818cf8', textTransform: 'uppercase' }}>🔥 DEMO LIVE FITUR INTELIJEN</span>
+                                <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: '4px 0 0 0', fontFamily: "'Outfit', sans-serif" }}>
+                                    Lihat Bagaimana Spy SPSE Membedah Kekuatan Pesaing Anda
+                                </h3>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', background: 'rgba(15, 23, 42, 0.8)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <button
+                                    onClick={() => setActiveIntelTab('kandang')}
+                                    style={{
+                                        background: activeIntelTab === 'kandang' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'transparent',
+                                        color: activeIntelTab === 'kandang' ? '#fff' : '#9ca3af',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    🏛️ Peta Kandang
+                                </button>
+                                <button
+                                    onClick={() => setActiveIntelTab('h2h')}
+                                    style={{
+                                        background: activeIntelTab === 'h2h' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'transparent',
+                                        color: activeIntelTab === 'h2h' ? '#fff' : '#9ca3af',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    ⚔️ Head-to-Head
+                                </button>
+                                <button
+                                    onClick={() => setActiveIntelTab('dossier')}
+                                    style={{
+                                        background: activeIntelTab === 'dossier' ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'transparent',
+                                        color: activeIntelTab === 'dossier' ? '#fff' : '#9ca3af',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    📑 Dossier Eksekutif
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tab Content 1: Peta Kandang */}
+                        {activeIntelTab === 'kandang' && (
+                            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                                    <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '14px', padding: '18px' }}>
+                                        <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: '700', textTransform: 'uppercase' }}>Kandang Satker Utama (Paling Dominan)</div>
+                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', marginTop: '6px' }}>Dinas Pekerjaan Umum & Penataan Ruang</div>
+                                        <div style={{ fontSize: '13px', color: '#fde68a', marginTop: '4px', fontWeight: '600' }}>7 dari 16 Tender Dimenangkan (43.8% Dominasi Portofolio)</div>
+                                    </div>
+                                    <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '14px', padding: '18px' }}>
+                                        <div style={{ fontSize: '11px', color: '#818cf8', fontWeight: '700', textTransform: 'uppercase' }}>Total Nilai Kontrak Dimenangkan</div>
+                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#6366f1', marginTop: '4px' }}>Rp 38.450.000.000</div>
+                                        <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>Tersebar di 4 Satuan Kerja / Dinas</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <span style={{ fontSize: '18px' }}>💡</span>
+                                        <h4 style={{ margin: 0, fontSize: '14px', color: '#fbbf24', fontWeight: '800' }}>Analisis Naratif &amp; Rekomendasi Taktis Masuk Kandang</h4>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.6' }}>
+                                        Badan usaha ini memiliki ketergantungan wilayah sangat tinggi (kandang utama) pada <strong style={{ color: '#fff' }}>Dinas Pekerjaan Umum &amp; Penataan Ruang</strong> dengan kontribusi kemenangan mencapai <strong style={{ color: '#fbbf24' }}>43.8%</strong>. Menghadapi badan usaha ini di satker tersebut membutuhkan keunggulan teknis mutlak atau sanggahan dokumen kualifikasi yang presisi, karena relasi historis dan rekam jejak loyalitas Pokja di wilayah ini sangat kuat.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tab Content 2: Head-to-Head Arena */}
+                        {activeIntelTab === 'h2h' && (
+                            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px 24px', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR A</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#60a5fa' }}>PT Sinar Megah Konstruksi</div>
+                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#60a5fa', marginTop: '4px' }}>8 Kemenangan</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center', background: 'rgba(239, 68, 68, 0.2)', padding: '10px 18px', borderRadius: '14px', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                                        <div style={{ fontSize: '11px', color: '#fca5a5', fontWeight: '800' }}>14 KALI LELANG BERSAMA</div>
+                                        <div style={{ fontSize: '20px', fontWeight: '900', color: '#fff' }}>VS</div>
+                                        <div style={{ fontSize: '11px', color: '#cbd5e1' }}>Gap Harga: -2.8%</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR B</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#f87171' }}>CV Cipta Karya Perkasa</div>
+                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#f87171', marginTop: '4px' }}>6 Kemenangan</div>
+                                    </div>
+                                </div>
+
+                                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <span style={{ fontSize: '18px' }}>⚔️</span>
+                                        <h4 style={{ margin: 0, fontSize: '14px', color: '#f87171', fontWeight: '800' }}>Strategic Verdict Head-to-Head</h4>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.6' }}>
+                                        Kedua badan usaha bersaing sangat ketat. Kontraktor A unggul pada evaluasi teknis dan pengalaman personil K3, sementara Kontraktor B selalu memasukkan harga penawaran sangat agresif (rata-rata 83-86% HPS). Kelemahan Kontraktor B terdapat pada kepemilikan alat utama yang sering digugurkan Pokja.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tab Content 3: Dossier Eksekutif */}
+                        {activeIntelTab === 'dossier' && (
+                            <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                                    <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '14px', padding: '18px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                            <span style={{ fontSize: '24px' }}>📄</span>
+                                            <div>
+                                                <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff' }}>Dossier PDF Eksekutif A4</div>
+                                                <div style={{ fontSize: '12px', color: '#a5b4fc' }}>Standar Rapat Direksi & Konsorsium</div>
+                                            </div>
+                                        </div>
+                                        <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.5', margin: 0 }}>
+                                            Dilengkapi Executive Summary, visual scorecard, matriks gugur Pokja, dan rekomendasi penetrasi dengan desain formal siap cetak.
+                                        </p>
+                                    </div>
+
+                                    <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '14px', padding: '18px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                            <span style={{ fontSize: '24px' }}>📊</span>
+                                            <div>
+                                                <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff' }}>Multi-Sheet Excel Berformula</div>
+                                                <div style={{ fontSize: '12px', color: '#6ee7b7' }}>Deep Data Exploration & Financials</div>
+                                            </div>
+                                        </div>
+                                        <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.5', margin: 0 }}>
+                                            Tersusun dalam 5 sheet analitis: Profil & KPI, Kemenangan Tender, Peta Kandang Satker, Gugur & Evaluasi Pokja, dan Rekanan Co-Bidding.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <span style={{ fontSize: '20px' }}>🛡️</span>
+                                        <span style={{ fontSize: '13px', color: '#cbd5e1' }}>Format ekspor resmi, watermark kerahasiaan, dan metadata otomatis tercatat di setiap dokumen.</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>PDF A4</span>
+                                        <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>XLSX FORMULA</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* CTA Inside Showcase Box */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '20px' }}>
+                            <div style={{ fontSize: '13.5px', color: '#9ca3af' }}>
+                                Siap melangkah lebih maju dari kontraktor lain dalam tender lelang berikutnya?
+                            </div>
+                            <button
+                                onClick={onGetStarted}
+                                style={{
+                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '12px 28px',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                🎯 Coba Analisis Kompetitor Sekarang
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -4839,9 +5126,10 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#d1d5db', fontSize: '14px', lineHeight: '2' }}>
                                     <li>✓ Unlimited Kata Kunci Pencarian</li>
                                     <li>✓ Pantau Semua K/L/Pemda Instansi</li>
-                                    <li>✓ Analisis Kompetitor &amp; Alasan Gugur</li>
-                                    <li>✓ Notifikasi Instan via WhatsApp</li>
-                                    <li>✓ Notifikasi Prioritas via Email</li>
+                                    <li>✓ Analisis Kompetitor &amp; Peta Kandang Satker</li>
+                                    <li>✓ Head-to-Head &amp; Matriks Gugur Pokja</li>
+                                    <li>✓ Export Dossier Eksekutif (PDF &amp; Excel)</li>
+                                    <li>✓ Notifikasi Instan via WhatsApp &amp; Email</li>
                                     <li>✓ Sinkronisasi Jadwal Real-time 24/7</li>
                                 </ul>
                             </div>
@@ -4862,11 +5150,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginBottom: '25px', fontFamily: "'Outfit', sans-serif" }}>Rp {parseInt(adminSettings.premium_price_yearly || 1500000).toLocaleString('id-ID')} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>/ 365 hari</span></div>
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#d1d5db', fontSize: '14px', lineHeight: '2' }}>
                                     <li>✓ Semua Fitur Premium Pro Bulanan</li>
-                                    <li>✓ Masa Aktif 365 Hari</li>
-                                    <li>✓ Analisis Kompetitor &amp; Alasan Gugur</li>
+                                    <li>✓ Akses Penuh Modul Intelijen &amp; Peta Kandang</li>
+                                    <li>✓ Unlimited Export Dossier PDF &amp; Excel</li>
+                                    <li>✓ Masa Aktif 365 Hari (Hemat Biaya)</li>
                                     <li>✓ Notifikasi WhatsApp + Email Prioritas</li>
-                                    <li>✓ Hemat Biaya Berlangganan</li>
-                                    <li>✓ Dukungan Teknis Prioritas</li>
+                                    <li>✓ Dukungan Teknis Prioritas 24/7</li>
                                 </ul>
                             </div>
                             <button onClick={onGetStarted} style={{ width: '100%', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', marginTop: '30px', boxShadow: '0 10px 20px -5px rgba(168, 85, 247, 0.3)', transition: 'all 0.2s' }}
@@ -15608,6 +15896,48 @@ function App() {
                                                         <div style={{ fontSize: '11px', color: '#a7f3d0', marginTop: '4px' }}>
                                                             Akumulasi nilai kemenangan di seluruh satker
                                                         </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Strategic Intelligence Narrative Card (Peta Kandang & Analisis Teritori) */}
+                                                <div style={{
+                                                    background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85))',
+                                                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                                                    borderRadius: '16px',
+                                                    padding: '24px',
+                                                    marginBottom: '24px',
+                                                    boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                                                        <span style={{ fontSize: '20px' }}>🎯</span>
+                                                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#fbbf24', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                                                            Analisis Intelijen Teritori &amp; Peta Kandang Satker
+                                                        </h4>
+                                                    </div>
+                                                    <p style={{ margin: '0 0 14px 0', fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.65' }}>
+                                                        {competitorClients.top_client && competitorClients.top_client.share_pct >= 35 ? (
+                                                            <>
+                                                                Badan usaha ini memiliki ketergantungan wilayah sangat tinggi (kandang utama) pada <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> dengan kontribusi kemenangan mencapai <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong> dari seluruh portofolio kemenangannya. Menghadapi badan usaha ini di satker tersebut membutuhkan keunggulan teknis mutlak atau sanggahan dokumen kualifikasi yang presisi, karena relasi historis dan rekam jejak loyalitas Pokja di wilayah ini sangat kuat.
+                                                            </>
+                                                        ) : competitorClients.top_client ? (
+                                                            <>
+                                                                Portofolio kemenangan badan usaha ini tersebar berimbang di berbagai dinas tanpa satker tunggal yang mendominasi lebih dari sepertiga total proyek (kandang terbesar adalah <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> dengan pangsa <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong>). Peluang penetrasi kontraktor lain terbuka lebar di seluruh wilayah karena tidak ada dominasi eksklusif pada satu satker tertentu.
+                                                            </>
+                                                        ) : (
+                                                            <>Belum ada data relasi satker yang cukup untuk memetakan ketergantungan wilayah badan usaha ini.</>
+                                                        )}
+                                                    </p>
+                                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                                        <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600' }}>Taktik Penetrasi:</span>
+                                                        <span style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                            {competitorClients.top_client && competitorClients.top_client.share_pct >= 35 ? '⚠️ Wilayah Proteksi Tinggi' : '✅ Wilayah Kompetitif Terbuka'}
+                                                        </span>
+                                                        <span style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                            Audit Kualifikasi Pokja
+                                                        </span>
+                                                        <span style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#6ee7b7', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                            Verifikasi Pengalaman Personil
+                                                        </span>
                                                     </div>
                                                 </div>
 
