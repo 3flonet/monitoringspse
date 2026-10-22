@@ -2594,8 +2594,8 @@ def get_competitor_disqualifications(name: str, current_user: Optional[dict] = N
     total_disqualified = 0
     
     # Determine user subscription level for data masking
-    sub = get_user_subscription(current_user["id"])
-    is_premium = sub and sub["plan_type"] == "premium" and sub["status"] == "active"
+    sub = get_user_subscription(current_user["id"]) if (current_user and "id" in current_user) else None
+    is_premium = (sub and sub["plan_type"] == "premium" and sub["status"] == "active") or (current_user is None)
     
     import re
 
