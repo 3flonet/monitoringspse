@@ -233,7 +233,13 @@ def generate_competitor_dossier_pdf(
     win_disc = pricing.get("win_avg_discount_pct", 0)
     lose_disc = pricing.get("lose_avg_discount_pct", 0)
     char_desc = pricing.get("character_desc", "-")
-    sweet_spot = pricing.get("sweet_spot", "-")
+    raw_sw = pricing.get("sweet_spot")
+    if isinstance(raw_sw, dict):
+        sweet_spot = f"{raw_sw.get('min', 0)}% – {raw_sw.get('max', 0)}% dari Pagu"
+    elif raw_sw:
+        sweet_spot = str(raw_sw)
+    else:
+        sweet_spot = "Menyesuaikan HPS Pokja"
 
     pricing_text = f"""
     <b>Karakteristik Penawaran:</b> {char_title} — {char_desc}<br/>
@@ -452,8 +458,15 @@ def generate_competitor_dossier_excel(
     ws1.append(["Karakter Penawaran Harga", pricing.get("character_title", "-")])
     ws1.append(["Rata-rata Diskon dari Pagu", f"{pricing.get('avg_discount_pct', 0)}%"])
     ws1.append(["Diskon saat Menang", f"{pricing.get('win_avg_discount_pct', 0)}%"])
-    ws1.append(["Diskon saat Kalah/Gugur", f"{pricing.get('lose_avg_discount_pct', 0)}%"])
-    ws1.append(["Winning Sweet Spot", pricing.get("sweet_spot", "-")])
+    raw_sw = pricing.get("sweet_spot")
+    if isinstance(raw_sw, dict):
+        sweet_spot_str = f"{raw_sw.get('min', 0)}% – {raw_sw.get('max', 0)}% dari Pagu"
+    elif raw_sw:
+        sweet_spot_str = str(raw_sw)
+    else:
+        sweet_spot_str = "Menyesuaikan HPS Pokja"
+
+    ws1.append(["Winning Sweet Spot", sweet_spot_str])
     ws1.append([])
 
     # Styling KPI Table
