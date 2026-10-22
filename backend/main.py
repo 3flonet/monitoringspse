@@ -31,6 +31,12 @@ from backend.auth import (
 from backend.whatsapp_notifier import send_whatsapp_alert, send_test_whatsapp, send_password_reset_whatsapp, check_whatsapp_status
 from backend.email_notifier import send_test_email, send_email_alert, send_password_reset_email, check_smtp_status
 from backend.crawl_coordinator import run_crawl
+from backend.intelligence_exporter import (
+    generate_competitor_dossier_pdf,
+    generate_competitor_dossier_excel,
+    generate_head_to_head_pdf,
+    generate_head_to_head_excel
+)
 
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -2559,7 +2565,7 @@ def get_competitor_profile(name: str):
     }
 
 @app.get("/api/competitors/disqualifications")
-def get_competitor_disqualifications(name: str, current_user: dict = Depends(get_current_user)):
+def get_competitor_disqualifications(name: str, current_user: Optional[dict] = None):
     name_clean = clean_str(name)
     
     conn = get_db_connection()
@@ -3319,6 +3325,108 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
         },
         "meetings": meetings
     }
+
+
+@app.get("/api/competitors/export-dossier-pdf")
+def export_competitor_dossier_pdf(name: str):
+    name_clean = clean_str(name)
+    if not name_clean:
+        raise HTTPException(status_code=400, detail="Nama kompetitor wajib diisi.")
+    
+    profile = get_competitor_profile(name_clean)
+    pricing = get_competitor_pricing_pattern(name_clean)
+    client_map = get_competitor_client_mapping(name_clean)
+    partners = get_competitor_partner_network(name_clean)
+    disqualifications = get_competitor_disqualifications(name_clean)
+    
+    pdf_bytes = generate_competitor_dossier_pdf(
+        profile=profile,
+        pricing=pricing,
+        client_map=client_map,
+        partners=partners,
+        disqualifications=disqualifications
+    )
+    
+    safe_filename = "".join(c for c in name_clean if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"Dossier_Intelijen_{safe_filename}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@app.get("/api/competitors/export-dossier-excel")
+def export_competitor_dossier_excel(name: str):
+    name_clean = clean_str(name)
+    if not name_clean:
+        raise HTTPException(status_code=400, detail="Nama kompetitor wajib diisi.")
+    
+    profile = get_competitor_profile(name_clean)
+    pricing = get_competitor_pricing_pattern(name_clean)
+    client_map = get_competitor_client_mapping(name_clean)
+    partners = get_competitor_partner_network(name_clean)
+    disqualifications = get_competitor_disqualifications(name_clean)
+    
+    excel_bytes = generate_competitor_dossier_excel(
+        profile=profile,
+        pricing=pricing,
+        client_map=client_map,
+        partners=partners,
+        disqualifications=disqualifications
+    )
+    
+    safe_filename = "".join(c for c in name_clean if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"Dossier_Intelijen_{safe_filename}.xlsx"
+    
+    return Response(
+        content=excel_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@app.get("/api/competitors/compare/export-pdf")
+def export_head_to_head_pdf(comp1: str = Query(...), comp2: str = Query(...)):
+    c1 = clean_str(comp1)
+    c2 = clean_str(comp2)
+    if not c1 or not c2:
+        raise HTTPException(status_code=400, detail="Kedua nama perusahaan wajib diisi.")
+    
+    compare_data = compare_competitors(comp1=c1, comp2=c2)
+    pdf_bytes = generate_head_to_head_pdf(compare_data)
+    
+    safe_c1 = "".join(c for c in c1 if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')[:15]
+    safe_c2 = "".join(c for c in c2 if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')[:15]
+    filename = f"H2H_Intelijen_{safe_c1}_VS_{safe_c2}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@app.get("/api/competitors/compare/export-excel")
+def export_head_to_head_excel(comp1: str = Query(...), comp2: str = Query(...)):
+    c1 = clean_str(comp1)
+    c2 = clean_str(comp2)
+    if not c1 or not c2:
+        raise HTTPException(status_code=400, detail="Kedua nama perusahaan wajib diisi.")
+    
+    compare_data = compare_competitors(comp1=c1, comp2=c2)
+    excel_bytes = generate_head_to_head_excel(compare_data)
+    
+    safe_c1 = "".join(c for c in c1 if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')[:15]
+    safe_c2 = "".join(c for c in c2 if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')[:15]
+    filename = f"H2H_Intelijen_{safe_c1}_VS_{safe_c2}.xlsx"
+    
+    return Response(
+        content=excel_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
 
 
 @app.get("/api/tenders/{nomor}/predicted-competitors")

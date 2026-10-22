@@ -5567,6 +5567,10 @@ function App() {
     const [pageClients, setPageClients] = useState(1);
     const [pageCoBidders, setPageCoBidders] = useState(1);
     const [pageDisqualifications, setPageDisqualifications] = useState(1);
+    const [isExportingDossierPdf, setIsExportingDossierPdf] = useState(false);
+    const [isExportingDossierExcel, setIsExportingDossierExcel] = useState(false);
+    const [isExportingComparePdf, setIsExportingComparePdf] = useState(false);
+    const [isExportingCompareExcel, setIsExportingCompareExcel] = useState(false);
 
     const fetchCompetitorSuggestions = async (query) => {
         if (query.trim().length < 2) {
@@ -5715,6 +5719,71 @@ function App() {
             console.error("Failed to fetch predicted competitors:", err);
         } finally {
             setIsLoadingPredictions(false);
+        }
+    };
+
+    const handleDownloadDossier = async (format = 'pdf') => {
+        if (!selectedCompetitorName) return;
+        const isPdf = format === 'pdf';
+        if (isPdf) setIsExportingDossierPdf(true);
+        else setIsExportingDossierExcel(true);
+
+        try {
+            const endpoint = isPdf
+                ? `/api/competitors/export-dossier-pdf?name=${encodeURIComponent(selectedCompetitorName)}`
+                : `/api/competitors/export-dossier-excel?name=${encodeURIComponent(selectedCompetitorName)}`;
+            const res = await fetch(endpoint);
+            if (!res.ok) throw new Error("Gagal mengunduh berkas laporan");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const cleanName = selectedCompetitorName.replace(/[^a-zA-Z0-9_-]/g, '_');
+            a.download = isPdf ? `Dossier_Intelijen_${cleanName}.pdf` : `Dossier_Intelijen_${cleanName}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Download dossier error:", err);
+            alert("Gagal mengunduh laporan dossier intelijen. Silakan coba sesaat lagi.");
+        } finally {
+            if (isPdf) setIsExportingDossierPdf(false);
+            else setIsExportingDossierExcel(false);
+        }
+    };
+
+    const handleDownloadCompare = async (format = 'pdf') => {
+        if (!selectedCompetitorName || !compareComp2Name) return;
+        const isPdf = format === 'pdf';
+        if (isPdf) setIsExportingComparePdf(true);
+        else setIsExportingCompareExcel(true);
+
+        try {
+            const endpoint = isPdf
+                ? `/api/competitors/compare/export-pdf?comp1=${encodeURIComponent(selectedCompetitorName)}&comp2=${encodeURIComponent(compareComp2Name)}`
+                : `/api/competitors/compare/export-excel?comp1=${encodeURIComponent(selectedCompetitorName)}&comp2=${encodeURIComponent(compareComp2Name)}`;
+            const res = await fetch(endpoint);
+            if (!res.ok) throw new Error("Gagal mengunduh berkas laporan");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const c1 = selectedCompetitorName.slice(0, 15).replace(/[^a-zA-Z0-9_-]/g, '_');
+            const c2 = compareComp2Name.slice(0, 15).replace(/[^a-zA-Z0-9_-]/g, '_');
+            a.download = isPdf ? `H2H_Intelijen_${c1}_VS_${c2}.pdf` : `H2H_Intelijen_${c1}_VS_${c2}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Download compare report error:", err);
+            alert("Gagal mengunduh laporan komparasi Head-to-Head. Silakan coba sesaat lagi.");
+        } finally {
+            if (isPdf) setIsExportingComparePdf(false);
+            else setIsExportingCompareExcel(false);
         }
     };
 
@@ -15024,6 +15093,56 @@ function App() {
                                                 <div>💳 NPWP: <strong style={{ color: '#fff' }}>{competitorProfile.npwp || '-'}</strong></div>
                                                 <div>📍 Alamat: <strong style={{ color: '#fff' }}>{competitorProfile.address || '-'}</strong></div>
                                             </div>
+
+                                            {/* Executive Dossier Download Action Buttons */}
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDownloadDossier('pdf')}
+                                                    disabled={isExportingDossierPdf}
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        padding: '7px 14px',
+                                                        borderRadius: '8px',
+                                                        fontSize: '12px',
+                                                        fontWeight: 'bold',
+                                                        cursor: isExportingDossierPdf ? 'not-allowed' : 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    title="Unduh Dossier Intelijen Lengkap (Format Dokumen PDF A4)"
+                                                >
+                                                    {isExportingDossierPdf ? '⏳ Menyusun PDF...' : '📄 Unduh Dossier PDF'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDownloadDossier('excel')}
+                                                    disabled={isExportingDossierExcel}
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        padding: '7px 14px',
+                                                        borderRadius: '8px',
+                                                        fontSize: '12px',
+                                                        fontWeight: 'bold',
+                                                        cursor: isExportingDossierExcel ? 'not-allowed' : 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    title="Export Dossier Excel Multi-Sheet (Ringkasan, Satker, Aliansi, Kelemahan Pokja)"
+                                                >
+                                                    {isExportingDossierExcel ? '⏳ Menyusun Excel...' : '📊 Export Excel'}
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', padding: '16px 24px', borderRadius: '12px', textAlign: 'center', minWidth: '160px', boxShadow: '0 4px 16px rgba(251,191,36,0.08)' }}>
@@ -16219,6 +16338,68 @@ function App() {
                                             </div>
                                         ) : competitorCompareData ? (
                                             <div>
+                                                {/* EXPORT ACTION TOOLBAR */}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    marginBottom: '16px',
+                                                    flexWrap: 'wrap',
+                                                    gap: '12px',
+                                                    background: 'rgba(15, 23, 42, 0.6)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 18px'
+                                                }}>
+                                                    <div style={{ fontSize: '13px', color: '#cbd5e1' }}>
+                                                        Komparasi langsung: <strong style={{ color: '#fff' }}>{competitorCompareData.comp1.name}</strong> <span style={{ color: '#94a3b8' }}>vs</span> <strong style={{ color: '#fff' }}>{competitorCompareData.comp2.name}</strong>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDownloadCompare('pdf')}
+                                                            disabled={isExportingComparePdf}
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                padding: '6px 14px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '12px',
+                                                                fontWeight: 'bold',
+                                                                cursor: isExportingComparePdf ? 'not-allowed' : 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.25)'
+                                                            }}
+                                                        >
+                                                            {isExportingComparePdf ? '⏳ Menyusun...' : '📄 Unduh PDF Matchup'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDownloadCompare('excel')}
+                                                            disabled={isExportingCompareExcel}
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                padding: '6px 14px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '12px',
+                                                                fontWeight: 'bold',
+                                                                cursor: isExportingCompareExcel ? 'not-allowed' : 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                                boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)'
+                                                            }}
+                                                        >
+                                                            {isExportingCompareExcel ? '⏳ Menyusun...' : '📊 Export Excel Matchup'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
                                                 {/* AI VERDICT BANNER */}
                                                 <div style={{
                                                     background: competitorCompareData.head_to_head.verdict_badge === 'comp1' ? 'rgba(16, 185, 129, 0.08)' : competitorCompareData.head_to_head.verdict_badge === 'comp2' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(6, 182, 212, 0.08)',
