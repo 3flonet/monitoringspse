@@ -3404,11 +3404,21 @@ def get_predicted_competitors(nomor: str):
         for r in cursor.fetchall():
             all_candidates.add(clean_str(r[0]))
 
+    # Pre-rank and limit to top 8 candidates to eliminate N+1 latency
+    def _quick_rank(name):
+        return (
+            satker_wins.get(name, {}).get("wins", 0) * 10
+            + satker_parts.get(name, 0) * 3
+            + instansi_wins.get(name, 0) * 2
+            + instansi_parts.get(name, 0)
+        )
+
+    candidate_list = [c for c in all_candidates if c and len(c) >= 3]
+    candidate_list.sort(key=_quick_rank, reverse=True)
+    top_candidates = candidate_list[:8]
+
     scored_competitors = []
-    for cand in all_candidates:
-        if not cand or len(cand) < 3:
-            continue
-        
+    for cand in top_candidates:
         sw = satker_wins.get(cand, {}).get("wins", 0)
         sp = satker_parts.get(cand, 0)
         iw = instansi_wins.get(cand, 0)
@@ -3419,19 +3429,17 @@ def get_predicted_competitors(nomor: str):
 
         if sw > 0:
             score += min(45, sw * 25)
-            reasons.append(f"Memenangkan {sw} lelang di Satker ini")
+            reasons.append(f"Juara Bertahan Satker ({sw}x)")
         elif sp > 0:
             score += min(25, sp * 10)
-            reasons.append(f"Pernah {sp}x ikut lelang di Satker ini")
+            reasons.append(f"Spesialis Satker Ini ({sp}x Ikut)")
 
         if iw > 0:
             score += min(30, iw * 10)
-            if sw == 0:
-                reasons.append(f"Memenangkan {iw} lelang di instansi {instansi}")
+            reasons.append(f"Kolektor Tender Instansi ({iw}x)")
         elif ip > 0:
             score += min(15, ip * 5)
-            if sp == 0:
-                reasons.append(f"Aktif ({ip}x lelang) di instansi ini")
+            reasons.append(f"Aktif di Instansi ({ip}x)")
 
         # Quick price pattern check
         cursor.execute("""
@@ -3460,23 +3468,34 @@ def get_predicted_competitors(nomor: str):
 
         scored_competitors.append({
             "company_name": cand,
+            "nama_peserta": cand,
             "threat_score": total_score,
             "threat_level": threat_level,
-            "threat_badge": threat_badge,
+            "threat_badge": threat_level,
+            "badge_type": threat_badge,
             "satker_wins": sw,
+            "satker_win_count": sw,
             "instansi_wins": iw,
+            "instansi_win_count": iw,
+            "satker_participations": sp,
+            "instansi_participations": ip,
             "reasons": reasons if reasons else ["Memiliki rekam jejak aktif pada klaster tender terkait"],
+            "reason_tags": reasons if reasons else ["Rekam Jejak Aktif"],
+            "avg_discount_pct": avg_disc,
             "price_hint": price_hint
         })
 
     conn.close()
     scored_competitors.sort(key=lambda x: (x["threat_score"], x["satker_wins"], x["instansi_wins"]), reverse=True)
+    final_list = scored_competitors[:5]
 
     return {
         "nomor_pengadaan": nomor_clean,
         "instansi": instansi,
         "satuan_kerja": satker,
-        "predicted_competitors": scored_competitors[:5]
+        "total_predicted": len(final_list),
+        "predicted_competitors": final_list,
+        "predictions": final_list
     }
 
 
