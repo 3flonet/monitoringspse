@@ -2577,18 +2577,29 @@ def get_competitor_disqualifications(name: str, current_user: dict = Depends(get
     
     disqualifications = []
     stage_counts = {"administrasi": 0, "teknis": 0, "harga": 0, "kualifikasi": 0}
+    cluster_counts = {
+        "personil": 0,
+        "peralatan": 0,
+        "kualifikasi": 0,
+        "teknis": 0,
+        "harga": 0,
+        "administrasi": 0
+    }
     total_disqualified = 0
     
     # Determine user subscription level for data masking
     sub = get_user_subscription(current_user["id"])
     is_premium = sub and sub["plan_type"] == "premium" and sub["status"] == "active"
     
+    import re
+
     for r in rows:
         r_dict = dict(r)
         
         # Deduce failed stage from columns or text
         failed_stage = "Lainnya"
-        alasan_lower = r_dict["alasan_gugur"].lower()
+        alasan_raw = r_dict["alasan_gugur"] or ""
+        alasan_lower = alasan_raw.lower()
         
         if r_dict["evaluasi_administrasi"] == "Gugur" or "administrasi" in alasan_lower:
             failed_stage = "Administrasi"
@@ -2603,15 +2614,42 @@ def get_competitor_disqualifications(name: str, current_user: dict = Depends(get
             failed_stage = "Kualifikasi"
             stage_counts["kualifikasi"] += 1
         else:
-            # Fallback based on stage counts
             failed_stage = "Teknis"
             stage_counts["teknis"] += 1
             
         total_disqualified += 1
+
+        # Weakness Matrix Clustering
+        if re.search(r'personil|tenaga ahli|ska|skk|keahlian|ijazah|curriculum vitae|\bcv\b|pengalaman kerja|tenaga teknis|petugas k3', alasan_lower):
+            cluster_id = "personil"
+            cluster_name = "Personil & Tenaga Ahli (SKK/SKA)"
+            cluster_counts["personil"] += 1
+        elif re.search(r'peralatan|alat|sewa alat|bukti kepemilikan|kapasitas|dukungan alat|kondisi alat', alasan_lower):
+            cluster_id = "peralatan"
+            cluster_name = "Peralatan & Fasilitas Kerja"
+            cluster_counts["peralatan"] += 1
+        elif re.search(r'sbu|nib|iujk|ijin usaha|izin usaha|spt|pajak|laporan keuangan|sisa kemampuan paket|skp|rekening koran|jaminan penawaran|bank', alasan_lower):
+            cluster_id = "kualifikasi"
+            cluster_name = "Legalitas, SBU & Keuangan"
+            cluster_counts["kualifikasi"] += 1
+        elif re.search(r'metode kerja|spesifikasi|spek|brosur|jadwal|tkdn|uji lab|surat dukungan|pabrikan|katalog', alasan_lower):
+            cluster_id = "teknis"
+            cluster_name = "Metode Kerja & Spesifikasi Teknis"
+            cluster_counts["teknis"] += 1
+        elif re.search(r'kewajaran harga|analisa harga|ahs|rincian biaya|harga satuan|hps|keselamatan konstruksi|smk3|rkk|biaya penerapan', alasan_lower):
+            cluster_id = "harga"
+            cluster_name = "Kewajaran Harga & Rincian AHS/SMK3"
+            cluster_counts["harga"] += 1
+        else:
+            cluster_id = "administrasi"
+            cluster_name = "Format Surat & Dokumen Administrasi"
+            cluster_counts["administrasi"] += 1
+
+        r_dict["cluster_id"] = cluster_id
+        r_dict["cluster_name"] = cluster_name
         
         # Mask/Sensor details if not premium
         if not is_premium:
-            # obfuscate tender name and reasons
             r_dict["nama_tender"] = r_dict["nama_tender"][:6] + " •••••••••• [Premium Pro]"
             r_dict["alasan_gugur"] = "Upgrade ke Premium Pro untuk membaca alasan detail keguguran dari Pokja."
             r_dict["harga_penawaran"] = 0.0
@@ -2621,10 +2659,75 @@ def get_competitor_disqualifications(name: str, current_user: dict = Depends(get
         disqualifications.append(r_dict)
         
     conn.close()
+
+    # Build Weakness Matrix clusters array
+    cluster_metadata = [
+        {"id": "personil", "name": "Personil & Tenaga Ahli (SKK/SKA)", "icon": "👷", "desc": "Kesesuaian sertifikat SKK/SKA, jumlah personil inti, atau bukti pengalaman kerja personil."},
+        {"id": "peralatan", "name": "Peralatan & Fasilitas Kerja", "icon": "🚜", "desc": "Bukti kepemilikan/sewa alat, kapasitas alat minimal, atau kondisi kelaikan peralatan utama."},
+        {"id": "kualifikasi", "name": "Legalitas, SBU & Keuangan", "icon": "📜", "desc": "Masa berlaku SBU/NIB, sisa kemampuan paket (SKP), SPT tahunan, atau laporan keuangan akuntan publik."},
+        {"id": "teknis", "name": "Metode Kerja & Spesifikasi Teknis", "icon": "📋", "desc": "Uraian metode pelaksanaan, brosur spesifikasi pabrikan, sertifikat TKDN, atau jadwal kurva S."},
+        {"id": "harga", "name": "Kewajaran Harga & Rincian AHS/SMK3", "icon": "💵", "desc": "Kelengkapan rincian AHS, evaluasi kewajaran harga di bawah 80% HPS, atau pembiayaan K3 (SMK3)."},
+        {"id": "administrasi", "name": "Format Surat & Dokumen Administrasi", "icon": "✉️", "desc": "Masa berlaku surat penawaran, jaminan tender, keabsahan tanda tangan basah/elektronik, atau format formulir."}
+    ]
+
+    weakness_clusters = []
+    tactical_insights = []
+
+    for cm in cluster_metadata:
+        c_count = cluster_counts[cm["id"]]
+        c_pct = round((c_count / total_disqualified) * 100, 1) if total_disqualified > 0 else 0.0
+        
+        if c_pct >= 30.0:
+            risk_level = "Titik Lemah Utama"
+            risk_badge = "danger"
+        elif c_pct >= 15.0:
+            risk_level = "Cukup Sering Gugur"
+            risk_badge = "warning"
+        elif c_count > 0:
+            risk_level = "Pernah Gugur"
+            risk_badge = "info"
+        else:
+            risk_level = "Kuat / Aman"
+            risk_badge = "success"
+
+        weakness_clusters.append({
+            "id": cm["id"],
+            "name": cm["name"],
+            "icon": cm["icon"],
+            "desc": cm["desc"],
+            "count": c_count,
+            "percentage": c_pct,
+            "risk_level": risk_level,
+            "risk_badge": risk_badge
+        })
+
+    # Sort clusters by highest count first
+    weakness_clusters.sort(key=lambda x: x["count"], reverse=True)
+
+    # Generate tactical recommendation based on top weakness
+    if weakness_clusters and weakness_clusters[0]["count"] > 0:
+        top_weak = weakness_clusters[0]
+        if top_weak["id"] == "personil":
+            tactical_insights.append(f"Titik rawan terbesar {name_clean} berada pada aspek {top_weak['name']} ({top_weak['count']}x gugur). Pastikan dokumen personil Anda lengkap dengan SKK terverifikasi dan referensi kerja valid.")
+        elif top_weak["id"] == "peralatan":
+            tactical_insights.append(f"{name_clean} rentan digugurkan Pokja pada pembuktian {top_weak['name']} ({top_weak['count']}x gugur). Siapkan bukti kepemilikan atau surat perjanjian sewa alat yang tidak tumpang-tindih.")
+        elif top_weak["id"] == "kualifikasi":
+            tactical_insights.append(f"Kelemahan historis {name_clean} terdeteksi pada {top_weak['name']} ({top_weak['count']}x gugur). Pokja sangat teliti mengecek masa berlaku kualifikasi dan SKP mereka.")
+        elif top_weak["id"] == "teknis":
+            tactical_insights.append(f"{name_clean} kerap terganjal di tahap {top_weak['name']} ({top_weak['count']}x gugur). Unggulkan metode kerja yang komprehensif serta lampiran brosur spesifikasi resmi.")
+        elif top_weak["id"] == "harga":
+            tactical_insights.append(f"Pada aspek penawaran, {name_clean} pernah {top_weak['count']}x gugur terkait {top_weak['name']}. Hati-hati saat banting harga dan pastikan analisa satuan biaya K3 Anda terinci rapi.")
+        else:
+            tactical_insights.append(f"Periksa format kelengkapan dokumen administratif, karena {name_clean} tercatat pernah tereliminasi akibat ketidakterpenuhinya syarat format surat.")
+    else:
+        tactical_insights.append(f"Belum ada pola keguguran signifikan yang tercatat untuk {name_clean}.")
+
     return {
         "is_premium": is_premium,
         "total_disqualified": total_disqualified,
         "disqualified_stages": stage_counts,
+        "weakness_clusters": weakness_clusters,
+        "tactical_insights": tactical_insights,
         "disqualifications": disqualifications
     }
 
@@ -2959,6 +3062,421 @@ def get_competitor_partner_network(name: str):
             "description": eco_desc,
             "has_bumn": has_bumn
         }
+    }
+
+
+# ========================================================
+# FITUR TAHAP 2: HEAD-TO-HEAD & PREDIKSI EARLY WARNING RADAR
+# ========================================================
+
+@app.get("/api/competitors/compare")
+def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
+    name1 = clean_str(comp1)
+    name2 = clean_str(comp2)
+    if not name1 or not name2:
+        raise HTTPException(status_code=400, detail="Nama kedua perusahaan wajib diisi.")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 1. Fetch profile snapshots for both companies
+    def get_comp_summary(comp_name):
+        cursor.execute("""
+            SELECT COUNT(DISTINCT nomor_pengadaan) 
+            FROM competitor_evaluations 
+            WHERE nama_peserta = ?
+        """, (comp_name,))
+        eval_row = cursor.fetchone()
+        eval_tenders = eval_row[0] or 0 if eval_row else 0
+
+        cursor.execute("""
+            SELECT COUNT(DISTINCT nomor_pengadaan), SUM(harga_kontrak) 
+            FROM tender_winners 
+            WHERE nama_pemenang = ?
+        """, (comp_name,))
+        w_row = cursor.fetchone()
+        wins = w_row[0] or 0 if w_row else 0
+        contracts = float(w_row[1] or 0) if w_row and w_row[1] is not None else 0.0
+
+        total_tenders = max(eval_tenders, wins)
+        win_rate = round((wins / total_tenders) * 100, 1) if total_tenders > 0 else 0.0
+
+        cursor.execute("""
+            SELECT COALESCE(NULLIF(td.satuan_kerja, ''), t.instansi) as satker, COUNT(*) as c
+            FROM tender_winners w
+            JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+            LEFT JOIN tender_details td ON w.nomor_pengadaan = td.nomor_pengadaan
+            WHERE w.nama_pemenang = ?
+            GROUP BY COALESCE(NULLIF(td.satuan_kerja, ''), t.instansi)
+            ORDER BY c DESC LIMIT 1
+        """, (comp_name,))
+        satker_row = cursor.fetchone()
+        top_satker = satker_row[0] if satker_row and satker_row[0] else "-"
+
+        cursor.execute("""
+            SELECT AVG(CASE WHEN t.pagu_val > 0 AND (e.harga_terkoreksi > 0 OR e.harga_penawaran > 0)
+                       THEN ((t.pagu_val - COALESCE(NULLIF(e.harga_terkoreksi, 0), e.harga_penawaran)) / t.pagu_val) * 100
+                       ELSE NULL END) as avg_disc
+            FROM competitor_evaluations e
+            JOIN tenders t ON e.nomor_pengadaan = t.nomor_pengadaan
+            WHERE e.nama_peserta = ? AND t.pagu_val > 0
+        """, (comp_name,))
+        disc_row = cursor.fetchone()
+        avg_disc = round(float(disc_row[0] or 0), 1) if disc_row and disc_row[0] is not None else 0.0
+
+        if avg_disc > 20.0:
+            char_label = "Price Fighter (>20% Diskon)"
+            char_tag = "danger"
+        elif avg_disc >= 10.0:
+            char_label = "Moderat Seimbang (10-20% Diskon)"
+            char_tag = "warning"
+        else:
+            char_label = "Teknis / Margin Tinggi (<10% Diskon)"
+            char_tag = "success"
+
+        return {
+            "name": comp_name,
+            "total_tenders": total_tenders,
+            "total_wins": wins,
+            "win_rate": win_rate,
+            "total_contract_value": contracts,
+            "top_satker": top_satker,
+            "avg_discount_pct": avg_disc,
+            "character_label": char_label,
+            "character_tag": char_tag
+        }
+
+    summary1 = get_comp_summary(name1)
+    summary2 = get_comp_summary(name2)
+
+    # 2. Find mutual tenders (where BOTH competed)
+    cursor.execute("""
+        SELECT 
+            t.nomor_pengadaan,
+            t.nama_tender,
+            t.instansi,
+            COALESCE(NULLIF(td.satuan_kerja, ''), t.instansi) as satuan_kerja,
+            t.pagu_val,
+            e1.harga_penawaran as c1_penawaran,
+            e1.harga_terkoreksi as c1_terkoreksi,
+            e1.is_winner as c1_eval_win,
+            e2.harga_penawaran as c2_penawaran,
+            e2.harga_terkoreksi as c2_terkoreksi,
+            e2.is_winner as c2_eval_win,
+            w.nama_pemenang,
+            w.harga_kontrak
+        FROM competitor_evaluations e1
+        JOIN competitor_evaluations e2 ON e1.nomor_pengadaan = e2.nomor_pengadaan
+        JOIN tenders t ON e1.nomor_pengadaan = t.nomor_pengadaan
+        LEFT JOIN tender_details td ON e1.nomor_pengadaan = td.nomor_pengadaan
+        LEFT JOIN tender_winners w ON e1.nomor_pengadaan = w.nomor_pengadaan
+        WHERE e1.nama_peserta = ? AND e2.nama_peserta = ?
+        ORDER BY t.scraped_at DESC
+    """, (name1, name2))
+    rows = cursor.fetchall()
+    conn.close()
+
+    meetings = []
+    comp1_wins = 0
+    comp2_wins = 0
+    other_wins = 0
+    comp1_cheaper_count = 0
+    comp2_cheaper_count = 0
+    price_diffs_rp = []
+    price_diffs_pct = []
+
+    for r in rows:
+        nomor = r["nomor_pengadaan"]
+        nama = r["nama_tender"]
+        instansi = r["instansi"]
+        satker = r["satuan_kerja"]
+        pagu = float(r["pagu_val"] or 0)
+        pemenang = clean_str(r["nama_pemenang"] or "")
+        kontrak = float(r["harga_kontrak"] or 0)
+
+        # Comp 1 price
+        p1 = 0.0
+        if pemenang.lower() == name1.lower() and kontrak > 0:
+            p1 = kontrak
+        elif r["c1_terkoreksi"] and float(r["c1_terkoreksi"]) > 0:
+            p1 = float(r["c1_terkoreksi"])
+        elif r["c1_penawaran"] and float(r["c1_penawaran"]) > 0:
+            p1 = float(r["c1_penawaran"])
+
+        # Comp 2 price
+        p2 = 0.0
+        if pemenang.lower() == name2.lower() and kontrak > 0:
+            p2 = kontrak
+        elif r["c2_terkoreksi"] and float(r["c2_terkoreksi"]) > 0:
+            p2 = float(r["c2_terkoreksi"])
+        elif r["c2_penawaran"] and float(r["c2_penawaran"]) > 0:
+            p2 = float(r["c2_penawaran"])
+
+        # Winner determination
+        if pemenang.lower() == name1.lower() or bool(r["c1_eval_win"]):
+            winner_key = "comp1"
+            winner_name = name1
+            comp1_wins += 1
+        elif pemenang.lower() == name2.lower() or bool(r["c2_eval_win"]):
+            winner_key = "comp2"
+            winner_name = name2
+            comp2_wins += 1
+        elif pemenang:
+            winner_key = "other"
+            winner_name = pemenang
+            other_wins += 1
+        else:
+            winner_key = "none"
+            winner_name = "-"
+
+        # Pricing comparison
+        diff_rp = 0.0
+        diff_pct = 0.0
+        cheaper = "-"
+        if p1 > 0 and p2 > 0:
+            diff_rp = abs(p1 - p2)
+            price_diffs_rp.append(diff_rp)
+            if pagu > 0:
+                d1 = ((pagu - p1) / pagu) * 100
+                d2 = ((pagu - p2) / pagu) * 100
+                diff_pct = round(abs(d1 - d2), 1)
+                price_diffs_pct.append(diff_pct)
+            if p1 < p2:
+                cheaper = "comp1"
+                comp1_cheaper_count += 1
+            elif p2 < p1:
+                cheaper = "comp2"
+                comp2_cheaper_count += 1
+
+        p1_disc = round(((pagu - p1) / pagu) * 100, 1) if pagu > 0 and p1 > 0 else 0.0
+        p2_disc = round(((pagu - p2) / pagu) * 100, 1) if pagu > 0 and p2 > 0 else 0.0
+
+        meetings.append({
+            "nomor_pengadaan": nomor,
+            "nama_tender": nama,
+            "instansi": instansi,
+            "satuan_kerja": satker,
+            "pagu": pagu,
+            "comp1_price": p1,
+            "comp1_discount_pct": p1_disc,
+            "comp2_price": p2,
+            "comp2_discount_pct": p2_disc,
+            "winner_key": winner_key,
+            "winner_name": winner_name,
+            "winning_price": kontrak if kontrak > 0 else (p1 if winner_key == 'comp1' else (p2 if winner_key == 'comp2' else 0.0)),
+            "price_diff_rp": diff_rp,
+            "price_diff_pct": diff_pct,
+            "cheaper": cheaper
+        })
+
+    total_meetings = len(meetings)
+    avg_diff_rp = round(sum(price_diffs_rp) / len(price_diffs_rp), 0) if price_diffs_rp else 0.0
+    avg_diff_pct = round(sum(price_diffs_pct) / len(price_diffs_pct), 1) if price_diffs_pct else 0.0
+
+    # Verdict synthesis
+    verdict_badge = "neutral"
+    if total_meetings == 0:
+        verdict = f"Belum tercatat riwayat lelang di mana {name1} dan {name2} bertarung langsung dalam database SPSE."
+        verdict_title = "Belum Pernah Bertemu Langsung"
+    elif comp1_wins > comp2_wins:
+        verdict_badge = "comp1"
+        verdict_title = f"{name1} Unggul Head-to-Head"
+        verdict = f"Dalam {total_meetings} lelang bersama, {name1} menang {comp1_wins}x berbanding {comp2_wins}x oleh {name2}."
+        if comp1_cheaper_count > comp2_cheaper_count:
+            verdict += f" {name1} terbukti lebih agresif menawarkan harga lebih hemat ({comp1_cheaper_count} kali) dengan rerata selisih Rp {avg_diff_rp:,.0f}."
+        else:
+            verdict += f" Meskipun {name2} sering menawar lebih rendah, {name1} lebih unggul dalam kualifikasi teknis dan keabsahan dokumen Pokja."
+    elif comp2_wins > comp1_wins:
+        verdict_badge = "comp2"
+        verdict_title = f"{name2} Unggul Head-to-Head"
+        verdict = f"Dalam {total_meetings} lelang bersama, {name2} memenangkan {comp2_wins} tender sementara {name1} memenangkan {comp1_wins} tender."
+        if comp2_cheaper_count > comp1_cheaper_count:
+            verdict += f" {name2} konsisten memasang harga lebih kompetitif ({comp2_cheaper_count} kali) dengan selisih rata-rata Rp {avg_diff_rp:,.0f}."
+        else:
+            verdict += f" {name2} memiliki tingkat keberhasilan evaluasi spesifikasi dan personil lebih solid di hadapan Pokja."
+    else:
+        verdict_badge = "draw"
+        verdict_title = "Rivalitas Imbang (50:50)"
+        verdict = f"Kedua perusahaan imbang dengan skor {comp1_wins} - {comp2_wins} dari total {total_meetings} tender bersama."
+        if other_wins > 0:
+            verdict += f" Sebanyak {other_wins} lelang berhasil dimenangkan peserta lain."
+
+    return {
+        "comp1": summary1,
+        "comp2": summary2,
+        "head_to_head": {
+            "total_meetings": total_meetings,
+            "comp1_wins": comp1_wins,
+            "comp2_wins": comp2_wins,
+            "other_wins": other_wins,
+            "comp1_cheaper_count": comp1_cheaper_count,
+            "comp2_cheaper_count": comp2_cheaper_count,
+            "avg_diff_rp": avg_diff_rp,
+            "avg_diff_pct": avg_diff_pct,
+            "verdict_title": verdict_title,
+            "verdict_badge": verdict_badge,
+            "verdict_description": verdict
+        },
+        "meetings": meetings
+    }
+
+
+@app.get("/api/tenders/{nomor}/predicted-competitors")
+def get_predicted_competitors(nomor: str):
+    nomor_clean = clean_str(nomor)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.kategori, t.pagu_val, t.jenis_pengadaan,
+               td.satuan_kerja
+        FROM tenders t
+        LEFT JOIN tender_details td ON t.nomor_pengadaan = td.nomor_pengadaan
+        WHERE t.nomor_pengadaan = ?
+    """, (nomor_clean,))
+    target = cursor.fetchone()
+    if not target:
+        conn.close()
+        return {"nomor_pengadaan": nomor_clean, "predicted_competitors": []}
+
+    instansi = clean_str(target["instansi"] or "")
+    satker = clean_str(target["satuan_kerja"] or "")
+    pagu_val = float(target["pagu_val"] or 0)
+
+    # 1. Competitors with wins or participations in the same Satker
+    satker_wins = {}
+    satker_parts = {}
+    if satker and satker != '-':
+        cursor.execute("""
+            SELECT w.nama_pemenang, COUNT(*) as c, SUM(w.harga_kontrak) as total_val
+            FROM tender_winners w
+            JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+            LEFT JOIN tender_details td ON w.nomor_pengadaan = td.nomor_pengadaan
+            WHERE td.satuan_kerja = ? AND w.nama_pemenang != ''
+            GROUP BY w.nama_pemenang
+        """, (satker,))
+        for r in cursor.fetchall():
+            satker_wins[clean_str(r[0])] = {"wins": r[1], "value": float(r[2] or 0)}
+
+        cursor.execute("""
+            SELECT ce.nama_peserta, COUNT(DISTINCT ce.nomor_pengadaan) as c
+            FROM competitor_evaluations ce
+            LEFT JOIN tender_details td ON ce.nomor_pengadaan = td.nomor_pengadaan
+            WHERE td.satuan_kerja = ? AND ce.nama_peserta != ''
+            GROUP BY ce.nama_peserta
+        """, (satker,))
+        for r in cursor.fetchall():
+            satker_parts[clean_str(r[0])] = r[1]
+
+    # 2. Competitors with wins or participations in the same Instansi
+    instansi_wins = {}
+    instansi_parts = {}
+    if instansi:
+        cursor.execute("""
+            SELECT w.nama_pemenang, COUNT(*) as c
+            FROM tender_winners w
+            JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+            WHERE t.instansi = ? AND w.nama_pemenang != ''
+            GROUP BY w.nama_pemenang
+        """, (instansi,))
+        for r in cursor.fetchall():
+            instansi_wins[clean_str(r[0])] = r[1]
+
+        cursor.execute("""
+            SELECT ce.nama_peserta, COUNT(DISTINCT ce.nomor_pengadaan) as c
+            FROM competitor_evaluations ce
+            JOIN tenders t ON ce.nomor_pengadaan = t.nomor_pengadaan
+            WHERE t.instansi = ? AND ce.nama_peserta != ''
+            GROUP BY ce.nama_peserta
+        """, (instansi,))
+        for r in cursor.fetchall():
+            instansi_parts[clean_str(r[0])] = r[1]
+
+    all_candidates = set(satker_wins.keys()) | set(satker_parts.keys()) | set(instansi_wins.keys()) | set(instansi_parts.keys())
+    if not all_candidates:
+        cursor.execute("""
+            SELECT w.nama_pemenang, COUNT(*) as c
+            FROM tender_winners w
+            WHERE w.nama_pemenang != ''
+            GROUP BY w.nama_pemenang
+            ORDER BY c DESC LIMIT 8
+        """)
+        for r in cursor.fetchall():
+            all_candidates.add(clean_str(r[0]))
+
+    scored_competitors = []
+    for cand in all_candidates:
+        if not cand or len(cand) < 3:
+            continue
+        
+        sw = satker_wins.get(cand, {}).get("wins", 0)
+        sp = satker_parts.get(cand, 0)
+        iw = instansi_wins.get(cand, 0)
+        ip = instansi_parts.get(cand, 0)
+
+        score = 0
+        reasons = []
+
+        if sw > 0:
+            score += min(45, sw * 25)
+            reasons.append(f"Memenangkan {sw} lelang di Satker ini")
+        elif sp > 0:
+            score += min(25, sp * 10)
+            reasons.append(f"Pernah {sp}x ikut lelang di Satker ini")
+
+        if iw > 0:
+            score += min(30, iw * 10)
+            if sw == 0:
+                reasons.append(f"Memenangkan {iw} lelang di instansi {instansi}")
+        elif ip > 0:
+            score += min(15, ip * 5)
+            if sp == 0:
+                reasons.append(f"Aktif ({ip}x lelang) di instansi ini")
+
+        # Quick price pattern check
+        cursor.execute("""
+            SELECT AVG(CASE WHEN t.pagu_val > 0 AND (e.harga_terkoreksi > 0 OR e.harga_penawaran > 0)
+                       THEN ((t.pagu_val - COALESCE(NULLIF(e.harga_terkoreksi, 0), e.harga_penawaran)) / t.pagu_val) * 100
+                       ELSE NULL END) as avg_disc
+            FROM competitor_evaluations e
+            JOIN tenders t ON e.nomor_pengadaan = t.nomor_pengadaan
+            WHERE e.nama_peserta = ? AND t.pagu_val > 0
+        """, (cand,))
+        p_row = cursor.fetchone()
+        avg_disc = round(float(p_row[0] or 0), 1) if p_row and p_row[0] is not None else None
+
+        total_score = min(98, max(25, score + 15))
+        if total_score >= 70:
+            threat_level = "Tinggi (Kritis)"
+            threat_badge = "danger"
+        elif total_score >= 45:
+            threat_level = "Waspada (Potensial)"
+            threat_badge = "warning"
+        else:
+            threat_level = "Moderat"
+            threat_badge = "info"
+
+        price_hint = f"Rerata diskon penawaran: {avg_disc}% Pagu" if avg_disc and avg_disc > 0 else "Karakter penawaran: Standar Pokja"
+
+        scored_competitors.append({
+            "company_name": cand,
+            "threat_score": total_score,
+            "threat_level": threat_level,
+            "threat_badge": threat_badge,
+            "satker_wins": sw,
+            "instansi_wins": iw,
+            "reasons": reasons if reasons else ["Memiliki rekam jejak aktif pada klaster tender terkait"],
+            "price_hint": price_hint
+        })
+
+    conn.close()
+    scored_competitors.sort(key=lambda x: (x["threat_score"], x["satker_wins"], x["instansi_wins"]), reverse=True)
+
+    return {
+        "nomor_pengadaan": nomor_clean,
+        "instansi": instansi,
+        "satuan_kerja": satker,
+        "predicted_competitors": scored_competitors[:5]
     }
 
 

@@ -5553,7 +5553,15 @@ function App() {
     const [isLoadingClients, setIsLoadingClients] = useState(false);
     const [competitorPartners, setCompetitorPartners] = useState(null);
     const [isLoadingPartners, setIsLoadingPartners] = useState(false);
-    const [competitorSubTab, setCompetitorSubTab] = useState('overview'); // 'overview', 'pricing', 'clients', 'partners', 'disqualifications'
+    const [competitorCompareData, setCompetitorCompareData] = useState(null);
+    const [isLoadingCompare, setIsLoadingCompare] = useState(false);
+    const [compareComp2Name, setCompareComp2Name] = useState('');
+    const [compareComp2Query, setCompareComp2Query] = useState('');
+    const [compareComp2Suggestions, setCompareComp2Suggestions] = useState([]);
+    const [pageCompareMeetings, setPageCompareMeetings] = useState(1);
+    const [predictedCompetitors, setPredictedCompetitors] = useState(null);
+    const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
+    const [competitorSubTab, setCompetitorSubTab] = useState('overview'); // 'overview', 'pricing', 'clients', 'partners', 'compare', 'disqualifications'
     const [pageTendersFollowed, setPageTendersFollowed] = useState(1);
     const [pagePricingHistory, setPagePricingHistory] = useState(1);
     const [pageClients, setPageClients] = useState(1);
@@ -5573,6 +5581,22 @@ function App() {
             }
         } catch (err) {
             console.error("Failed to fetch competitor suggestions:", err);
+        }
+    };
+
+    const fetchCompareComp2Suggestions = async (query) => {
+        if (query.trim().length < 2) {
+            setCompareComp2Suggestions([]);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/competitors/search?q=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCompareComp2Suggestions(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch compare suggestions:", err);
         }
     };
 
@@ -5651,6 +5675,49 @@ function App() {
         }
     };
 
+    const fetchCompetitorCompare = async (comp1, comp2) => {
+        if (!comp1 || !comp2) return;
+        setIsLoadingCompare(true);
+        setPageCompareMeetings(1);
+        try {
+            const res = await fetch(`/api/competitors/compare?comp1=${encodeURIComponent(comp1)}&comp2=${encodeURIComponent(comp2)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCompetitorCompareData(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch competitor comparison:", err);
+        } finally {
+            setIsLoadingCompare(false);
+        }
+    };
+
+    const handleQuickCompare = (targetRivalName) => {
+        setCompareComp2Name(targetRivalName);
+        setCompareComp2Query(targetRivalName);
+        setCompareComp2Suggestions([]);
+        setCompetitorSubTab('compare');
+        if (selectedCompetitorName && targetRivalName) {
+            fetchCompetitorCompare(selectedCompetitorName, targetRivalName);
+        }
+    };
+
+    const fetchPredictedCompetitors = async (nomor) => {
+        setIsLoadingPredictions(true);
+        setPredictedCompetitors(null);
+        try {
+            const res = await fetch(`/api/tenders/${encodeURIComponent(nomor)}/predicted-competitors`);
+            if (res.ok) {
+                const data = await res.json();
+                setPredictedCompetitors(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch predicted competitors:", err);
+        } finally {
+            setIsLoadingPredictions(false);
+        }
+    };
+
     const handleOpenCompetitorProfile = (name) => {
         setSelectedCompetitorName(name);
         setCompetitorProfile(null);
@@ -5658,11 +5725,16 @@ function App() {
         setCompetitorPricing(null);
         setCompetitorClients(null);
         setCompetitorPartners(null);
+        setCompetitorCompareData(null);
+        setCompareComp2Name('');
+        setCompareComp2Query('');
+        setCompareComp2Suggestions([]);
         setCompetitorSubTab('overview');
         setPageTendersFollowed(1);
         setPagePricingHistory(1);
         setPageClients(1);
         setPageCoBidders(1);
+        setPageCompareMeetings(1);
         setPageDisqualifications(1);
         setActiveTab('competitor-profile');
         setIsDrawerOpen(false); // Close drawer if open
@@ -8030,6 +8102,7 @@ function App() {
 
     const handleViewTenderDetail = async (nomor) => {
         try {
+            fetchPredictedCompetitors(nomor);
             const res = await fetch(`/api/tenders/${nomor}`);
             if (res.ok) {
                 const data = await res.json();
@@ -15039,6 +15112,25 @@ function App() {
                                         🤝 Rekanan & KSO
                                     </button>
                                     <button
+                                        onClick={() => setCompetitorSubTab('compare')}
+                                        style={{
+                                            padding: '9px 16px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            background: competitorSubTab === 'compare' ? 'linear-gradient(135deg, #06b6d4, #0891b2)' : 'rgba(255,255,255,0.05)',
+                                            color: '#fff',
+                                            fontWeight: 'bold',
+                                            fontSize: '13px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        ⚔️ Head-to-Head
+                                    </button>
+                                    <button
                                         onClick={() => setCompetitorSubTab('disqualifications')}
                                         style={{
                                             padding: '9px 16px',
@@ -15642,21 +15734,40 @@ function App() {
                                                                                 </span>
                                                                             </td>
                                                                             <td style={{ textAlign: 'center' }}>
-                                                                                <button
-                                                                                    onClick={() => handleOpenCompetitorProfile(cobid.company_name)}
-                                                                                    style={{
-                                                                                        background: 'rgba(255,255,255,0.05)',
-                                                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                                                        color: '#e5e7eb',
-                                                                                        padding: '5px 12px',
-                                                                                        borderRadius: '6px',
-                                                                                        fontSize: '11px',
-                                                                                        cursor: 'pointer',
-                                                                                        fontWeight: '600'
-                                                                                    }}
-                                                                                >
-                                                                                    🔍 Intip Profil
-                                                                                </button>
+                                                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                                                    <button
+                                                                                        onClick={() => handleOpenCompetitorProfile(cobid.company_name)}
+                                                                                        style={{
+                                                                                            background: 'rgba(255,255,255,0.05)',
+                                                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                                                            color: '#e5e7eb',
+                                                                                            padding: '5px 10px',
+                                                                                            borderRadius: '6px',
+                                                                                            fontSize: '11px',
+                                                                                            cursor: 'pointer',
+                                                                                            fontWeight: '600'
+                                                                                        }}
+                                                                                        title="Lihat profil detail badan usaha ini"
+                                                                                    >
+                                                                                        🔍 Profil
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleQuickCompare(cobid.company_name)}
+                                                                                        style={{
+                                                                                            background: 'rgba(6, 182, 212, 0.15)',
+                                                                                            border: '1px solid rgba(6, 182, 212, 0.3)',
+                                                                                            color: '#67e8f9',
+                                                                                            padding: '5px 10px',
+                                                                                            borderRadius: '6px',
+                                                                                            fontSize: '11px',
+                                                                                            cursor: 'pointer',
+                                                                                            fontWeight: '700'
+                                                                                        }}
+                                                                                        title="Bandingkan langsung head-to-head"
+                                                                                    >
+                                                                                        ⚔️ Komparasi
+                                                                                    </button>
+                                                                                </div>
                                                                             </td>
                                                                         </tr>
                                                                     ))
@@ -15724,76 +15835,97 @@ function App() {
                                                     </div>
                                                 </div>
 
-                                                {/* Breakdown Bar Charts / Progress Lines */}
+                                                {/* MATRIKS TITIK LEMAH SPESIFIKASI & EVALUASI POKJA (WEAKNESS MATRIX) */}
                                                 <div className="panel" style={{ marginBottom: '24px' }}>
-                                                    <div className="panel-header">
-                                                        <h3 className="panel-title">📊 Distribusi Tahap Gugur Kompetitor</h3>
+                                                    <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                                        <div>
+                                                            <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                🎯 Matriks Titik Lemah Spesifikasi &amp; Klausul Pokja
+                                                            </h3>
+                                                            <p style={{ fontSize: '12px', color: '#9ca3af', margin: '4px 0 0 0' }}>
+                                                                Pemetaan klaster penyebab keguguran tender untuk mengeksploitasi celah kelemahan kompetitor.
+                                                            </p>
+                                                        </div>
+                                                        <span style={{ fontSize: '11px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                                            SPY WEAKNESS RADAR
+                                                        </span>
                                                     </div>
 
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                        {/* Administrasi */}
-                                                        <div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                                                                <span style={{ color: '#d1d5db', fontWeight: '600' }}>📄 Tahap Administrasi</span>
-                                                                <span style={{ color: '#9ca3af' }}>{competitorDisqualifications.disqualified_stages.administrasi} Kali</span>
-                                                            </div>
-                                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <div style={{
-                                                                    height: '100%',
-                                                                    background: 'linear-gradient(90deg, #6366f1, #818cf8)',
-                                                                    width: `${competitorDisqualifications.total_disqualified > 0 ? (competitorDisqualifications.disqualified_stages.administrasi / competitorDisqualifications.total_disqualified) * 100 : 0}%`,
-                                                                    transition: 'width 0.5s'
-                                                                }}></div>
+                                                    {/* Tactical Recommendation Box */}
+                                                    {competitorDisqualifications.tactical_insights && competitorDisqualifications.tactical_insights.length > 0 && (
+                                                        <div style={{
+                                                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08))',
+                                                            border: '1px solid rgba(168, 85, 247, 0.25)',
+                                                            padding: '16px 18px',
+                                                            borderRadius: '12px',
+                                                            marginBottom: '20px',
+                                                            display: 'flex',
+                                                            gap: '12px',
+                                                            alignItems: 'flex-start'
+                                                        }}>
+                                                            <span style={{ fontSize: '24px', lineHeight: '1' }}>💡</span>
+                                                            <div style={{ flex: 1 }}>
+                                                                <div style={{ fontSize: '12px', color: '#c084fc', textTransform: 'uppercase', fontWeight: '800', letterSpacing: '0.05em' }}>
+                                                                    Rekomendasi Taktis Menghadapi Lawan
+                                                                </div>
+                                                                <div style={{ fontSize: '13px', color: '#e5e7eb', marginTop: '4px', lineHeight: '1.6' }}>
+                                                                    {competitorDisqualifications.tactical_insights[0]}
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                    )}
 
-                                                        {/* Teknis */}
-                                                        <div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                                                                <span style={{ color: '#d1d5db', fontWeight: '600' }}>🛠️ Tahap Teknis</span>
-                                                                <span style={{ color: '#9ca3af' }}>{competitorDisqualifications.disqualified_stages.teknis} Kali</span>
-                                                            </div>
-                                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <div style={{
-                                                                    height: '100%',
-                                                                    background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
-                                                                    width: `${competitorDisqualifications.total_disqualified > 0 ? (competitorDisqualifications.disqualified_stages.teknis / competitorDisqualifications.total_disqualified) * 100 : 0}%`,
-                                                                    transition: 'width 0.5s'
-                                                                }}></div>
-                                                            </div>
-                                                        </div>
+                                                    {/* Weakness Clusters Grid */}
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+                                                        {competitorDisqualifications.weakness_clusters && competitorDisqualifications.weakness_clusters.map((cluster) => (
+                                                            <div key={cluster.id} style={{
+                                                                background: 'rgba(15, 23, 42, 0.6)',
+                                                                border: `1px solid ${cluster.risk_badge === 'danger' ? 'rgba(239, 68, 68, 0.3)' : cluster.risk_badge === 'warning' ? 'rgba(245, 158, 11, 0.3)' : cluster.risk_badge === 'info' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(34, 197, 94, 0.2)'}`,
+                                                                padding: '16px',
+                                                                borderRadius: '12px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'space-between'
+                                                            }}>
+                                                                <div>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', fontSize: '13px', color: '#fff' }}>
+                                                                            <span style={{ fontSize: '16px' }}>{cluster.icon}</span>
+                                                                            {cluster.name}
+                                                                        </div>
+                                                                        <span style={{
+                                                                            fontSize: '10px',
+                                                                            fontWeight: '800',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '20px',
+                                                                            background: cluster.risk_badge === 'danger' ? 'rgba(239, 68, 68, 0.2)' : cluster.risk_badge === 'warning' ? 'rgba(245, 158, 11, 0.2)' : cluster.risk_badge === 'info' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                                                                            color: cluster.risk_badge === 'danger' ? '#f87171' : cluster.risk_badge === 'warning' ? '#fbbf24' : cluster.risk_badge === 'info' ? '#60a5fa' : '#4ade80',
+                                                                            border: `1px solid ${cluster.risk_badge === 'danger' ? 'rgba(239, 68, 68, 0.4)' : cluster.risk_badge === 'warning' ? 'rgba(245, 158, 11, 0.4)' : cluster.risk_badge === 'info' ? 'rgba(59, 130, 246, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`
+                                                                        }}>
+                                                                            {cluster.risk_level}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 12px 0', lineHeight: '1.4' }}>
+                                                                        {cluster.desc}
+                                                                    </p>
+                                                                </div>
 
-                                                        {/* Harga */}
-                                                        <div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                                                                <span style={{ color: '#d1d5db', fontWeight: '600' }}>💰 Tahap Harga &amp; Koreksi</span>
-                                                                <span style={{ color: '#9ca3af' }}>{competitorDisqualifications.disqualified_stages.harga} Kali</span>
+                                                                <div>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px' }}>
+                                                                        <span style={{ color: '#d1d5db' }}>{cluster.count} lelang gugur</span>
+                                                                        <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{cluster.percentage}%</span>
+                                                                    </div>
+                                                                    <div style={{ height: '7px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                                                                        <div style={{
+                                                                            height: '100%',
+                                                                            background: cluster.risk_badge === 'danger' ? 'linear-gradient(90deg, #ef4444, #f87171)' : cluster.risk_badge === 'warning' ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : cluster.risk_badge === 'info' ? 'linear-gradient(90deg, #3b82f6, #60a5fa)' : 'linear-gradient(90deg, #10b981, #34d399)',
+                                                                            width: `${cluster.percentage}%`,
+                                                                            transition: 'width 0.5s'
+                                                                        }}></div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <div style={{
-                                                                    height: '100%',
-                                                                    background: 'linear-gradient(90deg, #10b981, #34d399)',
-                                                                    width: `${competitorDisqualifications.total_disqualified > 0 ? (competitorDisqualifications.disqualified_stages.harga / competitorDisqualifications.total_disqualified) * 100 : 0}%`,
-                                                                    transition: 'width 0.5s'
-                                                                }}></div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Kualifikasi */}
-                                                        <div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                                                                <span style={{ color: '#d1d5db', fontWeight: '600' }}>🔍 Tahap Kualifikasi</span>
-                                                                <span style={{ color: '#9ca3af' }}>{competitorDisqualifications.disqualified_stages.kualifikasi} Kali</span>
-                                                            </div>
-                                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <div style={{
-                                                                    height: '100%',
-                                                                    background: 'linear-gradient(90deg, #a855f7, #c084fc)',
-                                                                    width: `${competitorDisqualifications.total_disqualified > 0 ? (competitorDisqualifications.disqualified_stages.kualifikasi / competitorDisqualifications.total_disqualified) * 100 : 0}%`,
-                                                                    transition: 'width 0.5s'
-                                                                }}></div>
-                                                            </div>
-                                                        </div>
+                                                        ))}
                                                     </div>
                                                 </div>
 
@@ -15817,7 +15949,7 @@ function App() {
                                                             <thead>
                                                                 <tr>
                                                                     <th>Nama Tender &amp; Instansi</th>
-                                                                    <th style={{ width: '130px' }}>Tahap Gugur</th>
+                                                                    <th style={{ width: '160px' }}>Tahap &amp; Klaster</th>
                                                                     <th style={{ width: '130px' }}>Penawaran</th>
                                                                     <th>Detail Alasan Keguguran Pokja</th>
                                                                 </tr>
@@ -15844,6 +15976,11 @@ function App() {
                                                                                 <span style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
                                                                                     {item.failed_stage.toUpperCase()}
                                                                                 </span>
+                                                                                {item.cluster_name && (
+                                                                                    <div style={{ fontSize: '11px', color: '#93c5fd', marginTop: '4px', fontWeight: '500' }}>
+                                                                                        {item.cluster_name}
+                                                                                    </div>
+                                                                                )}
                                                                             </td>
                                                                             <td>
                                                                                 {item.harga_penawaran > 0 ? (
@@ -15896,6 +16033,508 @@ function App() {
                                             </div>
                                         ) : (
                                             <p style={{ color: '#6b7280', fontStyle: 'italic', textAlign: 'center', padding: '40px 0' }}>Gagal memuat data keguguran.</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB: KOMPARASI HEAD-TO-HEAD */}
+                                {competitorSubTab === 'compare' && (
+                                    <div>
+                                        {/* COMPARISON SELECTOR PANEL */}
+                                        <div className="panel" style={{ marginBottom: '24px' }}>
+                                            <div className="panel-header">
+                                                <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    ⚔️ Komparasi Head-to-Head Antar Kompetitor
+                                                </h3>
+                                            </div>
+
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                                gap: '16px',
+                                                alignItems: 'center',
+                                                background: 'rgba(0,0,0,0.2)',
+                                                padding: '20px',
+                                                borderRadius: '12px',
+                                                border: '1px solid rgba(255,255,255,0.05)'
+                                            }}>
+                                                {/* Comp 1 (Current Profile) */}
+                                                <div style={{
+                                                    background: 'rgba(99, 102, 241, 0.08)',
+                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                    padding: '16px',
+                                                    borderRadius: '10px'
+                                                }}>
+                                                    <div style={{ fontSize: '11px', color: '#818cf8', fontWeight: 'bold', textTransform: 'uppercase' }}>Perusahaan 1 (Utama)</div>
+                                                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                                        {competitorProfile.name}
+                                                    </div>
+                                                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                                                        NPWP: {competitorProfile.npwp || '-'}
+                                                    </div>
+                                                </div>
+
+                                                {/* VS Divider */}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <span style={{
+                                                        background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                                                        color: '#fff',
+                                                        fontWeight: '900',
+                                                        fontSize: '14px',
+                                                        padding: '8px 16px',
+                                                        borderRadius: '20px',
+                                                        boxShadow: '0 4px 14px rgba(6, 182, 212, 0.4)'
+                                                    }}>
+                                                        ⚔️ VS ⚔️
+                                                    </span>
+                                                </div>
+
+                                                {/* Comp 2 Selector */}
+                                                <div style={{ position: 'relative' }}>
+                                                    <div style={{ fontSize: '11px', color: '#67e8f9', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                                        Pilih Perusahaan 2 (Lawan)
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <div style={{ position: 'relative', flex: 1 }}>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Ketik nama PT / CV lawan..."
+                                                                value={compareComp2Query}
+                                                                onChange={(e) => {
+                                                                    setCompareComp2Query(e.target.value);
+                                                                    fetchCompareComp2Suggestions(e.target.value);
+                                                                }}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    padding: '10px 12px',
+                                                                    borderRadius: '8px',
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    border: '1px solid rgba(255,255,255,0.15)',
+                                                                    color: '#fff',
+                                                                    fontSize: '13px'
+                                                                }}
+                                                            />
+                                                            {compareComp2Suggestions.length > 0 && (
+                                                                <div style={{
+                                                                    position: 'absolute',
+                                                                    top: '100%',
+                                                                    left: 0,
+                                                                    right: 0,
+                                                                    background: '#1e293b',
+                                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                                    borderRadius: '8px',
+                                                                    marginTop: '4px',
+                                                                    zIndex: 50,
+                                                                    maxHeight: '200px',
+                                                                    overflowY: 'auto',
+                                                                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+                                                                }}>
+                                                                    {compareComp2Suggestions.map((s, idx) => (
+                                                                        <div
+                                                                            key={idx}
+                                                                            onClick={() => {
+                                                                                setCompareComp2Name(s.nama);
+                                                                                setCompareComp2Query(s.nama);
+                                                                                setCompareComp2Suggestions([]);
+                                                                            }}
+                                                                            style={{
+                                                                                padding: '10px 14px',
+                                                                                cursor: 'pointer',
+                                                                                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                                                                fontSize: '13px',
+                                                                                color: '#e5e7eb'
+                                                                            }}
+                                                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                                        >
+                                                                            <strong>{s.nama}</strong>
+                                                                            {s.npwp && <div style={{ fontSize: '11px', color: '#9ca3af' }}>NPWP: {s.npwp}</div>}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                const targetName = compareComp2Name || compareComp2Query;
+                                                                if (targetName) {
+                                                                    fetchCompetitorCompare(competitorProfile.name, targetName);
+                                                                }
+                                                            }}
+                                                            disabled={isLoadingCompare || (!compareComp2Name && !compareComp2Query)}
+                                                            style={{
+                                                                background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                padding: '10px 18px',
+                                                                borderRadius: '8px',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '13px',
+                                                                cursor: 'pointer',
+                                                                opacity: (!compareComp2Name && !compareComp2Query) ? 0.5 : 1,
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {isLoadingCompare ? 'Membandingkan...' : '⚔️ Bandingkan'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Quick-Pick Co-Bidders Tags */}
+                                            {competitorPartners && competitorPartners.co_bidders && competitorPartners.co_bidders.length > 0 && (
+                                                <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                    <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 'bold' }}>Rival Sering Bertemu:</span>
+                                                    {competitorPartners.co_bidders.slice(0, 5).map((cobid, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => handleQuickCompare(cobid.company_name)}
+                                                            style={{
+                                                                background: 'rgba(255,255,255,0.05)',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                color: '#cbd5e1',
+                                                                padding: '3px 10px',
+                                                                borderRadius: '14px',
+                                                                fontSize: '11px',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)'; e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)'; e.currentTarget.style.color = '#fff'; }}
+                                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#cbd5e1'; }}
+                                                        >
+                                                            ⚡ {cobid.company_name} ({cobid.joint_tenders_count}x)
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* COMPARISON RESULTS */}
+                                        {isLoadingCompare ? (
+                                            <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}>
+                                                <div className="spinner" style={{ width: '32px', height: '32px', borderWidth: '3px', margin: '0 auto 16px' }}></div>
+                                                <h4 style={{ color: '#fff', fontSize: '16px', marginBottom: '6px' }}>Menganalisis Riwayat Bentrok Head-to-Head...</h4>
+                                                <p style={{ fontSize: '13px' }}>Menghitung skor kemenangan, selisih penawaran HPS, dan riwayat tender bersama.</p>
+                                            </div>
+                                        ) : competitorCompareData ? (
+                                            <div>
+                                                {/* AI VERDICT BANNER */}
+                                                <div style={{
+                                                    background: competitorCompareData.head_to_head.verdict_badge === 'comp1' ? 'rgba(16, 185, 129, 0.08)' : competitorCompareData.head_to_head.verdict_badge === 'comp2' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(6, 182, 212, 0.08)',
+                                                    border: `1px solid ${competitorCompareData.head_to_head.verdict_badge === 'comp1' ? 'rgba(16, 185, 129, 0.3)' : competitorCompareData.head_to_head.verdict_badge === 'comp2' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
+                                                    padding: '20px',
+                                                    borderRadius: '14px',
+                                                    marginBottom: '24px',
+                                                    display: 'flex',
+                                                    gap: '16px',
+                                                    alignItems: 'center'
+                                                }}>
+                                                    <span style={{ fontSize: '36px' }}>
+                                                        {competitorCompareData.head_to_head.verdict_badge === 'comp1' ? '🏆' : competitorCompareData.head_to_head.verdict_badge === 'comp2' ? '⚡' : '🤝'}
+                                                    </span>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{
+                                                            fontSize: '11px',
+                                                            textTransform: 'uppercase',
+                                                            fontWeight: '800',
+                                                            color: competitorCompareData.head_to_head.verdict_badge === 'comp1' ? '#34d399' : competitorCompareData.head_to_head.verdict_badge === 'comp2' ? '#fbbf24' : '#67e8f9',
+                                                            letterSpacing: '0.05em'
+                                                        }}>
+                                                            Analisis Taktis Spy SPSE
+                                                        </div>
+                                                        <h3 style={{ color: '#fff', fontSize: '18px', margin: '4px 0', fontFamily: 'Outfit, sans-serif' }}>
+                                                            {competitorCompareData.head_to_head.verdict_title}
+                                                        </h3>
+                                                        <p style={{ fontSize: '13px', color: '#d1d5db', margin: 0, lineHeight: '1.5' }}>
+                                                            {competitorCompareData.head_to_head.verdict_description}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* TALE OF THE TAPE (SIDE-BY-SIDE SCORECARD) */}
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                                                    gap: '16px',
+                                                    marginBottom: '24px'
+                                                }}>
+                                                    {/* Company 1 Card */}
+                                                    <div className="panel" style={{ margin: 0, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                            <span style={{ fontSize: '11px', background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                PERUSAHAAN 1
+                                                            </span>
+                                                            <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>
+                                                                Win Rate: {competitorCompareData.comp1.win_rate}%
+                                                            </span>
+                                                        </div>
+                                                        <h3 style={{ color: '#fff', fontSize: '18px', margin: '0 0 16px 0', fontFamily: 'Outfit, sans-serif' }}>
+                                                            {competitorCompareData.comp1.name}
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Total Menang:</span>
+                                                                <strong style={{ color: '#fff' }}>{competitorCompareData.comp1.total_wins} dari {competitorCompareData.comp1.total_tenders} lelang</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Total Kontrak:</span>
+                                                                <strong style={{ color: '#34d399' }}>{formatPaguVal(competitorCompareData.comp1.total_contract_value)}</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Rerata Diskon HPS:</span>
+                                                                <strong style={{ color: '#fbbf24' }}>{competitorCompareData.comp1.avg_discount_pct}%</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Karakter Penawaran:</span>
+                                                                <span style={{
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '4px',
+                                                                    background: competitorCompareData.comp1.character_tag === 'danger' ? 'rgba(239, 68, 68, 0.2)' : competitorCompareData.comp1.character_tag === 'warning' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                                                                    color: competitorCompareData.comp1.character_tag === 'danger' ? '#f87171' : competitorCompareData.comp1.character_tag === 'warning' ? '#fbbf24' : '#34d399'
+                                                                }}>
+                                                                    {competitorCompareData.comp1.character_label}
+                                                                </span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Basis Terkuat:</span>
+                                                                <strong style={{ color: '#e5e7eb', textAlign: 'right', maxWidth: '160px' }}>{competitorCompareData.comp1.top_satker}</strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Battlefield Center Stats */}
+                                                    <div className="panel" style={{
+                                                        margin: 0,
+                                                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.05), rgba(59, 130, 246, 0.05))',
+                                                        border: '1px solid rgba(6, 182, 212, 0.3)',
+                                                        textAlign: 'center',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        <div style={{ fontSize: '12px', color: '#67e8f9', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                            Rekor Pertemuan Langsung
+                                                        </div>
+                                                        <div style={{ fontSize: '14px', color: '#9ca3af', marginTop: '4px' }}>
+                                                            Total <strong>{competitorCompareData.head_to_head.total_meetings}</strong> Lelang Bersama
+                                                        </div>
+
+                                                        {/* Big Match Score */}
+                                                        <div style={{
+                                                            fontSize: '44px',
+                                                            fontWeight: '900',
+                                                            fontFamily: 'Outfit, sans-serif',
+                                                            margin: '16px 0',
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            gap: '16px'
+                                                        }}>
+                                                            <span style={{ color: '#818cf8' }}>{competitorCompareData.head_to_head.comp1_wins}</span>
+                                                            <span style={{ color: '#6b7280', fontSize: '24px' }}>:</span>
+                                                            <span style={{ color: '#f59e0b' }}>{competitorCompareData.head_to_head.comp2_wins}</span>
+                                                        </div>
+
+                                                        <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '16px' }}>
+                                                            {competitorCompareData.head_to_head.other_wins > 0 ? (
+                                                                <span>({competitorCompareData.head_to_head.other_wins} lelang dimenangkan pihak ketiga)</span>
+                                                            ) : (
+                                                                <span>(Semua lelang dimenangkan salah satu pihak)</span>
+                                                            )}
+                                                        </div>
+
+                                                        <div style={{ background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '10px', fontSize: '12px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Rata-rata Selisih Harga:</span>
+                                                                <strong style={{ color: '#fff' }}>Rp {competitorCompareData.head_to_head.avg_diff_rp.toLocaleString('id-ID')}</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Rerata Selisih Pagu:</span>
+                                                                <strong style={{ color: '#fbbf24' }}>{competitorCompareData.head_to_head.avg_diff_pct}% Pagu</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px', marginTop: '2px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Frekuensi Banting Harga:</span>
+                                                                <span style={{ color: '#67e8f9', fontWeight: 'bold' }}>
+                                                                    {competitorCompareData.head_to_head.comp1_cheaper_count}x vs {competitorCompareData.head_to_head.comp2_cheaper_count}x
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Company 2 Card */}
+                                                    <div className="panel" style={{ margin: 0, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                            <span style={{ fontSize: '11px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                PERUSAHAAN 2 (LAWAN)
+                                                            </span>
+                                                            <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>
+                                                                Win Rate: {competitorCompareData.comp2.win_rate}%
+                                                            </span>
+                                                        </div>
+                                                        <h3 style={{ color: '#fff', fontSize: '18px', margin: '0 0 16px 0', fontFamily: 'Outfit, sans-serif' }}>
+                                                            {competitorCompareData.comp2.name}
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Total Menang:</span>
+                                                                <strong style={{ color: '#fff' }}>{competitorCompareData.comp2.total_wins} dari {competitorCompareData.comp2.total_tenders} lelang</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Total Kontrak:</span>
+                                                                <strong style={{ color: '#34d399' }}>{formatPaguVal(competitorCompareData.comp2.total_contract_value)}</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Rerata Diskon HPS:</span>
+                                                                <strong style={{ color: '#fbbf24' }}>{competitorCompareData.comp2.avg_discount_pct}%</strong>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Karakter Penawaran:</span>
+                                                                <span style={{
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '4px',
+                                                                    background: competitorCompareData.comp2.character_tag === 'danger' ? 'rgba(239, 68, 68, 0.2)' : competitorCompareData.comp2.character_tag === 'warning' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                                                                    color: competitorCompareData.comp2.character_tag === 'danger' ? '#f87171' : competitorCompareData.comp2.character_tag === 'warning' ? '#fbbf24' : '#34d399'
+                                                                }}>
+                                                                    {competitorCompareData.comp2.character_label}
+                                                                </span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#9ca3af' }}>Basis Terkuat:</span>
+                                                                <strong style={{ color: '#e5e7eb', textAlign: 'right', maxWidth: '160px' }}>{competitorCompareData.comp2.top_satker}</strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* HEAD-TO-HEAD TENDERS HISTORY TABLE */}
+                                                <div className="panel" style={{ marginBottom: '24px' }}>
+                                                    <div className="panel-header">
+                                                        <h3 className="panel-title">⚔️ Riwayat Pertarungan Lelang Bersama ({competitorCompareData.meetings?.length || 0})</h3>
+                                                    </div>
+
+                                                    <div className="table-wrapper">
+                                                        <table className="tender-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Nama Tender &amp; Satker</th>
+                                                                    <th style={{ width: '130px' }}>Pagu</th>
+                                                                    <th style={{ width: '140px' }}>Penawaran {competitorCompareData.comp1.name.slice(0, 15)}</th>
+                                                                    <th style={{ width: '140px' }}>Penawaran {competitorCompareData.comp2.name.slice(0, 15)}</th>
+                                                                    <th style={{ width: '130px' }}>Selisih Harga</th>
+                                                                    <th style={{ width: '160px' }}>Pemenang Lelang</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {competitorCompareData.meetings && competitorCompareData.meetings.length > 0 ? (
+                                                                    competitorCompareData.meetings.slice((pageCompareMeetings - 1) * 10, pageCompareMeetings * 10).map((m, idx) => (
+                                                                        <tr key={idx}>
+                                                                            <td>
+                                                                                <div
+                                                                                    onClick={() => handleViewTenderDetail(m.nomor_pengadaan)}
+                                                                                    style={{ fontWeight: '600', color: '#fff', marginBottom: '4px', cursor: 'pointer', transition: 'color 0.2s' }}
+                                                                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#818cf8'; e.currentTarget.style.textDecoration = 'underline'; }}
+                                                                                    onMouseLeave={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.textDecoration = 'none'; }}
+                                                                                    title="Klik untuk melihat detail tender"
+                                                                                >
+                                                                                    {renderTenderTitle(m.nama_tender)}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                                                                                    🏛️ {m.satuan_kerja || m.instansi} | ID: {m.nomor_pengadaan}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td style={{ color: '#d1d5db', fontSize: '12px' }}>
+                                                                                {formatPaguVal(m.pagu)}
+                                                                            </td>
+                                                                            <td>
+                                                                                {m.comp1_price > 0 ? (
+                                                                                    <div>
+                                                                                        <div style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '12px' }}>
+                                                                                            {formatPaguVal(m.comp1_price)}
+                                                                                        </div>
+                                                                                        <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                                                                                            (-{m.comp1_discount_pct}%)
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span style={{ color: '#6b7280' }}>-</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
+                                                                                {m.comp2_price > 0 ? (
+                                                                                    <div>
+                                                                                        <div style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '12px' }}>
+                                                                                            {formatPaguVal(m.comp2_price)}
+                                                                                        </div>
+                                                                                        <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                                                                                            (-{m.comp2_discount_pct}%)
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span style={{ color: '#6b7280' }}>-</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
+                                                                                {m.price_diff_rp > 0 ? (
+                                                                                    <div>
+                                                                                        <div style={{ color: '#e5e7eb', fontSize: '12px', fontWeight: 'bold' }}>
+                                                                                            Rp {m.price_diff_rp.toLocaleString('id-ID')}
+                                                                                        </div>
+                                                                                        <div style={{ fontSize: '10px', color: m.cheaper === 'comp1' ? '#818cf8' : '#fbbf24' }}>
+                                                                                            {m.cheaper === 'comp1' ? `${competitorCompareData.comp1.name.slice(0, 10)} lebih murah` : `${competitorCompareData.comp2.name.slice(0, 10)} lebih murah`}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <span style={{ color: '#6b7280' }}>-</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
+                                                                                <span style={{
+                                                                                    background: m.winner_key === 'comp1' ? 'rgba(16, 185, 129, 0.15)' : m.winner_key === 'comp2' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                                                                    color: m.winner_key === 'comp1' ? '#34d399' : m.winner_key === 'comp2' ? '#fbbf24' : '#60a5fa',
+                                                                                    padding: '3px 8px',
+                                                                                    borderRadius: '4px',
+                                                                                    fontSize: '11px',
+                                                                                    fontWeight: 'bold',
+                                                                                    border: `1px solid ${m.winner_key === 'comp1' ? 'rgba(16, 185, 129, 0.3)' : m.winner_key === 'comp2' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                                                                                    display: 'inline-block'
+                                                                                }}>
+                                                                                    🏆 {m.winner_name}
+                                                                                </span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))
+                                                                ) : (
+                                                                    <tr>
+                                                                        <td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>Tidak ada riwayat tender bersama yang tercatat.</td>
+                                                                    </tr>
+                                                                )}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                    <CompetitorPagination
+                                                        currentPage={pageCompareMeetings}
+                                                        totalItems={competitorCompareData.meetings?.length || 0}
+                                                        pageSize={10}
+                                                        onPageChange={setPageCompareMeetings}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="panel" style={{ textAlign: 'center', padding: '60px 20px' }}>
+                                                <span style={{ fontSize: '48px', display: 'block', marginBottom: '14px' }}>⚔️</span>
+                                                <h4 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px', fontFamily: 'Outfit, sans-serif' }}>
+                                                    Mulai Komparasi Head-to-Head
+                                                </h4>
+                                                <p style={{ color: '#9ca3af', fontSize: '13px', maxWidth: '500px', margin: '0 auto' }}>
+                                                    Pilih atau cari perusahaan kompetitor lawan di atas untuk menganalisis rekor kemenangan langsung, selisih penawaran HPS, dan siapa yang lebih unggul di mata Pokja.
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -16124,6 +16763,222 @@ function App() {
                                     <p style={{ color: '#6b7280', fontStyle: 'italic' }}>
                                         Detail kualifikasi belum ditarik / tidak tersedia untuk tender ini.
                                     </p>
+                                )}
+                            </div>
+
+                            {/* Early Warning Radar Section */}
+                            <div className="detail-section" style={{
+                                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)',
+                                border: '1px solid rgba(99, 102, 241, 0.3)',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '12px',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                                    paddingBottom: '10px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ fontSize: '20px' }}>📡</span>
+                                        <div>
+                                            <div style={{ fontSize: '15px', fontWeight: '800', color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                Early Warning Radar: Prediksi Lawan Berpotensi Masuk
+                                                {predictedCompetitors?.predictions?.length > 0 && (
+                                                    <span style={{
+                                                        background: 'rgba(99, 102, 241, 0.25)',
+                                                        color: '#818cf8',
+                                                        fontSize: '11px',
+                                                        fontWeight: '700',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '10px',
+                                                        border: '1px solid rgba(99, 102, 241, 0.4)'
+                                                    }}>
+                                                        {predictedCompetitors.predictions.length} Kandidat
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                                Prediksi algoritma berbasis penguasaan satker, riwayat instansi, & klaster penawaran
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchPredictedCompetitors(selectedTender.nomor || selectedTender.kode_tender)}
+                                        disabled={isLoadingPredictions}
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.06)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            color: '#cbd5e1',
+                                            padding: '4px 10px',
+                                            borderRadius: '8px',
+                                            fontSize: '11px',
+                                            cursor: isLoadingPredictions ? 'not-allowed' : 'pointer'
+                                        }}
+                                        title="Refresh radar prediksi"
+                                    >
+                                        {isLoadingPredictions ? '⏳ Memindai...' : '🔄 Refresh'}
+                                    </button>
+                                </div>
+
+                                {isLoadingPredictions ? (
+                                    <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                        <div style={{ fontSize: '24px', marginBottom: '8px', animation: 'spin 2s linear infinite' }}>⏳</div>
+                                        Menganalisis jejak historis pemenang satker & partisipasi tender sejenis...
+                                    </div>
+                                ) : predictedCompetitors?.predictions?.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {predictedCompetitors.predictions.map((p, idx) => {
+                                            const isCritical = p.threat_score >= 70;
+                                            const isWarning = p.threat_score >= 40 && p.threat_score < 70;
+                                            const badgeBg = isCritical ? 'rgba(239, 68, 68, 0.18)' : isWarning ? 'rgba(245, 158, 11, 0.18)' : 'rgba(59, 130, 246, 0.18)';
+                                            const badgeBorder = isCritical ? 'rgba(239, 68, 68, 0.35)' : isWarning ? 'rgba(245, 158, 11, 0.35)' : 'rgba(59, 130, 246, 0.35)';
+                                            const badgeColor = isCritical ? '#f87171' : isWarning ? '#fbbf24' : '#60a5fa';
+
+                                            return (
+                                                <div key={idx} style={{
+                                                    background: 'rgba(15, 23, 42, 0.55)',
+                                                    border: `1px solid ${isCritical ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.06)'}`,
+                                                    borderRadius: '12px',
+                                                    padding: '14px 16px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '8px'
+                                                }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                                            <div style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '50%',
+                                                                background: badgeBg,
+                                                                border: `1px solid ${badgeBorder}`,
+                                                                color: badgeColor,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '12px',
+                                                                fontWeight: '800',
+                                                                flexShrink: 0
+                                                            }}>
+                                                                #{idx + 1}
+                                                            </div>
+                                                            <div>
+                                                                <div
+                                                                    onClick={() => handleOpenCompetitorProfile(p.nama_peserta)}
+                                                                    style={{
+                                                                        fontSize: '14px',
+                                                                        fontWeight: '700',
+                                                                        color: '#f8fafc',
+                                                                        cursor: 'pointer',
+                                                                        textDecoration: 'underline',
+                                                                        textDecorationColor: 'rgba(255, 255, 255, 0.3)'
+                                                                    }}
+                                                                    title="Klik untuk membuka profil intelijen kompetitor ini"
+                                                                >
+                                                                    {p.nama_peserta}
+                                                                </div>
+                                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                                                    {p.reason_tags?.map((tag, tIdx) => (
+                                                                        <span key={tIdx} style={{
+                                                                            fontSize: '10px',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '6px',
+                                                                            background: 'rgba(255, 255, 255, 0.05)',
+                                                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                                            color: '#cbd5e1'
+                                                                        }}>
+                                                                            {tag}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                            <span style={{
+                                                                display: 'inline-block',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '700',
+                                                                background: badgeBg,
+                                                                border: `1px solid ${badgeBorder}`,
+                                                                color: badgeColor
+                                                            }}>
+                                                                Skor {p.threat_score} · {p.threat_badge}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Stat summary pills */}
+                                                    <div style={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                                                        gap: '8px',
+                                                        marginTop: '4px',
+                                                        paddingTop: '8px',
+                                                        borderTop: '1px solid rgba(255, 255, 255, 0.04)',
+                                                        fontSize: '11px',
+                                                        color: '#94a3b8'
+                                                    }}>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Menang Satker: </span>
+                                                            <strong style={{ color: p.satker_win_count > 0 ? '#4ade80' : '#cbd5e1' }}>{p.satker_win_count}x</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Menang Instansi: </span>
+                                                            <strong style={{ color: '#cbd5e1' }}>{p.instansi_win_count}x</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Ikut di Satker: </span>
+                                                            <strong style={{ color: '#cbd5e1' }}>{p.satker_participations}x</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span style={{ color: '#64748b' }}>Diskon Tipikal: </span>
+                                                            <strong style={{ color: '#f59e0b' }}>
+                                                                {p.avg_discount_pct ? `${p.avg_discount_pct}%` : '-'}
+                                                            </strong>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleOpenCompetitorProfile(p.nama_peserta)}
+                                                                style={{
+                                                                    background: 'rgba(99, 102, 241, 0.15)',
+                                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                                    color: '#a5b4fc',
+                                                                    padding: '3px 8px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                            >
+                                                                🔎 Buka Intelijen
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        padding: '16px',
+                                        textAlign: 'center',
+                                        color: '#64748b',
+                                        fontSize: '12px',
+                                        fontStyle: 'italic',
+                                        background: 'rgba(15, 23, 42, 0.4)',
+                                        borderRadius: '10px'
+                                    }}>
+                                        Belum ada jejak historis pemenang atau partisipasi berulang yang teridentifikasi untuk Satker / Instansi ini.
+                                    </div>
                                 )}
                             </div>
 
