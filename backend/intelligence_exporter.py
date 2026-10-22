@@ -186,6 +186,19 @@ def generate_competitor_dossier_pdf(
         parent=table_cell,
         fontName='Helvetica-Bold'
     )
+    th_cell = ParagraphStyle(
+        'ThCell',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=8,
+        leading=11,
+        textColor=colors.white
+    )
+    th_cell_center = ParagraphStyle(
+        'ThCellCenter',
+        parent=th_cell,
+        alignment=1
+    )
     badge_style = ParagraphStyle(
         'Badge',
         parent=styles['Normal'],
@@ -272,22 +285,52 @@ def generate_competitor_dossier_pdf(
     # 4. Peta Kandang Satker (Client & Satker Mapping)
     story.append(Paragraph("2. PETA KANDANG DINAS & SATUAN KERJA DOMINAN", h2_style))
     satkers = (client_map.get("clients") or client_map.get("satker_list") or [])[:8]
+
+    # Narasi Intelijen Teritori & Peta Kandang Satker
+    top_c = client_map.get("top_client") or (satkers[0] if satkers else None)
+    hg_list = [s for s in satkers if (s.get("is_home_ground") or s.get("is_homeground"))]
+    tot_clients = client_map.get("total_clients", len(satkers))
+    tot_wins_all = client_map.get("total_wins", sum(s.get("total_wins", 0) for s in satkers))
+
+    if top_c and hg_list:
+        hg_names = ", ".join([f"<b>{s.get('satuan_kerja') or s.get('satker')}</b> ({s.get('instansi')})" for s in hg_list[:2]])
+        top_share = top_c.get("share_pct")
+        if top_share is None and tot_wins_all > 0:
+            top_share = round((top_c.get("total_wins", 0) / tot_wins_all) * 100, 1)
+        elif top_share is None:
+            top_share = 0
+
+        satker_narasi = f"""
+        <b>Analisis Teritori & Kandang Utama (Home Ground):</b> Kompetitor terdeteksi memiliki basis relasi dan penguasaan terkuat di {hg_names}, yang menyumbang sekitar <b>{top_share}%</b> dari akumulasi kemenangan lelangnya di SPSE. Satker ini bertindak sebagai lumbung pendapatan stabil kompetitor dengan tingkat kepercayaan Pokja yang sudah terbentuk kuat.<br/><br/>
+        <b>Rekomendasi Taktis Menghadapi Kompetitor di Kandang Ini:</b> Hindari perang harga terbuka (banting harga ekstrem) karena kompetitor memiliki efisiensi operasional dan relasi historis di satker tersebut. Taktik terbaik adalah menonjolkan keunggulan sertifikasi personil inti (SKK berjenjang), bukti kepemilikan alat mutakhir, serta metodologi eksekusi yang lebih terperinci guna memaksa Pokja menilai secara objektif pada ambang batas teknis.
+        """
+    elif top_c and top_c.get("total_wins", 0) > 0:
+        satker_narasi = f"""
+        <b>Analisis Teritori & Penguasaan Pasar:</b> Kemenangan kompetitor terdistribusi ke {tot_clients} instansi tanpa adanya satker tunggal yang mengunci status kandang mutlak. Satker dengan nilai kontrak terbesar saat ini adalah <b>{top_c.get('satuan_kerja') or top_c.get('satker')}</b> ({top_c.get('instansi')}) dengan {top_c.get('total_wins', 0)}x menang senilai {format_rupiah(top_c.get('total_contract_value', 0))}.<br/><br/>
+        <b>Rekomendasi Taktis:</b> Peluang penetrasi di satker sasaran sangat terbuka karena kompetitor belum memiliki benteng loyalitas yang kokoh. Terapkan kalkulasi penawaran kompetitif pada rentang sweet spot untuk mengungguli penawaran mereka.
+        """
+    else:
+        satker_narasi = "<i>Belum terdeteksi pola kandang atau konsentrasi kemenangan spesifik pada dinas/satker tertentu. Kompetitor masih berstatus penawar umum di sistem LPSE.</i>"
+
+    story.append(Paragraph(satker_narasi, body_style))
+    story.append(Spacer(1, 8))
+
     if satkers:
         satker_table_data = [
             [
-                Paragraph("<b>No</b>", table_cell_bold),
-                Paragraph("<b>Satuan Kerja / Dinas</b>", table_cell_bold),
-                Paragraph("<b>Instansi</b>", table_cell_bold),
-                Paragraph("<b>Menang</b>", table_cell_bold),
-                Paragraph("<b>Total Kontrak</b>", table_cell_bold),
-                Paragraph("<b>Rerata Diskon</b>", table_cell_bold)
+                Paragraph("<b>No</b>", th_cell_center),
+                Paragraph("<b>Satuan Kerja / Dinas</b>", th_cell),
+                Paragraph("<b>Instansi</b>", th_cell),
+                Paragraph("<b>Menang</b>", th_cell_center),
+                Paragraph("<b>Total Kontrak</b>", th_cell_center),
+                Paragraph("<b>Rerata Diskon</b>", th_cell_center)
             ]
         ]
         for idx, s in enumerate(satkers, 1):
             is_hg = s.get("is_home_ground", False) or s.get("is_homeground", False)
             satker_name = sanitize_for_pdf(s.get("satuan_kerja") or s.get("satker", "-"))
             if is_hg:
-                satker_name = f"<b>[KANDANG UTAMA]</b> {satker_name}"
+                satker_name = f"⭐ <b>[KANDANG UTAMA]</b> {satker_name}"
             instansi = sanitize_for_pdf(s.get("instansi", "-"))
             total_wins = s.get("total_wins", 0)
             contract_val = format_rupiah(s.get("total_contract_value", 0))
@@ -305,7 +348,6 @@ def generate_competitor_dossier_pdf(
         satker_t = Table(satker_table_data, colWidths=[25, 180, 130, 48, 95, 45], repeatRows=1)
         satker_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
@@ -318,27 +360,36 @@ def generate_competitor_dossier_pdf(
 
     # 5. Rekan Aliansi & Konsorsium (KSO Network)
     story.append(Paragraph("3. JEJARING REKANAN & ALIANSI (KSO / FREQUENT CO-BIDDERS)", h2_style))
-    co_bidders = partners.get("co_bidders", [])[:5]
-    if co_bidders:
+    co_bidders = partners.get("co_bidders", [])
+    valid_co_bidders = [
+        cb for cb in co_bidders
+        if (cb.get("company_name") or cb.get("partner_name"))
+        and (cb.get("company_name") or cb.get("partner_name")) != "-"
+        and (cb.get("joint_tenders_count") or cb.get("together_count", 0)) > 0
+    ][:5]
+
+    if valid_co_bidders:
         cb_data = [
             [
-                Paragraph("<b>No</b>", table_cell_bold),
-                Paragraph("<b>Nama Rekanan / Mitra</b>", table_cell_bold),
-                Paragraph("<b>Frekuensi Tender Bersama</b>", table_cell_bold),
-                Paragraph("<b>Indikasi Hubungan</b>", table_cell_bold)
+                Paragraph("<b>No</b>", th_cell_center),
+                Paragraph("<b>Nama Rekanan / Mitra</b>", th_cell),
+                Paragraph("<b>Frekuensi Tender Bersama</b>", th_cell_center),
+                Paragraph("<b>Indikasi Hubungan</b>", th_cell)
             ]
         ]
-        for idx, cb in enumerate(co_bidders, 1):
+        for idx, cb in enumerate(valid_co_bidders, 1):
+            p_name = sanitize_for_pdf(cb.get("company_name") or cb.get("partner_name", "-"))
+            p_cnt = cb.get("joint_tenders_count") or cb.get("together_count", 0)
+            p_rel = sanitize_for_pdf(cb.get("relationship_label") or cb.get("role_label", "Aliansi Bidding Bersama"))
             cb_data.append([
                 Paragraph(str(idx), table_cell),
-                Paragraph(sanitize_for_pdf(cb.get("partner_name", "-")), table_cell),
-                Paragraph(f"{cb.get('together_count', 0)} kali", table_cell),
-                Paragraph(sanitize_for_pdf(cb.get("role_label", "Aliansi Bidding Bersama")), table_cell)
+                Paragraph(p_name, table_cell),
+                Paragraph(f"{p_cnt} kali", table_cell),
+                Paragraph(p_rel, table_cell)
             ])
         cb_t = Table(cb_data, colWidths=[25, 250, 110, 138], repeatRows=1)
         cb_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E293B')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
@@ -346,7 +397,7 @@ def generate_competitor_dossier_pdf(
         ]))
         story.append(cb_t)
     else:
-        story.append(Paragraph("<i>Tidak terdeteksi riwayat kemitraan tetap atau konsorsium KSO formal.</i>", body_style))
+        story.append(Paragraph("<i>Tidak terdeteksi riwayat kemitraan tetap atau konsorsium KSO formal. Kompetitor merupakan pemain independen (mandiri) yang sebagian besar mengajukan penawaran tanpa aliansi lelang.</i>", body_style))
     story.append(Spacer(1, 10))
 
     # 6. Matriks Kelemahan Pokja & Amunisi Sanggahan
@@ -363,10 +414,10 @@ def generate_competitor_dossier_pdf(
     if clusters_list:
         matrix_data = [
             [
-                Paragraph("<b>Klaster Kelemahan Pokja</b>", table_cell_bold),
-                Paragraph("<b>Jumlah Gugur</b>", table_cell_bold),
-                Paragraph("<b>Persentase</b>", table_cell_bold),
-                Paragraph("<b>Tingkat Risiko</b>", table_cell_bold)
+                Paragraph("<b>Klaster Kelemahan Pokja</b>", th_cell),
+                Paragraph("<b>Jumlah Gugur</b>", th_cell_center),
+                Paragraph("<b>Persentase</b>", th_cell_center),
+                Paragraph("<b>Tingkat Risiko</b>", th_cell_center)
             ]
         ]
         for cl in clusters_list:
@@ -384,7 +435,6 @@ def generate_competitor_dossier_pdf(
         mat_t = Table(matrix_data, colWidths=[230, 95, 95, 103], repeatRows=1)
         mat_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#334155')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
@@ -407,10 +457,10 @@ def generate_competitor_dossier_pdf(
     if recents:
         rec_data = [
             [
-                Paragraph("<b>No</b>", table_cell_bold),
-                Paragraph("<b>Nama Paket Tender</b>", table_cell_bold),
-                Paragraph("<b>Instansi / LPSE</b>", table_cell_bold),
-                Paragraph("<b>Pagu / Nilai Kontrak</b>", table_cell_bold)
+                Paragraph("<b>No</b>", th_cell_center),
+                Paragraph("<b>Nama Paket Tender</b>", th_cell),
+                Paragraph("<b>Instansi / LPSE</b>", th_cell),
+                Paragraph("<b>Pagu / Nilai Kontrak</b>", th_cell_center)
             ]
         ]
         for idx, rec in enumerate(recents, 1):
@@ -429,7 +479,6 @@ def generate_competitor_dossier_pdf(
         rec_t = Table(rec_data, colWidths=[25, 230, 130, 138], repeatRows=1)
         rec_t.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
@@ -570,17 +619,34 @@ def generate_competitor_dossier_excel(
         cell.fill = sub_fill
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    for idx, cb in enumerate(partners.get("co_bidders", []), 1):
-        row_data = [
-            idx,
-            cb.get("partner_name", "-"),
-            cb.get("together_count", 0),
-            cb.get("role_label", "Mitra Co-Bidding")
-        ]
+    valid_cb_excel = [
+        cb for cb in partners.get("co_bidders", [])
+        if (cb.get("company_name") or cb.get("partner_name"))
+        and (cb.get("company_name") or cb.get("partner_name")) != "-"
+        and (cb.get("joint_tenders_count") or cb.get("together_count", 0)) > 0
+    ]
+
+    if valid_cb_excel:
+        for idx, cb in enumerate(valid_cb_excel, 1):
+            row_data = [
+                idx,
+                cb.get("company_name") or cb.get("partner_name", "-"),
+                cb.get("joint_tenders_count") or cb.get("together_count", 0),
+                cb.get("relationship_label") or cb.get("role_label", "Mitra Co-Bidding")
+            ]
+            ws3.append(row_data)
+            r_num = idx + 1
+            for c_idx in range(1, len(row_data) + 1):
+                c_cell = ws3.cell(row=r_num, column=c_idx)
+                c_cell.border = thin_border
+                c_cell.font = Font(name="Arial", size=9)
+                if c_idx in [1, 3]:
+                    c_cell.alignment = Alignment(horizontal="center")
+    else:
+        row_data = [1, "Pemain Independen (Tanpa Aliansi KSO Tetap)", 0, "Bermain Mandiri"]
         ws3.append(row_data)
-        r_num = idx + 1
         for c_idx in range(1, len(row_data) + 1):
-            c_cell = ws3.cell(row=r_num, column=c_idx)
+            c_cell = ws3.cell(row=2, column=c_idx)
             c_cell.border = thin_border
             c_cell.font = Font(name="Arial", size=9)
             if c_idx in [1, 3]:
@@ -759,6 +825,24 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
         parent=table_cell,
         fontName='Helvetica-Bold'
     )
+    th_cell = ParagraphStyle(
+        'H2HThCell',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=8,
+        leading=11,
+        textColor=colors.white
+    )
+    th_cell_center = ParagraphStyle(
+        'H2HThCellCenter',
+        parent=th_cell,
+        alignment=1
+    )
+    th_cell_right = ParagraphStyle(
+        'H2HThCellRight',
+        parent=th_cell,
+        alignment=2
+    )
 
     c1 = data.get("comp1", {})
     c2 = data.get("comp2", {})
@@ -775,9 +859,9 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
     # Tale of the Tape 3-Column Table
     tot_data = [
         [
-            Paragraph(f"<b>{c1.get('name', 'Perusahaan 1')}</b>", table_cell_bold),
-            Paragraph("<b>SCORECARD BENTROK</b>", ParagraphStyle('HCenter', parent=table_cell_bold, alignment=1)),
-            Paragraph(f"<b>{c2.get('name', 'Perusahaan 2')}</b>", ParagraphStyle('HRight', parent=table_cell_bold, alignment=2))
+            Paragraph(f"<b>{c1.get('name', 'Perusahaan 1')}</b>", th_cell),
+            Paragraph("<b>SCORECARD BENTROK</b>", th_cell_center),
+            Paragraph(f"<b>{c2.get('name', 'Perusahaan 2')}</b>", th_cell_right)
         ],
         [
             Paragraph(f"Win Rate: <b>{c1.get('win_rate', 0)}%</b> ({c1.get('total_wins', 0)}/{c1.get('total_tenders', 0)})", table_cell),
@@ -804,7 +888,6 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
     tot_table = Table(tot_data, colWidths=[195, 133, 195])
     tot_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('BACKGROUND', (1, 1), (1, -1), colors.HexColor('#F1F5F9')),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
         ('TOPPADDING', (0, 0), (-1, -1), 5),
@@ -843,12 +926,12 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
     if meetings:
         meet_data = [
             [
-                Paragraph("<b>No</b>", table_cell_bold),
-                Paragraph("<b>Nama Paket Tender</b>", table_cell_bold),
-                Paragraph("<b>Pagu (Rp)</b>", table_cell_bold),
-                Paragraph(f"<b>Tawaran {c1.get('name', 'Pesaing 1')[:12]}</b>", table_cell_bold),
-                Paragraph(f"<b>Tawaran {c2.get('name', 'Pesaing 2')[:12]}</b>", table_cell_bold),
-                Paragraph("<b>Pemenang Riil</b>", table_cell_bold)
+                Paragraph("<b>No</b>", th_cell_center),
+                Paragraph("<b>Nama Paket Tender</b>", th_cell),
+                Paragraph("<b>Pagu (Rp)</b>", th_cell_center),
+                Paragraph(f"<b>Tawaran {c1.get('name', 'Pesaing 1')[:12]}</b>", th_cell_center),
+                Paragraph(f"<b>Tawaran {c2.get('name', 'Pesaing 2')[:12]}</b>", th_cell_center),
+                Paragraph("<b>Pemenang Riil</b>", th_cell_center)
             ]
         ]
         for idx, m in enumerate(meetings[:15], 1):
@@ -871,7 +954,6 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
         m_table = Table(meet_data, colWidths=[20, 163, 85, 85, 85, 85], repeatRows=1)
         m_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E293B')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('TOPPADDING', (0, 0), (-1, -1), 4),
