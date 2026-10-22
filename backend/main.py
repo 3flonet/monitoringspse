@@ -2628,6 +2628,338 @@ def get_competitor_disqualifications(name: str, current_user: dict = Depends(get
         "disqualifications": disqualifications
     }
 
+@app.get("/api/competitors/{name}/pricing-pattern")
+def get_competitor_pricing_pattern(name: str):
+    name_clean = clean_str(name)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Query all tenders followed with price or won, joined with pagu_val
+    cursor.execute("""
+        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.pagu_val, 
+               e.harga_penawaran, e.harga_terkoreksi, e.is_winner,
+               w.harga_kontrak
+        FROM competitor_evaluations e
+        JOIN tenders t ON e.nomor_pengadaan = t.nomor_pengadaan
+        LEFT JOIN tender_winners w ON e.nomor_pengadaan = w.nomor_pengadaan AND w.nama_pemenang = ?
+        WHERE e.nama_peserta = ? AND t.pagu_val > 0 
+          AND (e.harga_penawaran > 0 OR e.harga_terkoreksi > 0 OR e.is_winner = 1)
+        ORDER BY t.scraped_at DESC
+    """, (name_clean, name_clean))
+    rows = cursor.fetchall()
+    
+    # Also check tender_winners directly in case competitor won but wasn't in evaluations
+    cursor.execute("""
+        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.pagu_val, 
+               w.harga_kontrak, w.harga_kontrak as harga_terkoreksi, 1 as is_winner,
+               w.harga_kontrak
+        FROM tender_winners w
+        JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+        WHERE w.nama_pemenang = ? AND t.pagu_val > 0
+          AND w.nomor_pengadaan NOT IN (
+              SELECT nomor_pengadaan FROM competitor_evaluations WHERE nama_peserta = ?
+          )
+    """, (name_clean, name_clean))
+    extra_winners = cursor.fetchall()
+
+    all_rows = list(rows) + list(extra_winners)
+    conn.close()
+
+    total_bids = len(all_rows)
+    if total_bids == 0:
+        return {
+            "name": name_clean,
+            "total_bids": 0,
+            "avg_discount_pct": 0.0,
+            "avg_bid_ratio": 0.0,
+            "winning_bids_count": 0,
+            "avg_win_discount_pct": 0.0,
+            "avg_win_bid_ratio": 0.0,
+            "losing_bids_count": 0,
+            "avg_lose_discount_pct": 0.0,
+            "sweet_spot": {"min": 0.0, "max": 0.0},
+            "character_type": {
+                "type": "unregistered",
+                "label": "Belum Cukup Data Penawaran",
+                "badge_color": "neutral",
+                "description": "Belum ada riwayat penawaran harga tersimpan untuk badan usaha ini."
+            },
+            "bids_history": []
+        }
+
+    bids_history = []
+    win_ratios = []
+    lose_ratios = []
+    all_ratios = []
+
+    for r in all_rows:
+        pagu = float(r["pagu_val"] or 0)
+        is_win = bool(r["is_winner"])
+        
+        # Determine bid price: prefer harga_kontrak if win, else harga_terkoreksi, else harga_penawaran
+        bid_price = 0.0
+        if is_win and r["harga_kontrak"] and float(r["harga_kontrak"]) > 0:
+            bid_price = float(r["harga_kontrak"])
+        elif r["harga_terkoreksi"] and float(r["harga_terkoreksi"]) > 0:
+            bid_price = float(r["harga_terkoreksi"])
+        elif r["harga_penawaran"] and float(r["harga_penawaran"]) > 0:
+            bid_price = float(r["harga_penawaran"])
+
+        if pagu > 0 and bid_price > 0:
+            bid_ratio = round((bid_price / pagu) * 100, 2)
+            discount_pct = round(max(0.0, 100.0 - bid_ratio), 2)
+            selisih_rp = max(0.0, pagu - bid_price)
+
+            all_ratios.append(bid_ratio)
+            if is_win:
+                win_ratios.append(bid_ratio)
+            else:
+                lose_ratios.append(bid_ratio)
+
+            bids_history.append({
+                "nomor_pengadaan": r["nomor_pengadaan"],
+                "nama_tender": r["nama_tender"],
+                "instansi": r["instansi"],
+                "pagu": pagu,
+                "bid_price": bid_price,
+                "selisih_rp": selisih_rp,
+                "bid_ratio": bid_ratio,
+                "discount_pct": discount_pct,
+                "is_winner": is_win
+            })
+
+    avg_bid_ratio = round(sum(all_ratios) / len(all_ratios), 2) if all_ratios else 0.0
+    avg_discount_pct = round(max(0.0, 100.0 - avg_bid_ratio), 2)
+
+    avg_win_bid_ratio = round(sum(win_ratios) / len(win_ratios), 2) if win_ratios else 0.0
+    avg_win_discount_pct = round(max(0.0, 100.0 - avg_win_bid_ratio), 2) if win_ratios else 0.0
+
+    avg_lose_bid_ratio = round(sum(lose_ratios) / len(lose_ratios), 2) if lose_ratios else 0.0
+    avg_lose_discount_pct = round(max(0.0, 100.0 - avg_lose_bid_ratio), 2) if lose_ratios else 0.0
+
+    # Winning sweet spot: min and max ratio when winning, or around avg_win
+    if win_ratios:
+        sweet_min = round(min(win_ratios), 1)
+        sweet_max = round(max(win_ratios), 1)
+    else:
+        sweet_min = round(max(0.0, avg_bid_ratio - 3.0), 1)
+        sweet_max = round(min(100.0, avg_bid_ratio + 3.0), 1)
+
+    # Character classification
+    ref_ratio = avg_win_bid_ratio if win_ratios else avg_bid_ratio
+    if ref_ratio < 80.0:
+        character_type = {
+            "type": "aggressive",
+            "label": "Tipe Banting Harga (Price Fighter)",
+            "badge_color": "danger",
+            "avg_discount": f"{round(100 - ref_ratio, 1)}%",
+            "description": "Kompetitor ini konsisten menawar di bawah 80% Pagu. Cenderung berani mengambil risiko klarifikasi kewajaran harga Pokja demi mengamankan volume proyek."
+        }
+    elif ref_ratio <= 90.0:
+        character_type = {
+            "type": "moderate",
+            "label": "Tipe Moderat Seimbang (Competitive Balanced)",
+            "badge_color": "warning",
+            "avg_discount": f"{round(100 - ref_ratio, 1)}%",
+            "description": "Kompetitor ini bermain di kisaran harga standar pengadaan nasional (80% - 90% Pagu). Menjaga margin keuntungan sehat sembari tetap kompetitif."
+        }
+    else:
+        character_type = {
+            "type": "premium",
+            "label": "Tipe Kualitas Teknis (Technical High-Margin)",
+            "badge_color": "success",
+            "avg_discount": f"{round(100 - ref_ratio, 1)}%",
+            "description": "Kompetitor ini menawar tipis di atas 90% Pagu. Kerap memenangkan lelang berkat spesifikasi teknis prima, personil ahli lengkap, atau kualifikasi yang sulit disaingi."
+        }
+
+    return {
+        "name": name_clean,
+        "total_bids": len(bids_history),
+        "avg_discount_pct": avg_discount_pct,
+        "avg_bid_ratio": avg_bid_ratio,
+        "winning_bids_count": len(win_ratios),
+        "avg_win_discount_pct": avg_win_discount_pct,
+        "avg_win_bid_ratio": avg_win_bid_ratio,
+        "losing_bids_count": len(lose_ratios),
+        "avg_lose_discount_pct": avg_lose_discount_pct,
+        "sweet_spot": {"min": sweet_min, "max": sweet_max},
+        "character_type": character_type,
+        "bids_history": bids_history[:25]
+    }
+
+
+@app.get("/api/competitors/{name}/client-mapping")
+def get_competitor_client_mapping(name: str):
+    name_clean = clean_str(name)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT td.satuan_kerja, t.instansi, 
+               COUNT(*) as total_wins, 
+               SUM(w.harga_kontrak) as total_contract_value,
+               AVG(CASE WHEN t.pagu_val > 0 THEN ((t.pagu_val - w.harga_kontrak) / t.pagu_val) * 100 ELSE 0 END) as avg_discount
+        FROM tender_winners w
+        JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+        LEFT JOIN tender_details td ON w.nomor_pengadaan = td.nomor_pengadaan
+        WHERE w.nama_pemenang = ?
+        GROUP BY COALESCE(NULLIF(td.satuan_kerja, ''), t.instansi), t.instansi
+        ORDER BY total_wins DESC, total_contract_value DESC
+        LIMIT 20
+    """, (name_clean,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    total_all_wins = sum(r["total_wins"] for r in rows) if rows else 0
+    total_all_value = sum(float(r["total_contract_value"] or 0) for r in rows) if rows else 0.0
+
+    clients = []
+    for idx, r in enumerate(rows):
+        satker = clean_str(r["satuan_kerja"]) or clean_str(r["instansi"])
+        instansi = clean_str(r["instansi"]) or satker
+        wins = r["total_wins"] or 0
+        val = float(r["total_contract_value"] or 0)
+        disc = round(float(r["avg_discount"] or 0), 1)
+        share = round((wins / total_all_wins) * 100, 1) if total_all_wins > 0 else 0
+
+        clients.append({
+            "satuan_kerja": satker,
+            "instansi": instansi,
+            "total_wins": wins,
+            "total_contract_value": val,
+            "avg_discount_pct": disc,
+            "share_pct": share,
+            "is_home_ground": wins >= 2 or (idx == 0 and wins >= 1)
+        })
+
+    return {
+        "name": name_clean,
+        "total_clients": len(clients),
+        "total_wins": total_all_wins,
+        "total_contract_value": total_all_value,
+        "top_client": clients[0] if clients else None,
+        "clients": clients
+    }
+
+
+@app.get("/api/competitors/{name}/partner-network")
+def get_competitor_partner_network(name: str):
+    name_clean = clean_str(name)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 1. Detect formal KSO partnerships where competitor is named in a compound entity name
+    cursor.execute("""
+        SELECT DISTINCT nama_peserta FROM competitor_evaluations 
+        WHERE (nama_peserta LIKE ? OR nama_peserta LIKE ?)
+          AND (LOWER(nama_peserta) LIKE '%kso%' OR LOWER(nama_peserta) LIKE '%jo%' OR nama_peserta LIKE '%-%' OR nama_peserta LIKE '%,%')
+        UNION
+        SELECT DISTINCT nama_pemenang FROM tender_winners
+        WHERE (nama_pemenang LIKE ? OR nama_pemenang LIKE ?)
+          AND (LOWER(nama_pemenang) LIKE '%kso%' OR LOWER(nama_pemenang) LIKE '%jo%' OR nama_pemenang LIKE '%-%' OR nama_pemenang LIKE '%,%')
+    """, (f"%{name_clean}%", f"%{name_clean[:15]}%", f"%{name_clean}%", f"%{name_clean[:15]}%"))
+    kso_raw_rows = [r[0] for r in cursor.fetchall()]
+
+    import re
+    kso_partners = []
+    kso_entities = []
+
+    for ent in kso_raw_rows:
+        ent_clean = clean_str(ent)
+        if not ent_clean:
+            continue
+        kso_entities.append(ent_clean)
+        
+        # Split by typical KSO separators
+        parts = re.split(r'\s*[-–,]\s*|\s+(?:kso|k\.s\.o|jo)\s+|\s+dan\s+', ent_clean, flags=re.IGNORECASE)
+        for p in parts:
+            p_clean = clean_str(p).strip('()[]{}')
+            if len(p_clean) > 3 and p_clean.lower() not in ['kso', 'k.s.o', 'jo', 'persero', 'tbk', 'cv', 'pt']:
+                if name_clean.lower() not in p_clean.lower() and p_clean.lower() not in name_clean.lower():
+                    kso_partners.append({
+                        "partner_name": p_clean,
+                        "full_entity": ent_clean,
+                        "type": "Formal KSO / Konsorsium Resmi"
+                    })
+
+    # Deduplicate KSO partners by name
+    unique_kso_partners = []
+    seen_kso_names = set()
+    for kp in kso_partners:
+        p_low = kp["partner_name"].lower()
+        if p_low not in seen_kso_names:
+            seen_kso_names.add(p_low)
+            unique_kso_partners.append(kp)
+
+    # 2. Detect frequent co-bidders (informal alliance / competitors appearing together in tenders)
+    cursor.execute("""
+        SELECT e2.nama_peserta, COUNT(DISTINCT e1.nomor_pengadaan) as match_count,
+               MAX(e2.npwp) as npwp,
+               SUM(CASE WHEN e2.is_winner = 1 THEN 1 ELSE 0 END) as partner_wins
+        FROM competitor_evaluations e1
+        JOIN competitor_evaluations e2 ON e1.nomor_pengadaan = e2.nomor_pengadaan
+        WHERE e1.nama_peserta = ? AND e2.nama_peserta != ? 
+          AND (e1.harga_penawaran > 0 OR e1.harga_terkoreksi > 0 OR e1.is_winner = 1)
+          AND (e2.harga_penawaran > 0 OR e2.harga_terkoreksi > 0 OR e2.is_winner = 1)
+        GROUP BY e2.nama_peserta
+        ORDER BY match_count DESC
+        LIMIT 10
+    """, (name_clean, name_clean))
+    co_bid_rows = cursor.fetchall()
+    conn.close()
+
+    co_bidders = []
+    for r in co_bid_rows:
+        p_name = clean_str(r[0])
+        matches = r[1] or 0
+        npwp = clean_str(r[2]) or "-"
+        p_wins = r[3] or 0
+
+        if matches >= 5:
+            rel_label = "Sangat Sering Bersama (Aliansi Kuat)"
+            rel_tag = "strong"
+        elif matches >= 3:
+            rel_label = "Kerap Bertemu (Mitra/Rival Rutin)"
+            rel_tag = "moderate"
+        else:
+            rel_label = "Pernah Bertemu"
+            rel_tag = "casual"
+
+        co_bidders.append({
+            "company_name": p_name,
+            "npwp": npwp,
+            "joint_tenders_count": matches,
+            "partner_wins": p_wins,
+            "relationship_label": rel_label,
+            "relationship_tag": rel_tag
+        })
+
+    # Ecosystem assessment
+    has_bumn = any("persero" in (p.get("partner_name", "") + c.get("company_name", "")).lower() for p in unique_kso_partners for c in co_bidders)
+    if unique_kso_partners or len(co_bidders) >= 3:
+        if has_bumn:
+            eco_label = "Didukung Ekosistem BUMN / Korporasi Skala Besar"
+            eco_desc = "Kompetitor ini terhubung dengan BUMN atau entitas korporasi besar melalui KSO/Aliansi tender, memiliki keunggulan kapasitas modal dan peralatan."
+        else:
+            eco_label = "Memiliki Jejaring Aliansi / Mitra Konsorsium Aktif"
+            eco_desc = "Kompetitor ini aktif membentuk KSO atau berpartner dengan badan usaha lain pada tender bernilai tinggi."
+    else:
+        eco_label = "Pemain Independen (Mandiri)"
+        eco_desc = "Kompetitor ini sebagian besar maju secara mandiri tanpa aliansi KSO formal yang tercatat."
+
+    return {
+        "name": name_clean,
+        "kso_entities_count": len(kso_entities),
+        "kso_partners": unique_kso_partners,
+        "co_bidders": co_bidders,
+        "ecosystem": {
+            "label": eco_label,
+            "description": eco_desc,
+            "has_bumn": has_bumn
+        }
+    }
+
+
 @app.get("/api/public/latest-winners")
 def get_latest_winners():
     conn = get_db_connection()
