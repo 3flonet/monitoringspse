@@ -72,6 +72,25 @@ def format_rupiah(val: float) -> str:
         return str(val)
 
 
+import html
+import re
+
+def sanitize_for_pdf(text: Any) -> str:
+    """Membersihkan tag HTML mentah (misal: span class badge) dan meng-escape karakter XML untuk ReportLab."""
+    if text is None:
+        return "-"
+    raw_str = str(text)
+    # Strip HTML tags
+    clean = re.sub(r'<[^>]+>', ' ', raw_str)
+    # Unescape HTML entities
+    clean = html.unescape(clean)
+    # Re-escape only XML special chars for ReportLab
+    clean = clean.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    # Collapse multiple whitespaces
+    clean = re.sub(r'\s+', ' ', clean)
+    return clean.strip() or "-"
+
+
 # ==============================================================================
 # 1. DOSSIER KOMPETITOR TUNGGAL (PDF & EXCEL)
 # ==============================================================================
@@ -384,10 +403,12 @@ def generate_competitor_dossier_pdf(
         for idx, rec in enumerate(recents, 1):
             kontrak_val = format_rupiah(rec.get("harga_kontrak", 0))
             pagu_str = format_rupiah(rec.get("pagu", 0)) if rec.get("pagu") else "-"
+            rec_name = sanitize_for_pdf(rec.get("nama_tender", "-"))
+            rec_inst = sanitize_for_pdf(rec.get("instansi", "-"))
             rec_data.append([
                 Paragraph(str(idx), table_cell),
-                Paragraph(rec.get("nama_tender", "-"), table_cell),
-                Paragraph(rec.get("instansi", "-"), table_cell),
+                Paragraph(rec_name, table_cell),
+                Paragraph(rec_inst, table_cell),
                 Paragraph(f"Pagu: {pagu_str}<br/><b>Kontrak: {kontrak_val}</b>", table_cell)
             ])
         rec_t = Table(rec_data, colWidths=[25, 230, 130, 138])
@@ -765,8 +786,8 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
     story.append(Spacer(1, 10))
 
     # Strategic Verdict Callout
-    verdict = h2h.get("strategic_verdict", "-")
-    advice = h2h.get("advice", "-")
+    verdict = sanitize_for_pdf(h2h.get("strategic_verdict", "-"))
+    advice = sanitize_for_pdf(h2h.get("advice", "-"))
     verdict_box = [
         [
             Paragraph(f"<b>DYNAMIC AI STRATEGIC VERDICT:</b><br/>{verdict}<br/><br/><b>Rekomendasi Taktis Penawaran:</b> {advice}", body_style)
@@ -801,10 +822,11 @@ def generate_head_to_head_pdf(data: Dict[str, Any]) -> bytes:
             p1_val = format_rupiah(m.get("comp1_price", 0)) if m.get("comp1_price") else "-"
             p2_val = format_rupiah(m.get("comp2_price", 0)) if m.get("comp2_price") else "-"
             pagu_val = format_rupiah(m.get("pagu_val", 0)) if m.get("pagu_val") else "-"
-            winner = m.get("winner_name", "-") or "Belum Ditentukan"
+            m_name = sanitize_for_pdf(m.get("nama_tender", "-"))
+            winner = sanitize_for_pdf(m.get("winner_name", "-") or "Belum Ditentukan")
             meet_data.append([
                 Paragraph(str(idx), table_cell),
-                Paragraph(m.get("nama_tender", "-"), table_cell),
+                Paragraph(m_name, table_cell),
                 Paragraph(pagu_val, table_cell),
                 Paragraph(p1_val, table_cell),
                 Paragraph(p2_val, table_cell),
