@@ -15210,16 +15210,16 @@ function App() {
                                                     <div className="panel-header">
                                                         <h3 className="panel-title">📜 Riwayat Penawaran Harga ({competitorPricing.bids_history?.length || 0})</h3>
                                                     </div>
-                                                    <div className="table-responsive">
-                                                        <table className="data-table">
+                                                    <div className="table-wrapper">
+                                                        <table className="tender-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>No. Pengadaan</th>
+                                                                    <th style={{ width: '130px' }}>Nomor Pengadaan</th>
                                                                     <th>Paket Tender & Satker</th>
-                                                                    <th>Nilai Pagu</th>
-                                                                    <th>Harga Penawaran</th>
-                                                                    <th>Rasio / Diskon</th>
-                                                                    <th>Status Lelang</th>
+                                                                    <th style={{ width: '140px' }}>Nilai Pagu</th>
+                                                                    <th style={{ width: '140px' }}>Harga Penawaran</th>
+                                                                    <th style={{ width: '130px' }}>Rasio / Diskon</th>
+                                                                    <th style={{ width: '110px', textAlign: 'center' }}>Status Lelang</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -15228,22 +15228,28 @@ function App() {
                                                                         <tr key={idx} onClick={() => handleViewTenderDetail(item.nomor_pengadaan)}>
                                                                             <td><strong>{item.nomor_pengadaan}</strong></td>
                                                                             <td>
-                                                                                <div style={{ fontWeight: '600', color: '#fff', marginBottom: '3px' }}>{item.nama_tender}</div>
-                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>{item.satuan_kerja || item.instansi}</div>
+                                                                                <div style={{ fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
+                                                                                    {renderTenderTitle(item.nama_tender)}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                                                                    {item.satuan_kerja || item.instansi}
+                                                                                </div>
                                                                             </td>
                                                                             <td style={{ color: '#fbbf24', fontWeight: 'bold' }}>{formatPaguVal(item.pagu)}</td>
-                                                                            <td style={{ color: '#34d399', fontWeight: 'bold' }}>{formatPaguVal(item.penawaran)}</td>
+                                                                            <td style={{ color: '#34d399', fontWeight: 'bold' }}>{formatPaguVal(item.penawaran || item.bid_price)}</td>
                                                                             <td>
                                                                                 <div style={{ fontWeight: 'bold', color: item.bid_ratio < 80 ? '#f87171' : item.bid_ratio > 90 ? '#38bdf8' : '#fbbf24' }}>
                                                                                     {item.bid_ratio}% Pagu
                                                                                 </div>
-                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>Diskon: {item.discount_pct}%</div>
+                                                                                <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
+                                                                                    Diskon: {item.discount_pct}%
+                                                                                </div>
                                                                             </td>
-                                                                            <td>
+                                                                            <td style={{ textAlign: 'center' }}>
                                                                                 {item.is_winner === 1 ? (
-                                                                                    <span style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>MENANG</span>
+                                                                                    <span style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', padding: '3px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>MENANG</span>
                                                                                 ) : (
-                                                                                    <span style={{ background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>PESERTA</span>
+                                                                                    <span style={{ background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: '4px', fontSize: '11px' }}>PESERTA</span>
                                                                                 )}
                                                                             </td>
                                                                         </tr>
@@ -15312,15 +15318,15 @@ function App() {
                                                     <div className="panel-header">
                                                         <h3 className="panel-title">🏛️ Daftar Satuan Kerja / Dinas Langganan ({competitorClients.clients?.length || 0})</h3>
                                                     </div>
-                                                    <div className="table-responsive">
-                                                        <table className="data-table">
+                                                    <div className="table-wrapper">
+                                                        <table className="tender-table">
                                                             <thead>
                                                                 <tr>
                                                                     <th>Satuan Kerja / Dinas</th>
                                                                     <th>K/L/Pemda / Instansi</th>
-                                                                    <th style={{ textAlign: 'center' }}>Jumlah Menang</th>
-                                                                    <th>Total Nilai Kontrak</th>
-                                                                    <th style={{ textAlign: 'center' }}>Status Wilayah</th>
+                                                                    <th style={{ width: '140px', textAlign: 'center' }}>Jumlah Menang</th>
+                                                                    <th style={{ width: '160px' }}>Total Nilai Kontrak</th>
+                                                                    <th style={{ width: '150px', textAlign: 'center' }}>Status Wilayah</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -15337,7 +15343,7 @@ function App() {
                                                                                 <span style={{
                                                                                     background: item.is_home_ground ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.05)',
                                                                                     color: item.is_home_ground ? '#fbbf24' : '#fff',
-                                                                                    padding: '3px 10px',
+                                                                                    padding: '4px 12px',
                                                                                     borderRadius: '12px',
                                                                                     fontWeight: 'bold',
                                                                                     fontSize: '12px',
@@ -15355,7 +15361,7 @@ function App() {
                                                                                         background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2))',
                                                                                         color: '#fbbf24',
                                                                                         border: '1px solid rgba(245, 158, 11, 0.4)',
-                                                                                        padding: '3px 10px',
+                                                                                        padding: '4px 12px',
                                                                                         borderRadius: '8px',
                                                                                         fontSize: '11px',
                                                                                         fontWeight: '800',
@@ -15437,14 +15443,14 @@ function App() {
                                                     <div className="panel-header">
                                                         <h3 className="panel-title">🤝 Mitra Konsorsium Resmi / KSO ({competitorPartners.kso_partners?.length || 0})</h3>
                                                     </div>
-                                                    <div className="table-responsive">
-                                                        <table className="data-table">
+                                                    <div className="table-wrapper">
+                                                        <table className="tender-table">
                                                             <thead>
                                                                 <tr>
                                                                     <th>Nama Badan Usaha Mitra KSO</th>
                                                                     <th>Nama Entitas KSO Terdaftar</th>
-                                                                    <th>Tipe Hubungan</th>
-                                                                    <th>Aksi</th>
+                                                                    <th style={{ width: '180px' }}>Tipe Hubungan</th>
+                                                                    <th style={{ width: '120px', textAlign: 'center' }}>Aksi</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -15464,14 +15470,14 @@ function App() {
                                                                                     {partner.type}
                                                                                 </span>
                                                                             </td>
-                                                                            <td>
+                                                                            <td style={{ textAlign: 'center' }}>
                                                                                 <button
                                                                                     onClick={() => handleOpenCompetitorProfile(partner.partner_name)}
                                                                                     style={{
                                                                                         background: 'rgba(139, 92, 246, 0.15)',
                                                                                         border: '1px solid rgba(139, 92, 246, 0.3)',
                                                                                         color: '#c4b5fd',
-                                                                                        padding: '4px 10px',
+                                                                                        padding: '5px 12px',
                                                                                         borderRadius: '6px',
                                                                                         fontSize: '11px',
                                                                                         cursor: 'pointer',
@@ -15498,15 +15504,15 @@ function App() {
                                                     <div className="panel-header">
                                                         <h3 className="panel-title">👥 Rekan Sering Muncul Bersama di Tender (Co-Bidders)</h3>
                                                     </div>
-                                                    <div className="table-responsive">
-                                                        <table className="data-table">
+                                                    <div className="table-wrapper">
+                                                        <table className="tender-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Nama Peserta Lain</th>
-                                                                    <th style={{ textAlign: 'center' }}>Tender Bersamaan</th>
-                                                                    <th style={{ textAlign: 'center' }}>Kemenangan Mitra</th>
-                                                                    <th>Hubungan</th>
-                                                                    <th>Aksi</th>
+                                                                    <th>Nama Peserta Rekan</th>
+                                                                    <th style={{ width: '160px', textAlign: 'center' }}>Tender Bersamaan</th>
+                                                                    <th style={{ width: '160px', textAlign: 'center' }}>Kemenangan Rekan</th>
+                                                                    <th style={{ width: '180px' }}>Hubungan</th>
+                                                                    <th style={{ width: '120px', textAlign: 'center' }}>Aksi</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -15515,10 +15521,10 @@ function App() {
                                                                         <tr key={idx}>
                                                                             <td>
                                                                                 <div style={{ fontWeight: '600', color: '#fff' }}>{cobid.company_name}</div>
-                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>NPWP: {cobid.npwp}</div>
+                                                                                <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>NPWP: {cobid.npwp}</div>
                                                                             </td>
                                                                             <td style={{ textAlign: 'center' }}>
-                                                                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
+                                                                                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
                                                                                     {cobid.joint_tenders_count} Kali
                                                                                 </span>
                                                                             </td>
@@ -15529,25 +15535,27 @@ function App() {
                                                                                 <span style={{
                                                                                     background: cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.15)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.05)',
                                                                                     color: cobid.relationship_tag === 'strong' ? '#f87171' : cobid.relationship_tag === 'moderate' ? '#fbbf24' : '#9ca3af',
-                                                                                    padding: '3px 8px',
+                                                                                    padding: '4px 10px',
                                                                                     borderRadius: '6px',
                                                                                     fontSize: '11px',
-                                                                                    fontWeight: 'bold'
+                                                                                    fontWeight: 'bold',
+                                                                                    border: `1px solid ${cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.3)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255,255,255,0.1)'}`
                                                                                 }}>
                                                                                     {cobid.relationship_label}
                                                                                 </span>
                                                                             </td>
-                                                                            <td>
+                                                                            <td style={{ textAlign: 'center' }}>
                                                                                 <button
                                                                                     onClick={() => handleOpenCompetitorProfile(cobid.company_name)}
                                                                                     style={{
                                                                                         background: 'rgba(255,255,255,0.05)',
                                                                                         border: '1px solid rgba(255,255,255,0.1)',
                                                                                         color: '#e5e7eb',
-                                                                                        padding: '4px 10px',
+                                                                                        padding: '5px 12px',
                                                                                         borderRadius: '6px',
                                                                                         fontSize: '11px',
-                                                                                        cursor: 'pointer'
+                                                                                        cursor: 'pointer',
+                                                                                        fontWeight: '600'
                                                                                     }}
                                                                                 >
                                                                                     🔍 Intip Profil
