@@ -15156,37 +15156,37 @@ function App() {
                                                 <div className="spinner" style={{ width: '24px', height: '24px', borderWidth: '3px', marginBottom: '12px', marginLeft: 'auto', marginRight: 'auto' }}></div>
                                                 <p>Menganalisis pola penawaran harga & HPS...</p>
                                             </div>
-                                        ) : competitorPricing && competitorPricing.summary ? (
+                                        ) : competitorPricing ? (
                                             <div>
                                                 {/* KPI Summary Cards */}
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                                                     <div style={{ background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '20px', borderRadius: '12px' }}>
-                                                        <div style={{ fontSize: '11px', color: '#34d399', textTransform: 'uppercase', fontWeight: 'bold' }}>Rata-rata Penawaran vs Pagu</div>
+                                                        <div style={{ fontSize: '11px', color: '#34d399', textTransform: 'uppercase', fontWeight: 'bold' }}>Rata-rata Rasio Bidding</div>
                                                         <div style={{ fontSize: '32px', fontWeight: '800', color: '#10b981', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorPricing.summary.avg_ratio_to_pagu}%
+                                                            {competitorPricing.avg_win_bid_ratio > 0 ? competitorPricing.avg_win_bid_ratio : competitorPricing.avg_bid_ratio}%
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#a7f3d0', marginTop: '4px' }}>
-                                                            Rata-rata Diskon: <strong>{competitorPricing.summary.avg_discount_percent}%</strong> di bawah pagu
+                                                            Diskon: <strong>{competitorPricing.avg_win_discount_pct > 0 ? competitorPricing.avg_win_discount_pct : competitorPricing.avg_discount_pct}%</strong> di bawah pagu
                                                         </div>
                                                     </div>
 
                                                     <div style={{ background: 'rgba(99, 102, 241, 0.06)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#818cf8', textTransform: 'uppercase', fontWeight: 'bold' }}>Karakter Bidding</div>
-                                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginTop: '10px', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            {competitorPricing.summary.bidding_character.includes('Agresif') && '⚡ '}
-                                                            {competitorPricing.summary.bidding_character.includes('Moderat') && '⚖️ '}
-                                                            {competitorPricing.summary.bidding_character.includes('Kualitas') && '💎 '}
-                                                            {competitorPricing.summary.bidding_character}
+                                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginTop: '10px', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {competitorPricing.character_type?.type === 'aggressive' && '⚡ '}
+                                                            {competitorPricing.character_type?.type === 'moderate' && '⚖️ '}
+                                                            {competitorPricing.character_type?.type === 'premium' && '💎 '}
+                                                            {competitorPricing.character_type?.label || 'Belum Terklasifikasi'}
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '6px' }}>
-                                                            Berdasarkan {competitorPricing.summary.total_analyzed} sampel tender menang
+                                                            {competitorPricing.winning_bids_count} Menang dari {competitorPricing.total_bids} Sampel Penawaran
                                                         </div>
                                                     </div>
 
                                                     <div style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 'bold' }}>Rentang Sweet Spot</div>
                                                         <div style={{ fontSize: '24px', fontWeight: '800', color: '#f59e0b', marginTop: '8px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorPricing.summary.sweet_spot_range}
+                                                            {competitorPricing.sweet_spot ? `${competitorPricing.sweet_spot.min}% - ${competitorPricing.sweet_spot.max}%` : '-'}
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#fde68a', marginTop: '4px' }}>
                                                             Rentang harga penawaran menang paling sering
@@ -15200,13 +15200,7 @@ function App() {
                                                     <div>
                                                         <h4 style={{ margin: '0 0 6px 0', color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Rekomendasi Strategi Kontra-Bidding</h4>
                                                         <p style={{ margin: 0, color: '#9ca3af', fontSize: '13px', lineHeight: '1.6' }}>
-                                                            {competitorPricing.summary.bidding_character.includes('Agresif') ? (
-                                                                <>Kompetitor ini berani menawar dengan diskon dalam (&gt;20% di bawah pagu). Jika bersaing di tender harga terendah, siapkan efisiensi biaya maksimal atau uji kelayakan teknis penawaran mereka saat masa sanggah.</>
-                                                            ) : competitorPricing.summary.bidding_character.includes('Kualitas') ? (
-                                                                <>Kompetitor ini cenderung menawar mendekati pagu/HPS (&gt;90%). Kemungkinan besar mereka mengandalkan keunggulan teknis, sertifikasi, atau spesifikasi khusus. Kejar kemenangan di nilai teknis atau tawarkan harga yang lebih efisien.</>
-                                                            ) : (
-                                                                <>Kompetitor ini memiliki pola penawaran seimbang di kisaran standar (80-90% dari pagu). Pelajari rincian sweet spot penawaran mereka untuk menentukan margin aman saat mengajukan harga.</>
-                                                            )}
+                                                            {competitorPricing.character_type?.description || 'Pelajari rincian sweet spot penawaran mereka untuk menentukan margin aman saat mengajukan harga.'}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -15214,7 +15208,7 @@ function App() {
                                                 {/* Pricing History Table */}
                                                 <div className="panel" style={{ marginBottom: '24px' }}>
                                                     <div className="panel-header">
-                                                        <h3 className="panel-title">📜 Riwayat Penawaran & Kontrak Menang ({competitorPricing.pricing_history?.length || 0})</h3>
+                                                        <h3 className="panel-title">📜 Riwayat Penawaran Harga ({competitorPricing.bids_history?.length || 0})</h3>
                                                     </div>
                                                     <div className="table-responsive">
                                                         <table className="data-table">
@@ -15223,46 +15217,40 @@ function App() {
                                                                     <th>No. Pengadaan</th>
                                                                     <th>Paket Tender & Satker</th>
                                                                     <th>Nilai Pagu</th>
-                                                                    <th>Penawaran Menang</th>
+                                                                    <th>Harga Penawaran</th>
                                                                     <th>Rasio / Diskon</th>
-                                                                    <th>Karakter</th>
+                                                                    <th>Status Lelang</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {competitorPricing.pricing_history && competitorPricing.pricing_history.length > 0 ? (
-                                                                    competitorPricing.pricing_history.map((item, idx) => (
+                                                                {competitorPricing.bids_history && competitorPricing.bids_history.length > 0 ? (
+                                                                    competitorPricing.bids_history.map((item, idx) => (
                                                                         <tr key={idx} onClick={() => handleViewTenderDetail(item.nomor_pengadaan)}>
                                                                             <td><strong>{item.nomor_pengadaan}</strong></td>
                                                                             <td>
                                                                                 <div style={{ fontWeight: '600', color: '#fff', marginBottom: '3px' }}>{item.nama_tender}</div>
                                                                                 <div style={{ fontSize: '11px', color: '#9ca3af' }}>{item.satuan_kerja || item.instansi}</div>
                                                                             </td>
-                                                                            <td style={{ color: '#fbbf24', fontWeight: 'bold' }}>{item.pagu_formatted}</td>
-                                                                            <td style={{ color: '#34d399', fontWeight: 'bold' }}>{item.penawaran_formatted}</td>
+                                                                            <td style={{ color: '#fbbf24', fontWeight: 'bold' }}>{formatPaguVal(item.pagu)}</td>
+                                                                            <td style={{ color: '#34d399', fontWeight: 'bold' }}>{formatPaguVal(item.penawaran)}</td>
                                                                             <td>
-                                                                                <div style={{ fontWeight: 'bold', color: item.ratio_to_pagu < 80 ? '#f87171' : item.ratio_to_pagu > 90 ? '#38bdf8' : '#fbbf24' }}>
-                                                                                    {item.ratio_to_pagu}% Pagu
+                                                                                <div style={{ fontWeight: 'bold', color: item.bid_ratio < 80 ? '#f87171' : item.bid_ratio > 90 ? '#38bdf8' : '#fbbf24' }}>
+                                                                                    {item.bid_ratio}% Pagu
                                                                                 </div>
-                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>Diskon: {item.discount_percent}%</div>
+                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>Diskon: {item.discount_pct}%</div>
                                                                             </td>
                                                                             <td>
-                                                                                <span style={{
-                                                                                    padding: '3px 8px',
-                                                                                    borderRadius: '6px',
-                                                                                    fontSize: '11px',
-                                                                                    fontWeight: 'bold',
-                                                                                    background: item.character === 'Agresif' ? 'rgba(239, 68, 68, 0.15)' : item.character === 'Kualitas Teknis' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                                                                    color: item.character === 'Agresif' ? '#f87171' : item.character === 'Kualitas Teknis' ? '#38bdf8' : '#fbbf24',
-                                                                                    border: `1px solid ${item.character === 'Agresif' ? 'rgba(239, 68, 68, 0.3)' : item.character === 'Kualitas Teknis' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
-                                                                                }}>
-                                                                                    {item.character}
-                                                                                </span>
+                                                                                {item.is_winner === 1 ? (
+                                                                                    <span style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>MENANG</span>
+                                                                                ) : (
+                                                                                    <span style={{ background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>PESERTA</span>
+                                                                                )}
                                                                             </td>
                                                                         </tr>
                                                                     ))
                                                                 ) : (
                                                                     <tr>
-                                                                        <td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>Belum ada data riwayat penawaran menang yang dapat dianalisis.</td>
+                                                                        <td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>Belum ada data riwayat penawaran harga yang dapat dianalisis.</td>
                                                                     </tr>
                                                                 )}
                                                             </tbody>
@@ -15290,31 +15278,31 @@ function App() {
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                                                     <div style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 'bold' }}>Kandang Utama (Satker Terbanyak)</div>
-                                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorClients.top_home_ground ? competitorClients.top_home_ground.satuan_kerja : '-'}
+                                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
+                                                            {competitorClients.top_client ? competitorClients.top_client.satuan_kerja : '-'}
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#fde68a', marginTop: '4px' }}>
-                                                            {competitorClients.top_home_ground ? `${competitorClients.top_home_ground.total_menang} Tender Dimenangkan` : 'Belum terdeteksi'}
+                                                            {competitorClients.top_client ? `${competitorClients.top_client.total_wins} Tender Dimenangkan (${competitorClients.top_client.share_pct}% dominansi)` : 'Belum terdeteksi'}
                                                         </div>
                                                     </div>
 
                                                     <div style={{ background: 'rgba(99, 102, 241, 0.06)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#818cf8', textTransform: 'uppercase', fontWeight: 'bold' }}>Sebaran Satker / Dinas</div>
                                                         <div style={{ fontSize: '32px', fontWeight: '800', color: '#6366f1', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorClients.total_satker_count} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Dinas/Satker</span>
+                                                            {competitorClients.total_clients} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Dinas/Satker</span>
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
-                                                            Di {competitorClients.total_instansi_count} Kementerian / Lembaga / Pemda
+                                                            Total {competitorClients.total_wins} Kemenangan Kontrak
                                                         </div>
                                                     </div>
 
                                                     <div style={{ background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#34d399', textTransform: 'uppercase', fontWeight: 'bold' }}>Total Nilai Kontrak Dimenangkan</div>
                                                         <div style={{ fontSize: '24px', fontWeight: '800', color: '#10b981', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorClients.total_contract_value_formatted}
+                                                            {formatPaguVal(competitorClients.total_contract_value)}
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#a7f3d0', marginTop: '4px' }}>
-                                                            Akumulasi nilai kemenangan di satker
+                                                            Akumulasi nilai kemenangan di seluruh satker
                                                         </div>
                                                     </div>
                                                 </div>
@@ -15322,7 +15310,7 @@ function App() {
                                                 {/* Client / Satker Breakdown Table */}
                                                 <div className="panel" style={{ marginBottom: '24px' }}>
                                                     <div className="panel-header">
-                                                        <h3 className="panel-title">🏛️ Daftar Satuan Kerja / Dinas Langganan ({competitorClients.satker_breakdown?.length || 0})</h3>
+                                                        <h3 className="panel-title">🏛️ Daftar Satuan Kerja / Dinas Langganan ({competitorClients.clients?.length || 0})</h3>
                                                     </div>
                                                     <div className="table-responsive">
                                                         <table className="data-table">
@@ -15336,8 +15324,8 @@ function App() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {competitorClients.satker_breakdown && competitorClients.satker_breakdown.length > 0 ? (
-                                                                    competitorClients.satker_breakdown.map((item, idx) => (
+                                                                {competitorClients.clients && competitorClients.clients.length > 0 ? (
+                                                                    competitorClients.clients.map((item, idx) => (
                                                                         <tr key={idx}>
                                                                             <td>
                                                                                 <div style={{ fontWeight: '700', color: '#fff' }}>{item.satuan_kerja}</div>
@@ -15355,11 +15343,11 @@ function App() {
                                                                                     fontSize: '12px',
                                                                                     border: item.is_home_ground ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid rgba(255,255,255,0.1)'
                                                                                 }}>
-                                                                                    {item.total_menang} Tender
+                                                                                    {item.total_wins} Tender
                                                                                 </span>
                                                                             </td>
                                                                             <td style={{ color: '#34d399', fontWeight: 'bold' }}>
-                                                                                {item.total_nilai_formatted}
+                                                                                {formatPaguVal(item.total_contract_value)}
                                                                             </td>
                                                                             <td style={{ textAlign: 'center' }}>
                                                                                 {item.is_home_ground ? (
@@ -15410,25 +15398,36 @@ function App() {
                                             </div>
                                         ) : competitorPartners ? (
                                             <div>
+                                                {/* Ecosystem Profile Box */}
+                                                <div style={{ background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                                                    <div style={{ fontSize: '11px', color: '#a78bfa', textTransform: 'uppercase', fontWeight: 'bold' }}>Profil Ekosistem & Jaringan Kemitraan</div>
+                                                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#fff', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
+                                                        {competitorPartners.ecosystem?.label}
+                                                    </div>
+                                                    <p style={{ margin: '8px 0 0 0', color: '#c4b5fd', fontSize: '13px', lineHeight: '1.6' }}>
+                                                        {competitorPartners.ecosystem?.description}
+                                                    </p>
+                                                </div>
+
                                                 {/* KPI Summary Cards */}
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                                                     <div style={{ background: 'rgba(139, 92, 246, 0.06)', border: '1px solid rgba(139, 92, 246, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#a78bfa', textTransform: 'uppercase', fontWeight: 'bold' }}>Mitra Konsorsium Resmi (KSO)</div>
                                                         <div style={{ fontSize: '32px', fontWeight: '800', color: '#8b5cf6', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorPartners.total_kso_partners} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Perusahaan</span>
+                                                            {competitorPartners.kso_partners?.length || 0} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Entitas KSO</span>
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#c4b5fd', marginTop: '4px' }}>
-                                                            Terdeteksi berkolaborasi dalam KSO / Joint Operation
+                                                            Mitra kerjasama operasi resmi terdeteksi
                                                         </div>
                                                     </div>
 
                                                     <div style={{ background: 'rgba(59, 130, 246, 0.06)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '20px', borderRadius: '12px' }}>
                                                         <div style={{ fontSize: '11px', color: '#60a5fa', textTransform: 'uppercase', fontWeight: 'bold' }}>Rekan Sering Bertemu (Co-Bidders)</div>
                                                         <div style={{ fontSize: '32px', fontWeight: '800', color: '#3b82f6', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                                            {competitorPartners.frequent_co_bidders?.length || 0} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Badan Usaha</span>
+                                                            {competitorPartners.co_bidders?.length || 0} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>Badan Usaha</span>
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: '#93c5fd', marginTop: '4px' }}>
-                                                            Peserta lelang yang kerap hadir bersamaan (&ge; 3 tender)
+                                                            Peserta lelang yang kerap hadir bersamaan
                                                         </div>
                                                     </div>
                                                 </div>
@@ -15443,9 +15442,8 @@ function App() {
                                                             <thead>
                                                                 <tr>
                                                                     <th>Nama Badan Usaha Mitra KSO</th>
-                                                                    <th style={{ textAlign: 'center' }}>Tender Bersama</th>
-                                                                    <th style={{ textAlign: 'center' }}>Menang Bersama</th>
-                                                                    <th>Nilai Kontrak Kemenangan</th>
+                                                                    <th>Nama Entitas KSO Terdaftar</th>
+                                                                    <th>Tipe Hubungan</th>
                                                                     <th>Aksi</th>
                                                                 </tr>
                                                             </thead>
@@ -15458,18 +15456,13 @@ function App() {
                                                                                     <span>🤝</span> {partner.partner_name}
                                                                                 </div>
                                                                             </td>
-                                                                            <td style={{ textAlign: 'center' }}>
-                                                                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
-                                                                                    {partner.tender_count} Tender
-                                                                                </span>
+                                                                            <td style={{ color: '#d1d5db', fontSize: '13px' }}>
+                                                                                {partner.full_entity}
                                                                             </td>
-                                                                            <td style={{ textAlign: 'center' }}>
-                                                                                <span style={{ background: partner.win_count > 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)', color: partner.win_count > 0 ? '#34d399' : '#9ca3af', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
-                                                                                    {partner.win_count} Menang
+                                                                            <td>
+                                                                                <span style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c4b5fd', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                                                    {partner.type}
                                                                                 </span>
-                                                                            </td>
-                                                                            <td style={{ color: '#34d399', fontWeight: 'bold' }}>
-                                                                                {partner.total_win_value_formatted}
                                                                             </td>
                                                                             <td>
                                                                                 <button
@@ -15492,7 +15485,7 @@ function App() {
                                                                     ))
                                                                 ) : (
                                                                     <tr>
-                                                                        <td colSpan="5" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>Tidak ditemukan catatan kemitraan KSO formal untuk badan usaha ini.</td>
+                                                                        <td colSpan="4" style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>Tidak ditemukan catatan kemitraan KSO formal untuk badan usaha ini.</td>
                                                                     </tr>
                                                                 )}
                                                             </tbody>
@@ -15511,32 +15504,42 @@ function App() {
                                                                 <tr>
                                                                     <th>Nama Peserta Lain</th>
                                                                     <th style={{ textAlign: 'center' }}>Tender Bersamaan</th>
-                                                                    <th style={{ textAlign: 'center' }}>Dia Menang</th>
-                                                                    <th style={{ textAlign: 'center' }}>Kompetitor Ini Menang</th>
+                                                                    <th style={{ textAlign: 'center' }}>Kemenangan Mitra</th>
+                                                                    <th>Hubungan</th>
                                                                     <th>Aksi</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {competitorPartners.frequent_co_bidders && competitorPartners.frequent_co_bidders.length > 0 ? (
-                                                                    competitorPartners.frequent_co_bidders.map((cobid, idx) => (
+                                                                {competitorPartners.co_bidders && competitorPartners.co_bidders.length > 0 ? (
+                                                                    competitorPartners.co_bidders.map((cobid, idx) => (
                                                                         <tr key={idx}>
                                                                             <td>
-                                                                                <div style={{ fontWeight: '600', color: '#fff' }}>{cobid.peserta_name}</div>
+                                                                                <div style={{ fontWeight: '600', color: '#fff' }}>{cobid.company_name}</div>
+                                                                                <div style={{ fontSize: '11px', color: '#9ca3af' }}>NPWP: {cobid.npwp}</div>
                                                                             </td>
                                                                             <td style={{ textAlign: 'center' }}>
                                                                                 <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
-                                                                                    {cobid.co_bid_count} Kali
+                                                                                    {cobid.joint_tenders_count} Kali
                                                                                 </span>
                                                                             </td>
-                                                                            <td style={{ textAlign: 'center', color: cobid.other_won > 0 ? '#34d399' : '#9ca3af', fontWeight: 'bold' }}>
-                                                                                {cobid.other_won} Kali
+                                                                            <td style={{ textAlign: 'center', color: cobid.partner_wins > 0 ? '#34d399' : '#9ca3af', fontWeight: 'bold' }}>
+                                                                                {cobid.partner_wins} Kali Menang
                                                                             </td>
-                                                                            <td style={{ textAlign: 'center', color: cobid.competitor_won > 0 ? '#fbbf24' : '#9ca3af', fontWeight: 'bold' }}>
-                                                                                {cobid.competitor_won} Kali
+                                                                            <td>
+                                                                                <span style={{
+                                                                                    background: cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.15)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.05)',
+                                                                                    color: cobid.relationship_tag === 'strong' ? '#f87171' : cobid.relationship_tag === 'moderate' ? '#fbbf24' : '#9ca3af',
+                                                                                    padding: '3px 8px',
+                                                                                    borderRadius: '6px',
+                                                                                    fontSize: '11px',
+                                                                                    fontWeight: 'bold'
+                                                                                }}>
+                                                                                    {cobid.relationship_label}
+                                                                                </span>
                                                                             </td>
                                                                             <td>
                                                                                 <button
-                                                                                    onClick={() => handleOpenCompetitorProfile(cobid.peserta_name)}
+                                                                                    onClick={() => handleOpenCompetitorProfile(cobid.company_name)}
                                                                                     style={{
                                                                                         background: 'rgba(255,255,255,0.05)',
                                                                                         border: '1px solid rgba(255,255,255,0.1)',
