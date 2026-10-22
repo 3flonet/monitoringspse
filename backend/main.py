@@ -2918,13 +2918,13 @@ def get_competitor_partner_network(name: str):
         p_wins = r[3] or 0
 
         if matches >= 5:
-            rel_label = "Sangat Sering Bersama (Aliansi Kuat)"
+            rel_label = "🔥 Aliansi Kuat"
             rel_tag = "strong"
         elif matches >= 3:
-            rel_label = "Kerap Bertemu (Mitra/Rival Rutin)"
+            rel_label = "⚔️ Rival Rutin"
             rel_tag = "moderate"
         else:
-            rel_label = "Pernah Bertemu"
+            rel_label = "🤝 Pernah Bertemu"
             rel_tag = "casual"
 
         co_bidders.append({

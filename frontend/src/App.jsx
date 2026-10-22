@@ -5264,6 +5264,71 @@ const renderTenderTitle = (name) => {
     );
 };
 
+const CompetitorPagination = ({ currentPage, totalItems, pageSize = 10, onPageChange }) => {
+    const totalPages = Math.ceil(totalItems / pageSize);
+    if (totalPages <= 1) return null;
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    return (
+        <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 18px',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            fontSize: '12px',
+            color: '#94a3b8',
+            flexWrap: 'wrap',
+            gap: '12px'
+        }}>
+            <div>
+                Menampilkan <strong style={{ color: '#fff' }}>{startItem} - {endItem}</strong> dari <strong style={{ color: '#fff' }}>{totalItems}</strong> data
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                    disabled={currentPage === 1}
+                    onClick={() => onPageChange(currentPage - 1)}
+                    style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        background: currentPage === 1 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.08)',
+                        color: currentPage === 1 ? '#475569' : '#cbd5e1',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    « Sebelumnya
+                </button>
+                <span style={{ padding: '0 6px', color: '#818cf8', fontWeight: 'bold' }}>
+                    Hal {currentPage} / {totalPages}
+                </span>
+                <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => onPageChange(currentPage + 1)}
+                    style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        background: currentPage === totalPages ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.08)',
+                        color: currentPage === totalPages ? '#475569' : '#cbd5e1',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Selanjutnya »
+                </button>
+            </div>
+        </div>
+    );
+};
+
 function App() {
     const [publicView, setPublicView] = useState('landing'); // 'landing', 'tenders', 'auth'
     const [landingPage, setLandingPage] = useState('home'); // 'home' | 'contact' | 'privacy' | 'terms'
@@ -5489,6 +5554,11 @@ function App() {
     const [competitorPartners, setCompetitorPartners] = useState(null);
     const [isLoadingPartners, setIsLoadingPartners] = useState(false);
     const [competitorSubTab, setCompetitorSubTab] = useState('overview'); // 'overview', 'pricing', 'clients', 'partners', 'disqualifications'
+    const [pageTendersFollowed, setPageTendersFollowed] = useState(1);
+    const [pagePricingHistory, setPagePricingHistory] = useState(1);
+    const [pageClients, setPageClients] = useState(1);
+    const [pageCoBidders, setPageCoBidders] = useState(1);
+    const [pageDisqualifications, setPageDisqualifications] = useState(1);
 
     const fetchCompetitorSuggestions = async (query) => {
         if (query.trim().length < 2) {
@@ -5589,6 +5659,11 @@ function App() {
         setCompetitorClients(null);
         setCompetitorPartners(null);
         setCompetitorSubTab('overview');
+        setPageTendersFollowed(1);
+        setPagePricingHistory(1);
+        setPageClients(1);
+        setPageCoBidders(1);
+        setPageDisqualifications(1);
         setActiveTab('competitor-profile');
         setIsDrawerOpen(false); // Close drawer if open
         fetchCompetitorProfile(name);
@@ -14942,7 +15017,7 @@ function App() {
                                             gap: '6px'
                                         }}
                                     >
-                                        🏛️ Relasi Satker / Kandang
+                                        🏛️ Sebaran Satker & Basis Menang
                                     </button>
                                     <button
                                         onClick={() => setCompetitorSubTab('partners')}
@@ -15119,7 +15194,7 @@ function App() {
                                                     </thead>
                                                     <tbody>
                                                         {competitorProfile.recent_tenders && competitorProfile.recent_tenders.length > 0 ? (
-                                                            competitorProfile.recent_tenders.map((tender, idx) => (
+                                                            competitorProfile.recent_tenders.slice((pageTendersFollowed - 1) * 10, pageTendersFollowed * 10).map((tender, idx) => (
                                                                 <tr key={idx} onClick={() => handleViewTenderDetail(tender.nomor_pengadaan)}>
                                                                     <td><strong>{tender.nomor_pengadaan}</strong></td>
                                                                     <td>
@@ -15144,6 +15219,12 @@ function App() {
                                                     </tbody>
                                                 </table>
                                             </div>
+                                            <CompetitorPagination
+                                                currentPage={pageTendersFollowed}
+                                                totalItems={competitorProfile.recent_tenders?.length || 0}
+                                                pageSize={10}
+                                                onPageChange={setPageTendersFollowed}
+                                            />
                                         </div>
                                     </>
                                 )}
@@ -15224,7 +15305,7 @@ function App() {
                                                             </thead>
                                                             <tbody>
                                                                 {competitorPricing.bids_history && competitorPricing.bids_history.length > 0 ? (
-                                                                    competitorPricing.bids_history.map((item, idx) => (
+                                                                    competitorPricing.bids_history.slice((pagePricingHistory - 1) * 10, pagePricingHistory * 10).map((item, idx) => (
                                                                         <tr key={idx} onClick={() => handleViewTenderDetail(item.nomor_pengadaan)}>
                                                                             <td><strong>{item.nomor_pengadaan}</strong></td>
                                                                             <td>
@@ -15262,6 +15343,12 @@ function App() {
                                                             </tbody>
                                                         </table>
                                                     </div>
+                                                    <CompetitorPagination
+                                                        currentPage={pagePricingHistory}
+                                                        totalItems={competitorPricing.bids_history?.length || 0}
+                                                        pageSize={10}
+                                                        onPageChange={setPagePricingHistory}
+                                                    />
                                                 </div>
                                             </div>
                                         ) : (
@@ -15283,12 +15370,12 @@ function App() {
                                                 {/* KPI Cards for Client Mapping */}
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                                                     <div style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '20px', borderRadius: '12px' }}>
-                                                        <div style={{ fontSize: '11px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 'bold' }}>Kandang Utama (Satker Terbanyak)</div>
+                                                        <div style={{ fontSize: '11px', color: '#fbbf24', textTransform: 'uppercase', fontWeight: 'bold' }}>Basis Satker Utama (Paling Sering Menang)</div>
                                                         <div style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
                                                             {competitorClients.top_client ? competitorClients.top_client.satuan_kerja : '-'}
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#fde68a', marginTop: '4px' }}>
-                                                            {competitorClients.top_client ? `${competitorClients.top_client.total_wins} Tender Dimenangkan (${competitorClients.top_client.share_pct}% dominansi)` : 'Belum terdeteksi'}
+                                                            {competitorClients.top_client ? `${competitorClients.top_client.total_wins} Tender Dimenangkan (${competitorClients.top_client.share_pct}% dominasi kemenangan)` : 'Belum terdeteksi'}
                                                         </div>
                                                     </div>
 
@@ -15326,12 +15413,12 @@ function App() {
                                                                     <th>K/L/Pemda / Instansi</th>
                                                                     <th style={{ width: '140px', textAlign: 'center' }}>Jumlah Menang</th>
                                                                     <th style={{ width: '160px' }}>Total Nilai Kontrak</th>
-                                                                    <th style={{ width: '150px', textAlign: 'center' }}>Status Wilayah</th>
+                                                                    <th style={{ width: '150px', textAlign: 'center' }}>Status Dominasi</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 {competitorClients.clients && competitorClients.clients.length > 0 ? (
-                                                                    competitorClients.clients.map((item, idx) => (
+                                                                    competitorClients.clients.slice((pageClients - 1) * 10, pageClients * 10).map((item, idx) => (
                                                                         <tr key={idx}>
                                                                             <td>
                                                                                 <div style={{ fontWeight: '700', color: '#fff' }}>{item.satuan_kerja}</div>
@@ -15362,15 +15449,15 @@ function App() {
                                                                                         color: '#fbbf24',
                                                                                         border: '1px solid rgba(245, 158, 11, 0.4)',
                                                                                         padding: '4px 12px',
-                                                                                        borderRadius: '8px',
+                                                                                        borderRadius: '9999px',
                                                                                         fontSize: '11px',
-                                                                                        fontWeight: '800',
-                                                                                        letterSpacing: '0.02em',
+                                                                                        fontWeight: '700',
+                                                                                        whiteSpace: 'nowrap',
                                                                                         display: 'inline-flex',
                                                                                         alignItems: 'center',
                                                                                         gap: '4px'
                                                                                     }}>
-                                                                                        🏰 Kandang Utama
+                                                                                        🏆 Basis Terkuat
                                                                                     </span>
                                                                                 ) : (
                                                                                     <span style={{ color: '#9ca3af', fontSize: '12px' }}>Wilayah Terbuka</span>
@@ -15386,6 +15473,12 @@ function App() {
                                                             </tbody>
                                                         </table>
                                                     </div>
+                                                    <CompetitorPagination
+                                                        currentPage={pageClients}
+                                                        totalItems={competitorClients.clients?.length || 0}
+                                                        pageSize={10}
+                                                        onPageChange={setPageClients}
+                                                    />
                                                 </div>
                                             </div>
                                         ) : (
@@ -15517,7 +15610,7 @@ function App() {
                                                             </thead>
                                                             <tbody>
                                                                 {competitorPartners.co_bidders && competitorPartners.co_bidders.length > 0 ? (
-                                                                    competitorPartners.co_bidders.map((cobid, idx) => (
+                                                                    competitorPartners.co_bidders.slice((pageCoBidders - 1) * 10, pageCoBidders * 10).map((cobid, idx) => (
                                                                         <tr key={idx}>
                                                                             <td>
                                                                                 <div style={{ fontWeight: '600', color: '#fff' }}>{cobid.company_name}</div>
@@ -15536,12 +15629,16 @@ function App() {
                                                                                     background: cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.15)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.05)',
                                                                                     color: cobid.relationship_tag === 'strong' ? '#f87171' : cobid.relationship_tag === 'moderate' ? '#fbbf24' : '#9ca3af',
                                                                                     padding: '4px 10px',
-                                                                                    borderRadius: '6px',
+                                                                                    borderRadius: '9999px',
                                                                                     fontSize: '11px',
-                                                                                    fontWeight: 'bold',
-                                                                                    border: `1px solid ${cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.3)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255,255,255,0.1)'}`
+                                                                                    fontWeight: '700',
+                                                                                    border: `1px solid ${cobid.relationship_tag === 'strong' ? 'rgba(239, 68, 68, 0.3)' : cobid.relationship_tag === 'moderate' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                                                                                    whiteSpace: 'nowrap',
+                                                                                    display: 'inline-flex',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '4px'
                                                                                 }}>
-                                                                                    {cobid.relationship_label}
+                                                                                    {cobid.relationship_label || (cobid.joint_tenders_count >= 3 ? '⚔️ Rival Rutin' : '🤝 Pernah Bertemu')}
                                                                                 </span>
                                                                             </td>
                                                                             <td style={{ textAlign: 'center' }}>
@@ -15571,6 +15668,12 @@ function App() {
                                                             </tbody>
                                                         </table>
                                                     </div>
+                                                    <CompetitorPagination
+                                                        currentPage={pageCoBidders}
+                                                        totalItems={competitorPartners.co_bidders?.length || 0}
+                                                        pageSize={10}
+                                                        onPageChange={setPageCoBidders}
+                                                    />
                                                 </div>
                                             </div>
                                         ) : (
@@ -15721,7 +15824,7 @@ function App() {
                                                             </thead>
                                                             <tbody>
                                                                 {competitorDisqualifications.disqualifications && competitorDisqualifications.disqualifications.length > 0 ? (
-                                                                    competitorDisqualifications.disqualifications.map((item, idx) => (
+                                                                    competitorDisqualifications.disqualifications.slice((pageDisqualifications - 1) * 10, pageDisqualifications * 10).map((item, idx) => (
                                                                         <tr key={idx} style={{ verticalAlign: 'top' }}>
                                                                             <td>
                                                                                 <div
@@ -15783,6 +15886,12 @@ function App() {
                                                             </tbody>
                                                         </table>
                                                     </div>
+                                                    <CompetitorPagination
+                                                        currentPage={pageDisqualifications}
+                                                        totalItems={competitorDisqualifications.disqualifications?.length || 0}
+                                                        pageSize={10}
+                                                        onPageChange={setPageDisqualifications}
+                                                    />
                                                 </div>
                                             </div>
                                         ) : (
