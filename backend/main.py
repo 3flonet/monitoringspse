@@ -2721,6 +2721,7 @@ def get_competitor_pricing_pattern(name: str):
                 "nama_tender": r["nama_tender"],
                 "instansi": r["instansi"],
                 "pagu": pagu,
+                "penawaran": bid_price,
                 "bid_price": bid_price,
                 "selisih_rp": selisih_rp,
                 "bid_ratio": bid_ratio,
@@ -2795,7 +2796,8 @@ def get_competitor_client_mapping(name: str):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT td.satuan_kerja, t.instansi, 
+        SELECT COALESCE(NULLIF(td.satuan_kerja, ''), t.instansi) as satuan_kerja, 
+               t.instansi, 
                COUNT(*) as total_wins, 
                SUM(w.harga_kontrak) as total_contract_value,
                AVG(CASE WHEN t.pagu_val > 0 THEN ((t.pagu_val - w.harga_kontrak) / t.pagu_val) * 100 ELSE 0 END) as avg_discount
