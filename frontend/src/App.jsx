@@ -17663,56 +17663,65 @@ function App() {
 
                             {/* Early Warning Radar Section */}
                             <div className="detail-section" style={{
-                                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)',
-                                border: '1px solid rgba(99, 102, 241, 0.3)',
+                                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.9) 100%)',
+                                border: '1px solid rgba(99, 102, 241, 0.35)',
                                 borderRadius: '16px',
-                                padding: '20px',
+                                padding: '18px',
                                 position: 'relative',
-                                overflow: 'hidden'
+                                flexShrink: 0,
+                                boxShadow: '0 8px 24px -8px rgba(0, 0, 0, 0.5)'
                             }}>
                                 <div style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '12px',
+                                    alignItems: 'flex-start',
+                                    gap: '10px',
+                                    marginBottom: '14px',
                                     borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                                    paddingBottom: '10px'
+                                    paddingBottom: '12px'
                                 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <span style={{ fontSize: '20px' }}>📡</span>
-                                        <div>
-                                            <div style={{ fontSize: '15px', fontWeight: '800', color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                Early Warning Radar: Prediksi Lawan Berpotensi Masuk
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1, minWidth: 0 }}>
+                                        <span style={{ fontSize: '20px', lineHeight: 1, marginTop: '2px', flexShrink: 0 }}>📡</span>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                                <span style={{ fontSize: '14px', fontWeight: '800', color: '#c7d2fe', lineHeight: 1.3 }}>
+                                                    Early Warning Radar: Prediksi Lawan
+                                                </span>
                                                 {predictedCompetitors?.predictions?.length > 0 && (
                                                     <span style={{
                                                         background: 'rgba(99, 102, 241, 0.25)',
-                                                        color: '#818cf8',
+                                                        color: '#a5b4fc',
                                                         fontSize: '11px',
                                                         fontWeight: '700',
                                                         padding: '2px 8px',
                                                         borderRadius: '10px',
-                                                        border: '1px solid rgba(99, 102, 241, 0.4)'
+                                                        border: '1px solid rgba(99, 102, 241, 0.45)',
+                                                        whiteSpace: 'nowrap',
+                                                        flexShrink: 0
                                                     }}>
                                                         {predictedCompetitors.predictions.length} Kandidat
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                                                Prediksi algoritma berbasis penguasaan satker, riwayat instansi, & klaster penawaran
+                                            <div style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '4px', lineHeight: 1.4 }}>
+                                                Prediksi algoritma berbasis penguasaan Satker, riwayat Instansi, &amp; klaster penawaran
                                             </div>
                                         </div>
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => fetchPredictedCompetitors(selectedTender.nomor || selectedTender.kode_tender)}
+                                        onClick={() => fetchPredictedCompetitors(selectedTender.nomor_pengadaan || selectedTender.nomor || selectedTender.kode_tender)}
                                         disabled={isLoadingPredictions}
                                         style={{
                                             background: 'rgba(255, 255, 255, 0.06)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            border: '1px solid rgba(255, 255, 255, 0.12)',
                                             color: '#cbd5e1',
-                                            padding: '4px 10px',
+                                            padding: '5px 10px',
                                             borderRadius: '8px',
                                             fontSize: '11px',
+                                            fontWeight: '600',
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0,
                                             cursor: isLoadingPredictions ? 'not-allowed' : 'pointer'
                                         }}
                                         title="Refresh radar prediksi"
@@ -17722,9 +17731,9 @@ function App() {
                                 </div>
 
                                 {isLoadingPredictions ? (
-                                    <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                    <div style={{ padding: '24px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
                                         <div style={{ fontSize: '24px', marginBottom: '8px', animation: 'spin 2s linear infinite' }}>⏳</div>
-                                        Menganalisis jejak historis pemenang satker & partisipasi tender sejenis...
+                                        Menganalisis jejak historis pemenang Satker &amp; partisipasi tender sejenis...
                                     </div>
                                 ) : predictedCompetitors?.predictions?.length > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -17737,19 +17746,19 @@ function App() {
 
                                             return (
                                                 <div key={idx} style={{
-                                                    background: 'rgba(15, 23, 42, 0.55)',
-                                                    border: `1px solid ${isCritical ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.06)'}`,
+                                                    background: 'rgba(15, 23, 42, 0.65)',
+                                                    border: `1px solid ${isCritical ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.08)'}`,
                                                     borderRadius: '12px',
-                                                    padding: '14px 16px',
+                                                    padding: '12px 14px',
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '8px'
                                                 }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1, minWidth: 0 }}>
                                                             <div style={{
-                                                                width: '32px',
-                                                                height: '32px',
+                                                                width: '28px',
+                                                                height: '28px',
                                                                 borderRadius: '50%',
                                                                 background: badgeBg,
                                                                 border: `1px solid ${badgeBorder}`,
@@ -17757,36 +17766,40 @@ function App() {
                                                                 display: 'flex',
                                                                 alignItems: 'center',
                                                                 justifyContent: 'center',
-                                                                fontSize: '12px',
+                                                                fontSize: '11px',
                                                                 fontWeight: '800',
-                                                                flexShrink: 0
+                                                                flexShrink: 0,
+                                                                marginTop: '1px'
                                                             }}>
                                                                 #{idx + 1}
                                                             </div>
-                                                            <div>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
                                                                 <div
                                                                     onClick={() => handleOpenCompetitorProfile(p.nama_peserta)}
                                                                     style={{
-                                                                        fontSize: '14px',
+                                                                        fontSize: '13.5px',
                                                                         fontWeight: '700',
                                                                         color: '#f8fafc',
                                                                         cursor: 'pointer',
                                                                         textDecoration: 'underline',
-                                                                        textDecorationColor: 'rgba(255, 255, 255, 0.3)'
+                                                                        textDecorationColor: 'rgba(255, 255, 255, 0.3)',
+                                                                        wordBreak: 'break-word',
+                                                                        lineHeight: 1.35
                                                                     }}
                                                                     title="Klik untuk membuka profil intelijen kompetitor ini"
                                                                 >
                                                                     {p.nama_peserta}
                                                                 </div>
-                                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '5px' }}>
                                                                     {p.reason_tags?.map((tag, tIdx) => (
                                                                         <span key={tIdx} style={{
                                                                             fontSize: '10px',
-                                                                            padding: '2px 8px',
+                                                                            padding: '2px 7px',
                                                                             borderRadius: '6px',
                                                                             background: 'rgba(255, 255, 255, 0.05)',
                                                                             border: '1px solid rgba(255, 255, 255, 0.08)',
-                                                                            color: '#cbd5e1'
+                                                                            color: '#cbd5e1',
+                                                                            whiteSpace: 'nowrap'
                                                                         }}>
                                                                             {tag}
                                                                         </span>
@@ -17798,13 +17811,14 @@ function App() {
                                                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                                             <span style={{
                                                                 display: 'inline-block',
-                                                                padding: '4px 10px',
+                                                                padding: '3px 8px',
                                                                 borderRadius: '8px',
-                                                                fontSize: '11px',
+                                                                fontSize: '10.5px',
                                                                 fontWeight: '700',
                                                                 background: badgeBg,
                                                                 border: `1px solid ${badgeBorder}`,
-                                                                color: badgeColor
+                                                                color: badgeColor,
+                                                                whiteSpace: 'nowrap'
                                                             }}>
                                                                 Skor {p.threat_score} · {p.threat_badge}
                                                             </span>
@@ -17813,50 +17827,55 @@ function App() {
 
                                                     {/* Stat summary pills */}
                                                     <div style={{
-                                                        display: 'grid',
-                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
                                                         gap: '8px',
-                                                        marginTop: '4px',
+                                                        marginTop: '2px',
                                                         paddingTop: '8px',
-                                                        borderTop: '1px solid rgba(255, 255, 255, 0.04)',
+                                                        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
                                                         fontSize: '11px',
                                                         color: '#94a3b8'
                                                     }}>
-                                                        <div>
-                                                            <span style={{ color: '#64748b' }}>Menang Satker: </span>
-                                                            <strong style={{ color: p.satker_win_count > 0 ? '#4ade80' : '#cbd5e1' }}>{p.satker_win_count}x</strong>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+                                                            <span>
+                                                                <span style={{ color: '#64748b' }}>Menang Satker: </span>
+                                                                <strong style={{ color: p.satker_win_count > 0 ? '#4ade80' : '#cbd5e1' }}>{p.satker_win_count}x</strong>
+                                                            </span>
+                                                            <span>
+                                                                <span style={{ color: '#64748b' }}>Instansi: </span>
+                                                                <strong style={{ color: '#cbd5e1' }}>{p.instansi_win_count}x</strong>
+                                                            </span>
+                                                            <span>
+                                                                <span style={{ color: '#64748b' }}>Ikut Satker: </span>
+                                                                <strong style={{ color: '#cbd5e1' }}>{p.satker_participations}x</strong>
+                                                            </span>
+                                                            <span>
+                                                                <span style={{ color: '#64748b' }}>Diskon: </span>
+                                                                <strong style={{ color: '#f59e0b' }}>
+                                                                    {p.avg_discount_pct ? `${p.avg_discount_pct}%` : '-'}
+                                                                </strong>
+                                                            </span>
                                                         </div>
-                                                        <div>
-                                                            <span style={{ color: '#64748b' }}>Menang Instansi: </span>
-                                                            <strong style={{ color: '#cbd5e1' }}>{p.instansi_win_count}x</strong>
-                                                        </div>
-                                                        <div>
-                                                            <span style={{ color: '#64748b' }}>Ikut di Satker: </span>
-                                                            <strong style={{ color: '#cbd5e1' }}>{p.satker_participations}x</strong>
-                                                        </div>
-                                                        <div>
-                                                            <span style={{ color: '#64748b' }}>Diskon Tipikal: </span>
-                                                            <strong style={{ color: '#f59e0b' }}>
-                                                                {p.avg_discount_pct ? `${p.avg_discount_pct}%` : '-'}
-                                                            </strong>
-                                                        </div>
-                                                        <div style={{ textAlign: 'right' }}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleOpenCompetitorProfile(p.nama_peserta)}
-                                                                style={{
-                                                                    background: 'rgba(99, 102, 241, 0.15)',
-                                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
-                                                                    color: '#a5b4fc',
-                                                                    padding: '3px 8px',
-                                                                    borderRadius: '6px',
-                                                                    fontSize: '11px',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                🔎 Buka Intelijen
-                                                            </button>
-                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleOpenCompetitorProfile(p.nama_peserta)}
+                                                            style={{
+                                                                background: 'rgba(99, 102, 241, 0.18)',
+                                                                border: '1px solid rgba(99, 102, 241, 0.35)',
+                                                                color: '#a5b4fc',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '11px',
+                                                                fontWeight: '600',
+                                                                cursor: 'pointer',
+                                                                whiteSpace: 'nowrap',
+                                                                marginLeft: 'auto'
+                                                            }}
+                                                        >
+                                                            🔎 Buka Intelijen
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );
