@@ -4940,8 +4940,8 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px 24px', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
                                     <div style={{ textAlign: 'left' }}>
-                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR A</div>
-                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#60a5fa' }}>PT Sinar Megah Konstruksi</div>
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR A (SIMULASI)</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#60a5fa' }}>PT Kontraktor Sampel A</div>
                                         <div style={{ fontSize: '28px', fontWeight: '900', color: '#60a5fa', marginTop: '4px' }}>8 Kemenangan</div>
                                     </div>
                                     <div style={{ textAlign: 'center', background: 'rgba(239, 68, 68, 0.2)', padding: '10px 18px', borderRadius: '14px', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
@@ -4950,8 +4950,8 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                         <div style={{ fontSize: '11px', color: '#cbd5e1' }}>Gap Harga: -2.8%</div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR B</div>
-                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#f87171' }}>CV Cipta Karya Perkasa</div>
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR B (SIMULASI)</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#f87171' }}>CV Rekanan Sampel B</div>
                                         <div style={{ fontSize: '28px', fontWeight: '900', color: '#f87171', marginTop: '4px' }}>6 Kemenangan</div>
                                     </div>
                                 </div>
