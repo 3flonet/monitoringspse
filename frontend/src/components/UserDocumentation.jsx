@@ -439,7 +439,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
                                     <div style={{ fontSize: '22px', marginBottom: '6px' }}>🏢</div>
                                     <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Dominasi Instansi</div>
                                     <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
-                                        Memetakan instansi K/L/Pemda mana saja yang menjadi "kandang" atau langganan dari badan usaha tersebut.
+                                        Memetakan instansi K/L/Pemda mana saja yang menjadi basis wilayah atau instansi langganan utama dari badan usaha tersebut.
                                     </div>
                                 </div>
                                 <div style={{ background: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '18px' }}>

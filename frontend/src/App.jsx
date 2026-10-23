@@ -3566,7 +3566,7 @@ const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNav
                             </div>
                         )}
 
-                        {/* Executive Competitor Intelligence & Peta Kandang Teaser Banner */}
+                        {/* Executive Competitor Intelligence & Peta Dominasi Satker Teaser Banner */}
                         <div style={{
                             background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
                             border: '1px solid rgba(245, 158, 11, 0.35)',
@@ -3586,11 +3586,11 @@ const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNav
                                         Siapa Kontraktor Langganan di {tender.nama_satker || tender.instansi || 'Satuan Kerja Ini'}?
                                     </h3>
                                     <p style={{ color: '#d1d5db', fontSize: '13.5px', lineHeight: '1.6', margin: '0 0 16px 0' }}>
-                                        Ketahui badan usaha mana yang memegang dominasi kemenangan (Peta Kandang), tren margin penawaran harga pemenang, serta rekam jejak alasan gugur Pokja sebelum Anda menyusun dokumen penawaran.
+                                        Ketahui badan usaha mana yang memegang dominasi kemenangan (Peta Dominasi Wilayah &amp; Satker), tren margin penawaran harga pemenang, serta rekam jejak alasan gugur Pokja sebelum Anda menyusun dokumen penawaran.
                                     </p>
                                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                         <span style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '4px 10px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '600' }}>
-                                            🏛️ Peta Kandang Satker
+                                            🏛️ Peta Dominasi Satker
                                         </span>
                                         <span style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '4px 10px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '600' }}>
                                             ⚔️ Head-to-Head Adu Kontraktor
@@ -4770,7 +4770,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <li style={{ marginBottom: '10px' }}>🔍 Cari kata kunci manual berjam-jam tanpa hasil maksimal.</li>
                                 <li style={{ marginBottom: '10px' }}>⏰ Deadline pendaftaran &amp; penawaran terlupa — gugur sebelum sempat bersaing.</li>
                                 <li style={{ marginBottom: '10px' }}>🤷 Buta terhadap rekam jejak &amp; histori harga penawaran lawan.</li>
-                                <li style={{ marginBottom: '10px' }}>🏛️ Masuk ke dinas lawan tanpa tahu peta kandang &amp; loyalitas Pokja.</li>
+                                <li style={{ marginBottom: '10px' }}>🏛️ Masuk ke lelang tanpa tahu basis dinas langganan &amp; peta dominasi wilayah lawan.</li>
                                 <li style={{ marginBottom: '10px' }}>⚔️ Menebak kekuatan pesaing tanpa perbandingan Head-to-Head langsung.</li>
                                 <li>📑 Menyusun strategi tender tanpa laporan dossier intelijen eksekutif.</li>
                             </ul>
@@ -4783,7 +4783,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <li style={{ marginBottom: '10px' }}>🤖 <strong style={{ color: '#d1fae5' }}>Radar Tender Otomatis 24/7</strong> — deteksi peluang proyek seluruh Indonesia tanpa jeda.</li>
                                 <li style={{ marginBottom: '10px' }}>📱 <strong style={{ color: '#d1fae5' }}>Notifikasi WhatsApp Instan</strong> — terima info lelang dalam menit setelah pengumuman terbit.</li>
                                 <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Kata kunci &amp; instansi pilihan</strong> — hanya tender relevan yang masuk ke radar Anda.</li>
-                                <li style={{ marginBottom: '10px' }}>🏛️ <strong style={{ color: '#d1fae5' }}>Peta Kandang Dinas &amp; Satker</strong> — deteksi basis loyalitas dinas lawan &amp; taktik menembus dominasinya.</li>
+                                <li style={{ marginBottom: '10px' }}>🏛️ <strong style={{ color: '#d1fae5' }}>Peta Dominasi Wilayah &amp; Satker</strong> — deteksi instansi basis langganan lawan &amp; strategi memenangkan persaingan di wilayahnya.</li>
                                 <li style={{ marginBottom: '10px' }}>⚔️ <strong style={{ color: '#d1fae5' }}>Head-to-Head Arena</strong> — adu rekam jejak langsung dua kontraktor, selisih harga, &amp; skor menang.</li>
                                 <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Matriks Kelemahan Pokja</strong> — petakan alasan detail gugur kualifikasi lawan untuk amunisi evaluasi &amp; sanggah.</li>
                                 <li style={{ marginBottom: '10px' }}>📑 <strong style={{ color: '#d1fae5' }}>Dossier Eksekutif PDF &amp; Excel</strong> — laporan komprehensif A4 &amp; formula analitis siap bawa ke ruang rapat direksi.</li>
@@ -4819,8 +4819,8 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 8px 24px rgba(245, 158, 11, 0.05)', transition: 'all 0.3s' }}>
                             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '20px' }}>🏛️</div>
                             <div style={{ display: 'inline-block', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', marginBottom: '8px' }}>BARU DITINGKATKAN</div>
-                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#fbbf24' }}>Peta Kandang Dinas & Satker</h3>
-                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Deteksi dinas langganan kompetitor, persentase dominasi kemenangan, dan dapatkan rekomendasi taktis untuk menembus loyalitas Pokja di wilayah lawan.</p>
+                            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#fbbf24' }}>Peta Dominasi Wilayah &amp; Satker</h3>
+                            <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Deteksi dinas langganan kompetitor, persentase dominasi kemenangan, dan dapatkan strategi taktis untuk memenangkan proyek di wilayah basis lawan.</p>
                         </div>
 
                         <div style={{ background: '#0f1322', padding: '30px', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.05)', transition: 'all 0.3s' }}>
@@ -4876,7 +4876,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                         transition: 'all 0.2s'
                                     }}
                                 >
-                                    🏛️ Peta Kandang
+                                    🏛️ Peta Dominasi Satker
                                 </button>
                                 <button
                                     onClick={() => setActiveIntelTab('h2h')}
@@ -4913,12 +4913,12 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             </div>
                         </div>
 
-                        {/* Tab Content 1: Peta Kandang */}
+                        {/* Tab Content 1: Peta Dominasi Satker */}
                         {activeIntelTab === 'kandang' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                                     <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '14px', padding: '18px' }}>
-                                        <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: '700', textTransform: 'uppercase' }}>Kandang Satker Utama (Paling Dominan)</div>
+                                        <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: '700', textTransform: 'uppercase' }}>Basis Satker Utama (Dominasi Tertinggi)</div>
                                         <div style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', marginTop: '6px' }}>Dinas Pekerjaan Umum & Penataan Ruang</div>
                                         <div style={{ fontSize: '13px', color: '#fde68a', marginTop: '4px', fontWeight: '600' }}>7 dari 16 Tender Dimenangkan (43.8% Dominasi Portofolio)</div>
                                     </div>
@@ -4932,10 +4932,10 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                         <span style={{ fontSize: '18px' }}>💡</span>
-                                        <h4 style={{ margin: 0, fontSize: '14px', color: '#fbbf24', fontWeight: '800' }}>Analisis Naratif &amp; Rekomendasi Taktis Masuk Kandang</h4>
+                                        <h4 style={{ margin: 0, fontSize: '14px', color: '#fbbf24', fontWeight: '800' }}>Analisis Teritori &amp; Strategi Penetrasi Wilayah Lawan</h4>
                                     </div>
                                     <p style={{ margin: 0, fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.6' }}>
-                                        Badan usaha ini memiliki ketergantungan wilayah sangat tinggi (kandang utama) pada <strong style={{ color: '#fff' }}>Dinas Pekerjaan Umum &amp; Penataan Ruang</strong> dengan kontribusi kemenangan mencapai <strong style={{ color: '#fbbf24' }}>43.8%</strong>. Menghadapi badan usaha ini di satker tersebut membutuhkan keunggulan teknis mutlak atau sanggahan dokumen kualifikasi yang presisi, karena relasi historis dan rekam jejak loyalitas Pokja di wilayah ini sangat kuat.
+                                        Badan usaha ini memiliki konsentrasi kemenangan sangat tinggi pada <strong style={{ color: '#fff' }}>Dinas Pekerjaan Umum &amp; Penataan Ruang</strong> yang menjadi basis wilayah utamanya (menyumbang <strong style={{ color: '#fbbf24' }}>43.8%</strong> dari seluruh portofolionya). Menghadapi kompetitor ini di satker tersebut membutuhkan keunggulan teknis mutlak dan penawaran yang sangat presisi, mengingat mereka memiliki rekam jejak historis dan pengalaman pengerjaan yang sangat dominan di instansi ini.
                                     </p>
                                 </div>
                             </div>
@@ -5000,7 +5000,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                             </div>
                                         </div>
                                         <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.5', margin: 0 }}>
-                                            Tersusun dalam 5 sheet analitis: Profil & KPI, Kemenangan Tender, Peta Kandang Satker, Gugur & Evaluasi Pokja, dan Rekanan Co-Bidding.
+                                            Tersusun dalam 5 sheet analitis: Profil &amp; KPI, Kemenangan Tender, Basis Satker Dominan, Gugur &amp; Evaluasi Pokja, dan Rekanan Co-Bidding.
                                         </p>
                                     </div>
                                 </div>
@@ -5132,7 +5132,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#d1d5db', fontSize: '14px', lineHeight: '2' }}>
                                     <li>✓ Unlimited Kata Kunci Pencarian</li>
                                     <li>✓ Pantau Semua K/L/Pemda Instansi</li>
-                                    <li>✓ Analisis Kompetitor &amp; Peta Kandang Satker</li>
+                                    <li>✓ Analisis Kompetitor &amp; Peta Dominasi Satker</li>
                                     <li>✓ Head-to-Head &amp; Matriks Gugur Pokja</li>
                                     <li>✓ Export Dossier Eksekutif (PDF &amp; Excel)</li>
                                     <li>✓ Notifikasi Instan via WhatsApp &amp; Email</li>
@@ -5156,7 +5156,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24', marginBottom: '25px', fontFamily: "'Outfit', sans-serif" }}>Rp {parseInt(adminSettings.premium_price_yearly || 1500000).toLocaleString('id-ID')} <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'normal' }}>/ 365 hari</span></div>
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#d1d5db', fontSize: '14px', lineHeight: '2' }}>
                                     <li>✓ Semua Fitur Premium Pro Bulanan</li>
-                                    <li>✓ Akses Penuh Modul Intelijen &amp; Peta Kandang</li>
+                                    <li>✓ Akses Penuh Modul Intelijen &amp; Dominasi Wilayah</li>
                                     <li>✓ Unlimited Export Dossier PDF &amp; Excel</li>
                                     <li>✓ Masa Aktif 365 Hari (Hemat Biaya)</li>
                                     <li>✓ Notifikasi WhatsApp + Email Prioritas</li>
@@ -15905,7 +15905,7 @@ function App() {
                                                     </div>
                                                 </div>
 
-                                                {/* Strategic Intelligence Narrative Card (Peta Kandang & Analisis Teritori) */}
+                                                {/* Strategic Intelligence Narrative Card (Peta Dominasi Wilayah & Analisis Teritori) */}
                                                 <div style={{
                                                     background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85))',
                                                     border: '1px solid rgba(245, 158, 11, 0.3)',
@@ -15917,17 +15917,17 @@ function App() {
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                                                         <span style={{ fontSize: '20px' }}>🎯</span>
                                                         <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#fbbf24', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                                                            Analisis Intelijen Teritori &amp; Peta Kandang Satker
+                                                            Analisis Teritori &amp; Peta Dominasi Satker Langganan
                                                         </h4>
                                                     </div>
                                                     <p style={{ margin: '0 0 14px 0', fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.65' }}>
                                                         {competitorClients.top_client && competitorClients.top_client.share_pct >= 35 ? (
                                                             <>
-                                                                Badan usaha ini memiliki ketergantungan wilayah sangat tinggi (kandang utama) pada <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> dengan kontribusi kemenangan mencapai <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong> dari seluruh portofolio kemenangannya. Menghadapi badan usaha ini di satker tersebut membutuhkan keunggulan teknis mutlak atau sanggahan dokumen kualifikasi yang presisi, karena relasi historis dan rekam jejak loyalitas Pokja di wilayah ini sangat kuat.
+                                                                Badan usaha ini memiliki konsentrasi kemenangan sangat tinggi pada <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> yang menjadi basis wilayah utamanya (menyumbang <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong> dari seluruh portofolio kemenangannya). Menghadapi badan usaha ini di satker tersebut membutuhkan keunggulan teknis mutlak dan penawaran yang sangat presisi, mengingat mereka memiliki rekam jejak historis dan reputasi pengerjaan yang sudah terbentuk kuat di instansi ini.
                                                             </>
                                                         ) : competitorClients.top_client ? (
                                                             <>
-                                                                Portofolio kemenangan badan usaha ini tersebar berimbang di berbagai dinas tanpa satker tunggal yang mendominasi lebih dari sepertiga total proyek (kandang terbesar adalah <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> dengan pangsa <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong>). Peluang penetrasi kontraktor lain terbuka lebar di seluruh wilayah karena tidak ada dominasi eksklusif pada satu satker tertentu.
+                                                                Portofolio kemenangan badan usaha ini tersebar berimbang di berbagai dinas tanpa ketergantungan pada satu instansi tunggal (satker dengan porsi terbesar adalah <strong style={{ color: '#ffffff' }}>{competitorClients.top_client.satuan_kerja}</strong> dengan kontribusi <strong style={{ color: '#fbbf24' }}>{competitorClients.top_client.share_pct}%</strong>). Peluang penetrasi terbuka lebar bagi penyedia lain karena tidak ada dominasi penguasaan pasar yang mengikat di wilayah tertentu.
                                                             </>
                                                         ) : (
                                                             <>Belum ada data relasi satker yang cukup untuk memetakan ketergantungan wilayah badan usaha ini.</>
@@ -15936,7 +15936,7 @@ function App() {
                                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                                                         <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600' }}>Taktik Penetrasi:</span>
                                                         <span style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
-                                                            {competitorClients.top_client && competitorClients.top_client.share_pct >= 35 ? '⚠️ Wilayah Proteksi Tinggi' : '✅ Wilayah Kompetitif Terbuka'}
+                                                            {competitorClients.top_client && competitorClients.top_client.share_pct >= 35 ? '⚠️ Basis Proteksi Tinggi' : '✅ Wilayah Kompetitif Terbuka'}
                                                         </span>
                                                         <span style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
                                                             Audit Kualifikasi Pokja

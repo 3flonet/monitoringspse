@@ -282,11 +282,11 @@ def generate_competitor_dossier_pdf(
     story.append(Paragraph(pricing_text, body_style))
     story.append(Spacer(1, 10))
 
-    # 4. Peta Kandang Satker (Client & Satker Mapping)
-    story.append(Paragraph("2. PETA KANDANG DINAS & SATUAN KERJA DOMINAN", h2_style))
+    # 4. Pemetaan Basis Wilayah & Satker Dominan (Client & Satker Mapping)
+    story.append(Paragraph("2. PEMETAAN BASIS WILAYAH & SATUAN KERJA DOMINAN", h2_style))
     satkers = (client_map.get("clients") or client_map.get("satker_list") or [])[:8]
 
-    # Narasi Intelijen Teritori & Peta Kandang Satker
+    # Narasi Intelijen Teritori & Basis Wilayah Dominan
     top_c = client_map.get("top_client") or (satkers[0] if satkers else None)
     hg_list = [s for s in satkers if (s.get("is_home_ground") or s.get("is_homeground"))]
     tot_clients = client_map.get("total_clients", len(satkers))
@@ -301,16 +301,16 @@ def generate_competitor_dossier_pdf(
             top_share = 0
 
         satker_narasi = f"""
-        <b>Analisis Teritori & Kandang Utama (Home Ground):</b> Kompetitor terdeteksi memiliki basis relasi dan penguasaan terkuat di {hg_names}, yang menyumbang sekitar <b>{top_share}%</b> dari akumulasi kemenangan lelangnya di SPSE. Satker ini bertindak sebagai lumbung pendapatan stabil kompetitor dengan tingkat kepercayaan Pokja yang sudah terbentuk kuat.<br/><br/>
-        <b>Rekomendasi Taktis Menghadapi Kompetitor di Kandang Ini:</b> Hindari perang harga terbuka (banting harga ekstrem) karena kompetitor memiliki efisiensi operasional dan relasi historis di satker tersebut. Taktik terbaik adalah menonjolkan keunggulan sertifikasi personil inti (SKK berjenjang), bukti kepemilikan alat mutakhir, serta metodologi eksekusi yang lebih terperinci guna memaksa Pokja menilai secara objektif pada ambang batas teknis.
+        <b>Analisis Teritori &amp; Basis Wilayah Utama (Home Ground):</b> Kompetitor terdeteksi memiliki konsentrasi kemenangan dan penguasaan pasar terkuat di {hg_names}, yang menyumbang sekitar <b>{top_share}%</b> dari akumulasi kemenangan lelangnya di SPSE. Instansi ini merupakan basis pendapatan utama kompetitor dengan rekam jejak pengerjaan yang sudah terbentuk kuat.<br/><br/>
+        <b>Rekomendasi Taktis Penetrasi di Wilayah Basis Kompetitor:</b> Hindari perang harga terbuka (banting harga ekstrem) karena kompetitor memiliki efisiensi operasional dan relasi historis di satker tersebut. Taktik terbaik adalah menonjolkan keunggulan sertifikasi personil inti (SKK berjenjang), bukti kepemilikan alat mutakhir, serta metodologi eksekusi yang lebih terperinci guna memaksa Pokja menilai secara objektif pada ambang batas teknis.
         """
     elif top_c and top_c.get("total_wins", 0) > 0:
         satker_narasi = f"""
-        <b>Analisis Teritori & Penguasaan Pasar:</b> Kemenangan kompetitor terdistribusi ke {tot_clients} instansi tanpa adanya satker tunggal yang mengunci status kandang mutlak. Satker dengan nilai kontrak terbesar saat ini adalah <b>{top_c.get('satuan_kerja') or top_c.get('satker')}</b> ({top_c.get('instansi')}) dengan {top_c.get('total_wins', 0)}x menang senilai {format_rupiah(top_c.get('total_contract_value', 0))}.<br/><br/>
+        <b>Analisis Teritori &amp; Penguasaan Pasar:</b> Kemenangan kompetitor terdistribusi secara berimbang ke {tot_clients} instansi tanpa adanya ketergantungan pada satu basis satker tunggal. Satker dengan nilai kontrak terbesar saat ini adalah <b>{top_c.get('satuan_kerja') or top_c.get('satker')}</b> ({top_c.get('instansi')}) dengan {top_c.get('total_wins', 0)}x menang senilai {format_rupiah(top_c.get('total_contract_value', 0))}.<br/><br/>
         <b>Rekomendasi Taktis:</b> Peluang penetrasi di satker sasaran sangat terbuka karena kompetitor belum memiliki benteng loyalitas yang kokoh. Terapkan kalkulasi penawaran kompetitif pada rentang sweet spot untuk mengungguli penawaran mereka.
         """
     else:
-        satker_narasi = "<i>Belum terdeteksi pola kandang atau konsentrasi kemenangan spesifik pada dinas/satker tertentu. Kompetitor masih berstatus penawar umum di sistem LPSE.</i>"
+        satker_narasi = "<i>Belum terdeteksi konsentrasi kemenangan spesifik pada dinas/satker tertentu. Kompetitor memiliki sebaran wilayah yang luas di sistem LPSE.</i>"
 
     story.append(Paragraph(satker_narasi, body_style))
     story.append(Spacer(1, 8))
@@ -330,7 +330,7 @@ def generate_competitor_dossier_pdf(
             is_hg = s.get("is_home_ground", False) or s.get("is_homeground", False)
             satker_name = sanitize_for_pdf(s.get("satuan_kerja") or s.get("satker", "-"))
             if is_hg:
-                satker_name = f"⭐ <b>[KANDANG UTAMA]</b> {satker_name}"
+                satker_name = f"⭐ <b>[BASIS UTAMA]</b> {satker_name}"
             instansi = sanitize_for_pdf(s.get("instansi", "-"))
             total_wins = s.get("total_wins", 0)
             contract_val = format_rupiah(s.get("total_contract_value", 0))
@@ -568,10 +568,10 @@ def generate_competitor_dossier_excel(
         if r in [10, 11]:  # Currencies
             ws1.cell(row=r, column=2).number_format = '#,##0'
 
-    # --- SHEET 2: PETA KANDANG SATKER ---
-    ws2 = wb.create_sheet(title="Peta Kandang Satker")
+    # --- SHEET 2: BASIS SATKER DOMINAN ---
+    ws2 = wb.create_sheet(title="Basis Satker Dominan")
     ws2.views.sheetView[0].showGridLines = True
-    ws2_headers = ["No", "Satuan Kerja / Dinas", "Instansi", "Total Menang", "Total Nilai Kontrak (Rp)", "Rata-rata Diskon (%)", "Status Kandang"]
+    ws2_headers = ["No", "Satuan Kerja / Dinas", "Instansi", "Total Menang", "Total Nilai Kontrak (Rp)", "Rata-rata Diskon (%)", "Status Dominasi"]
     ws2.append(ws2_headers)
 
     for col_idx in range(1, len(ws2_headers) + 1):
@@ -583,7 +583,7 @@ def generate_competitor_dossier_excel(
     satkers_all = client_map.get("clients") or client_map.get("satker_list") or []
     for idx, s in enumerate(satkers_all, 1):
         is_hg = s.get("is_home_ground", False) or s.get("is_homeground", False)
-        status = "KANDANG UTAMA" if is_hg else "Satker Aktif"
+        status = "BASIS UTAMA" if is_hg else "Satker Aktif"
         satker_name = s.get("satuan_kerja") or s.get("satker", "-")
         avg_disc = s.get("avg_discount_pct") if s.get("avg_discount_pct") is not None else s.get("avg_discount", 0.0)
         row_data = [
