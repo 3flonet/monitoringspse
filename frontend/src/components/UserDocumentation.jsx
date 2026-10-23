@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUser }) {
     const [activeModule, setActiveModule] = useState('quickstart');
     const [searchQuery, setSearchQuery] = useState('');
+    const [alertPreviewMode, setAlertPreviewMode] = useState('all'); // 'all', 'whatsapp', 'email'
 
     const modules = [
         {
@@ -22,9 +23,9 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
         {
             id: 'alerts',
             icon: '📲',
-            title: '3. Notifikasi WhatsApp & Alerts',
+            title: '3. Notifikasi WhatsApp & Email Alert',
             badge: 'Realtime',
-            description: 'Integrasi WhatsApp Gateway, struktur pesan alert, dan tips troubleshooting.'
+            description: 'Integrasi WhatsApp Gateway & Email Alert, format pesan real-time, dan panduan konfigurasi.'
         },
         {
             id: 'competitor',
@@ -353,64 +354,579 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
                         </div>
                     )}
 
-                    {/* MODULE 3: NOTIFIKASI WHATSAPP */}
+                    {/* MODULE 3: NOTIFIKASI WHATSAPP & EMAIL */}
                     {activeModule === 'alerts' && (
                         <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '28px' }}>📲</span>
-                                <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
-                                    Notifikasi WhatsApp &amp; Format Alert
-                                </h2>
+                            {/* Header Section */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '8px' }}>
+                                <div style={{
+                                    width: '46px',
+                                    height: '46px',
+                                    borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(99, 102, 241, 0.2))',
+                                    border: '1px solid rgba(37, 211, 102, 0.4)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '24px',
+                                    flexShrink: 0
+                                }}>
+                                    📲
+                                </div>
+                                <div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(37, 211, 102, 0.15)', border: '1px solid rgba(37, 211, 102, 0.3)', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', color: '#4ade80', textTransform: 'uppercase', marginBottom: '4px' }}>
+                                        Dual-Channel Realtime Notification
+                                    </div>
+                                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', margin: 0, fontFamily: "'Outfit', sans-serif" }}>
+                                        Notifikasi WhatsApp &amp; Email Alert
+                                    </h2>
+                                </div>
                             </div>
-                            <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
-                                Sistem otomatis kami mengirimkan ringkasan tender begitu terdeteksi oleh mesin scraper.
+                            <p style={{ color: '#94a3b8', fontSize: '14px', lineHeight: '1.6', marginBottom: '22px' }}>
+                                Sistem <strong>Radar Intelijen Otomatis Spy SPSE</strong> memantau ratusan portal LPSE di seluruh Indonesia secara non-stop 24/7. Begitu paket lelang yang cocok dengan kata kunci bisnis Anda resmi dipublikasikan, ringkasan peluang tender akan langsung dikirimkan secara instan ke WhatsApp dan Email Anda dalam hitungan detik.
                             </p>
 
-                            {/* WhatsApp Message Simulation */}
-                            <div style={{ maxWidth: '440px', background: '#0b141a', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '18px', marginBottom: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', paddingBottom: '10px' }}>
-                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                                        🕵🏼‍♂️
-                                    </div>
-                                    <div>
-                                        <div style={{ color: '#fff', fontSize: '13px', fontWeight: '700' }}>Spy SPSE Alert Gateway</div>
-                                        <div style={{ color: '#25d366', fontSize: '11px' }}>Online • Notifikasi Otomatis</div>
-                                    </div>
+                            {/* View Switcher Bar */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', background: 'rgba(30, 41, 59, 0.4)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '14px', padding: '10px 16px', marginBottom: '26px' }}>
+                                <div style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>👁️</span> Mode Pratinjau Alert:
                                 </div>
-
-                                <div style={{ background: '#202c33', borderRadius: '8px 8px 8px 0', padding: '14px', color: '#e9edef', fontSize: '12px', lineHeight: '1.6', fontFamily: 'system-ui, sans-serif' }}>
-                                    <div>🚨 <strong>PELUANG TENDER BARU TERDETEKSI</strong></div>
-                                    <div style={{ margin: '8px 0', borderTop: '1px dashed rgba(255,255,255,0.15)', paddingTop: '8px' }}>
-                                        📦 <strong>Paket:</strong> Pembangunan Gedung Laboratorium Terpadu<br />
-                                        🏢 <strong>Instansi:</strong> Universitas Indonesia<br />
-                                        💰 <strong>Pagu:</strong> Rp 4.850.000.000,00<br />
-                                        🏷️ <strong>Jenis:</strong> Pekerjaan Konstruksi<br />
-                                        ⏳ <strong>Akhir Penawaran:</strong> 25 Okt 2026 15:00 WIB<br />
-                                        🎯 <strong>Kata Kunci:</strong> <em>Konstruksi Gedung</em>
-                                    </div>
-                                    <div style={{ marginTop: '8px', color: '#53bdeb' }}>
-                                        🔗 Buka langsung di SPSE: <span style={{ textDecoration: 'underline' }}>spse.inaproc.id/ui/lelang/109823000</span>
-                                    </div>
-                                    <div style={{ textAlign: 'right', fontSize: '10px', color: '#8696a0', marginTop: '6px' }}>14:32 ✔️✔️</div>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAlertPreviewMode('all')}
+                                        style={{
+                                            background: alertPreviewMode === 'all' ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255, 255, 255, 0.05)',
+                                            color: '#ffffff',
+                                            border: alertPreviewMode === 'all' ? '1px solid #818cf8' : '1px solid rgba(255, 255, 255, 0.1)',
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        🔄 Berdampingan (Keduanya)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAlertPreviewMode('whatsapp')}
+                                        style={{
+                                            background: alertPreviewMode === 'whatsapp' ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(255, 255, 255, 0.05)',
+                                            color: '#ffffff',
+                                            border: alertPreviewMode === 'whatsapp' ? '1px solid #4ade80' : '1px solid rgba(255, 255, 255, 0.1)',
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        📱 WhatsApp Handphone
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setAlertPreviewMode('email')}
+                                        style={{
+                                            background: alertPreviewMode === 'email' ? 'linear-gradient(135deg, #0ea5e9, #0284c7)' : 'rgba(255, 255, 255, 0.05)',
+                                            color: '#ffffff',
+                                            border: alertPreviewMode === 'email' ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.1)',
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        ✉️ Email Alert
+                                    </button>
                                 </div>
                             </div>
 
-                            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '10px' }}>
-                                Panduan Troubleshooting Notifikasi WhatsApp:
-                            </h3>
-                            <ul style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: '1.8', paddingLeft: '20px', marginBottom: '24px' }}>
-                                <li>Pastikan nomor WhatsApp Anda aktif dan dapat menerima pesan dari nomor bisnis baru.</li>
-                                <li>Jika berganti nomor WhatsApp, Anda dapat memperbaruinya di menu <strong>Profil Akun</strong>.</li>
-                                <li>Pesan notifikasi dikirimkan setiap kali crawler mendeteksi pengadaan yang cocok dengan kata kunci Anda.</li>
-                            </ul>
+                            {/* PREVIEWS CONTAINER */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: alertPreviewMode === 'all' ? 'repeat(auto-fit, minmax(350px, 1fr))' : '1fr',
+                                gap: '28px',
+                                alignItems: 'start',
+                                marginBottom: '36px'
+                            }}>
+                                {/* ==================== 1. WHATSAPP SMARTPHONE MOCKUP ==================== */}
+                                {(alertPreviewMode === 'all' || alertPreviewMode === 'whatsapp') && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#4ade80', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>📱</span> Tampilan Handphone WhatsApp (Realtime Alert)
+                                        </div>
 
-                            <button
-                                onClick={() => onNavigateTab && onNavigateTab('alerts')}
-                                className="btn-primary"
-                                style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}
-                            >
-                                Kelola Notifikasi &amp; WhatsApp ➔
-                            </button>
+                                        {/* Phone Outer Shell */}
+                                        <div style={{
+                                            width: '100%',
+                                            maxWidth: '380px',
+                                            background: '#090d16',
+                                            border: '10px solid #1e293b',
+                                            borderRadius: '44px',
+                                            boxShadow: '0 25px 60px -10px rgba(0,0,0,0.8), 0 0 0 2px rgba(34, 197, 94, 0.3)',
+                                            overflow: 'hidden',
+                                            position: 'relative'
+                                        }}>
+                                            {/* Top Notch / Dynamic Island */}
+                                            <div style={{
+                                                background: '#000000',
+                                                borderRadius: '20px',
+                                                width: '96px',
+                                                height: '22px',
+                                                margin: '10px auto 4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '8px'
+                                            }}>
+                                                <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#111827', border: '1px solid #1f2937' }} />
+                                                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#065f46' }} />
+                                            </div>
+
+                                            {/* Status Bar */}
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '2px 22px 8px',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                color: '#ffffff',
+                                                fontFamily: 'system-ui, -apple-system, sans-serif'
+                                            }}>
+                                                <span>09:41</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <span>5G</span>
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 21l3.54-.93C9.36 20.64 10.64 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>
+                                                    </svg>
+                                                    <span>100% 🔋</span>
+                                                </div>
+                                            </div>
+
+                                            {/* WhatsApp App Header */}
+                                            <div style={{
+                                                background: '#1f2c34',
+                                                padding: '10px 14px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ color: '#00a884', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' }}>‹</span>
+                                                    <div style={{
+                                                        width: '38px',
+                                                        height: '38px',
+                                                        borderRadius: '50%',
+                                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '20px',
+                                                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        🕵🏼‍♂️
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ color: '#e9edef', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            Spy SPSE Radar
+                                                            <span style={{ color: '#25d366', fontSize: '12px' }} title="Akun Bisnis Terverifikasi">✓</span>
+                                                        </div>
+                                                        <div style={{ color: '#25d366', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#25d366' }} />
+                                                            online
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#aebac1', fontSize: '15px' }}>
+                                                    <span style={{ cursor: 'pointer' }} title="Panggilan Video">📹</span>
+                                                    <span style={{ cursor: 'pointer' }} title="Panggilan Suara">📞</span>
+                                                    <span style={{ cursor: 'pointer', fontSize: '17px', fontWeight: 'bold' }}>⋮</span>
+                                                </div>
+                                            </div>
+
+                                            {/* WhatsApp Chat Body */}
+                                            <div style={{
+                                                background: '#0b141a',
+                                                backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(32, 44, 51, 0.4) 1px, transparent 1px)',
+                                                backgroundSize: '16px 16px',
+                                                padding: '16px 12px',
+                                                minHeight: '420px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '10px'
+                                            }}>
+                                                {/* Date Stamp Pill */}
+                                                <div style={{
+                                                    alignSelf: 'center',
+                                                    background: '#182229',
+                                                    color: '#8696a0',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '11px',
+                                                    fontWeight: '600',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                                                    marginBottom: '4px'
+                                                }}>
+                                                    HARI INI
+                                                </div>
+
+                                                {/* Security / Encryption Banner */}
+                                                <div style={{
+                                                    background: '#182229',
+                                                    color: '#ffd279',
+                                                    padding: '6px 10px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '10.5px',
+                                                    textAlign: 'center',
+                                                    lineHeight: '1.4',
+                                                    marginBottom: '6px'
+                                                }}>
+                                                    🔒 Pesan ini dikirim secara instan oleh Radar Intelijen Otomatis Spy SPSE 24/7.
+                                                </div>
+
+                                                {/* Incoming Chat Message Bubble */}
+                                                <div style={{
+                                                    alignSelf: 'flex-start',
+                                                    maxWidth: '92%',
+                                                    background: '#202c33',
+                                                    borderRadius: '4px 14px 14px 14px',
+                                                    padding: '12px 14px',
+                                                    color: '#e9edef',
+                                                    fontSize: '12px',
+                                                    lineHeight: '1.6',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                                    position: 'relative'
+                                                }}>
+                                                    <div style={{ fontWeight: '800', color: '#4ade80', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                                        <span>🚨</span> RADAR INTELIJEN TENDER SPSE
+                                                    </div>
+                                                    <div style={{ color: '#ffd279', fontWeight: '700', fontSize: '11.5px', marginBottom: '8px' }}>
+                                                        ⚡ Peluang Tender Baru Terdeteksi!
+                                                    </div>
+
+                                                    <div style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.12)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <div>📦 <strong>Paket:</strong> Pembangunan Gedung Laboratorium Terpadu Kampus B</div>
+                                                        <div>🏢 <strong>Instansi:</strong> Universitas Indonesia</div>
+                                                        <div>🏛️ <strong>Satker:</strong> Dit. Pengelolaan Fasilitas</div>
+                                                        <div>💰 <strong>Pagu:</strong> <span style={{ color: '#4ade80', fontWeight: '700' }}>Rp 4.850.000.000,00</span></div>
+                                                        <div>🏷️ <strong>HPS:</strong> Rp 4.792.350.000,00</div>
+                                                        <div>📋 <strong>Metode:</strong> Tender - Pascakualifikasi</div>
+                                                        <div>⏳ <strong>Batas Akhir:</strong> <span style={{ color: '#f87171', fontWeight: '700' }}>28 Okt 2026, 15:00 WIB</span></div>
+                                                        <div>🎯 <strong>Kata Kunci:</strong> <em>"Pembangunan Gedung"</em> (Kesesuaian 98%)</div>
+                                                    </div>
+
+                                                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255, 255, 255, 0.12)' }}>
+                                                        <div style={{ color: '#53bdeb', fontSize: '11.5px' }}>
+                                                            🔗 <strong>Buka Langsung di SPSE:</strong><br />
+                                                            <span style={{ textDecoration: 'underline', wordBreak: 'break-all' }}>spse.inaproc.id/ui/lelang/109823000</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Message Timestamp & Blue Ticks */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', fontSize: '10px', color: '#8696a0', marginTop: '6px' }}>
+                                                        <span>09:41</span>
+                                                        <span style={{ color: '#53bdeb', fontWeight: 'bold' }}>✓✓</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* WhatsApp Bottom Input Bar */}
+                                            <div style={{
+                                                background: '#1f2c34',
+                                                padding: '8px 10px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}>
+                                                <div style={{
+                                                    flex: 1,
+                                                    background: '#2a3942',
+                                                    borderRadius: '24px',
+                                                    padding: '8px 12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    color: '#8696a0',
+                                                    fontSize: '12px'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span>😊</span>
+                                                        <span>Ketik pesan...</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#8696a0' }}>
+                                                        <span>📎</span>
+                                                        <span>📷</span>
+                                                    </div>
+                                                </div>
+                                                <div style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    borderRadius: '50%',
+                                                    background: '#00a884',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#ffffff',
+                                                    fontSize: '16px',
+                                                    flexShrink: 0
+                                                }}>
+                                                    🎤
+                                                </div>
+                                            </div>
+
+                                            {/* Bottom Home Indicator Bar */}
+                                            <div style={{ padding: '6px 0 10px', background: '#1f2c34', display: 'flex', justifyContent: 'center' }}>
+                                                <div style={{ width: '120px', height: '4px', background: '#ffffff', borderRadius: '4px', opacity: 0.6 }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ==================== 2. EMAIL ALERT CLIENT MOCKUP ==================== */}
+                                {(alertPreviewMode === 'all' || alertPreviewMode === 'email') && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#38bdf8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>✉️</span> Tampilan Email Notifikasi (Inbox Perusahaan)
+                                        </div>
+
+                                        {/* Email Client Shell */}
+                                        <div style={{
+                                            width: '100%',
+                                            maxWidth: '460px',
+                                            background: '#0f172a',
+                                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                                            borderRadius: '24px',
+                                            boxShadow: '0 25px 60px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                                            overflow: 'hidden'
+                                        }}>
+                                            {/* Window Titlebar */}
+                                            <div style={{
+                                                background: '#1e293b',
+                                                padding: '10px 16px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                                                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
+                                                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                                                </div>
+                                                <div style={{ color: '#94a3b8', fontSize: '11px', fontWeight: '600' }}>
+                                                    Kotak Masuk — alert@spyspse.com
+                                                </div>
+                                                <div style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '10px' }}>
+                                                    1 Pesan Baru
+                                                </div>
+                                            </div>
+
+                                            {/* Email Meta Header */}
+                                            <div style={{ padding: '16px 18px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(30, 41, 59, 0.3)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '8px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                                                            🕵🏼‍♂️
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ color: '#ffffff', fontSize: '13px', fontWeight: '700' }}>
+                                                                Spy SPSE Radar Intelijen
+                                                            </div>
+                                                            <div style={{ color: '#94a3b8', fontSize: '11px' }}>
+                                                                &lt;alert@spyspse.com&gt;
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>
+                                                        09:41 WIB (Baru saja)
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ color: '#cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}>
+                                                    Kepada: <strong style={{ color: '#ffffff' }}>direksi@perusahaan-anda.co.id</strong>
+                                                </div>
+                                                <div style={{ color: '#ffffff', fontSize: '14px', fontWeight: '800', lineHeight: '1.4' }}>
+                                                    ⚡ [ALERT TENDER BARU] Pembangunan Gedung Laboratorium Terpadu - Pagu Rp 4,85 Miliar
+                                                </div>
+                                            </div>
+
+                                            {/* Email Body Content */}
+                                            <div style={{ padding: '18px', background: '#0b1324' }}>
+                                                {/* Header Brand Banner */}
+                                                <div style={{
+                                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2))',
+                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 16px',
+                                                    marginBottom: '16px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ fontSize: '18px' }}>🕵🏼‍♂️</span>
+                                                        <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '13px', fontFamily: "'Outfit', sans-serif" }}>
+                                                            Spy SPSE
+                                                        </span>
+                                                    </div>
+                                                    <span style={{ fontSize: '10px', color: '#a5b4fc', fontWeight: '700', textTransform: 'uppercase' }}>
+                                                        Radar LPSE 24/7 Terverifikasi
+                                                    </span>
+                                                </div>
+
+                                                <p style={{ color: '#cbd5e1', fontSize: '12.5px', lineHeight: '1.6', margin: '0 0 14px' }}>
+                                                    Halo Rekanan Pengadaan,<br />
+                                                    Sistem Radar Intelijen Spy SPSE mendeteksi peluang tender pengadaan baru yang cocok dengan kata kunci bisnis Anda:
+                                                </p>
+
+                                                {/* Spec Table */}
+                                                <div style={{ background: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+                                                    <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>Nama Paket</span>
+                                                        <strong style={{ color: '#ffffff', fontSize: '11.5px', textAlign: 'right', maxWidth: '65%' }}>Pembangunan Gedung Laboratorium Terpadu</strong>
+                                                    </div>
+                                                    <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>Instansi / Satker</span>
+                                                        <span style={{ color: '#cbd5e1', fontSize: '11.5px', textAlign: 'right' }}>Universitas Indonesia</span>
+                                                    </div>
+                                                    <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>Nilai Pagu / HPS</span>
+                                                        <span style={{ color: '#4ade80', fontSize: '11.5px', fontWeight: '700' }}>Rp 4.850.000.000,00</span>
+                                                    </div>
+                                                    <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>Akhir Penawaran</span>
+                                                        <span style={{ color: '#f87171', fontSize: '11.5px', fontWeight: '700' }}>28 Okt 2026, 15:00 WIB</span>
+                                                    </div>
+                                                    <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#94a3b8', fontSize: '11.5px' }}>Kata Kunci Cocok</span>
+                                                        <span style={{ color: '#818cf8', fontSize: '11.5px', fontWeight: '700' }}>"Pembangunan Gedung"</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                    <button
+                                                        type="button"
+                                                        style={{
+                                                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                                            color: '#ffffff',
+                                                            border: 'none',
+                                                            padding: '11px',
+                                                            borderRadius: '10px',
+                                                            fontWeight: '700',
+                                                            fontSize: '12.5px',
+                                                            cursor: 'pointer',
+                                                            textAlign: 'center',
+                                                            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+                                                        }}
+                                                    >
+                                                        🔗 Buka Paket di Portal SPSE ➔
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onNavigateTab && onNavigateTab('competitors')}
+                                                        style={{
+                                                            background: 'rgba(255, 255, 255, 0.06)',
+                                                            color: '#cbd5e1',
+                                                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                                                            padding: '9px',
+                                                            borderRadius: '10px',
+                                                            fontWeight: '600',
+                                                            fontSize: '12px',
+                                                            cursor: 'pointer',
+                                                            textAlign: 'center'
+                                                        }}
+                                                    >
+                                                        📊 Analisis Kompetitor Tender Ini ➔
+                                                    </button>
+                                                </div>
+
+                                                {/* Email Footer Disclaimer */}
+                                                <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px', textAlign: 'center', fontSize: '10.5px', color: '#64748b', lineHeight: '1.5' }}>
+                                                    Email ini dikirimkan otomatis oleh Spy SPSE sesuai preferensi kata kunci akun Anda.<br />
+                                                    Kelola preferensi kata kunci &amp; email di dasbor Spy SPSE.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Section 2: Panduan Konfigurasi & Troubleshooting */}
+                            <h3 style={{ fontSize: '16px', color: '#ffffff', fontWeight: '700', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>⚙️</span> Panduan Konfigurasi WhatsApp &amp; Email Alert:
+                            </h3>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+                                {/* Panduan WhatsApp */}
+                                <div style={{ background: 'rgba(30, 41, 59, 0.45)', border: '1px solid rgba(34, 197, 94, 0.25)', borderRadius: '14px', padding: '18px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '20px' }}>📱</span>
+                                        <div style={{ color: '#4ade80', fontWeight: '700', fontSize: '14px' }}>Konfigurasi WhatsApp</div>
+                                    </div>
+                                    <ul style={{ margin: 0, paddingLeft: '18px', color: '#cbd5e1', fontSize: '12.5px', lineHeight: '1.7' }}>
+                                        <li>Pastikan nomor WhatsApp aktif dan diawali dengan format yang benar (misal: <code>081234567890</code> atau <code>6281234567890</code>).</li>
+                                        <li>Dapat menerima pesan dari nomor bisnis WhatsApp Gateway resmi Spy SPSE tanpa diblokir.</li>
+                                        <li>Jika Anda berganti nomor, perbarui nomor WhatsApp kapan saja di menu <strong>Profil Akun</strong>.</li>
+                                    </ul>
+                                </div>
+
+                                {/* Panduan Email */}
+                                <div style={{ background: 'rgba(30, 41, 59, 0.45)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '14px', padding: '18px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '20px' }}>✉️</span>
+                                        <div style={{ color: '#38bdf8', fontWeight: '700', fontSize: '14px' }}>Konfigurasi Email Alert</div>
+                                    </div>
+                                    <ul style={{ margin: 0, paddingLeft: '18px', color: '#cbd5e1', fontSize: '12.5px', lineHeight: '1.7' }}>
+                                        <li>Gunakan email operasional perusahaan atau email tim tender yang aktif dibuka setiap hari.</li>
+                                        <li><strong>Tips Whitelist:</strong> Tambahkan <code>alert@spyspse.com</code> ke kontak Anda agar email selalu masuk ke <em>Primary Inbox</em> dan tidak tersaring ke folder Spam atau Promotions.</li>
+                                        <li>Notifikasi email memuat ringkasan paket dan tautan langsung untuk analisis kompetitor instan.</li>
+                                    </ul>
+                                </div>
+
+                                {/* Cara Kerja Radar Intelijen */}
+                                <div style={{ background: 'rgba(30, 41, 59, 0.45)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: '14px', padding: '18px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '20px' }}>🛰️</span>
+                                        <div style={{ color: '#818cf8', fontWeight: '700', fontSize: '14px' }}>Sistem Radar Intelijen 24/7</div>
+                                    </div>
+                                    <ul style={{ margin: 0, paddingLeft: '18px', color: '#cbd5e1', fontSize: '12.5px', lineHeight: '1.7' }}>
+                                        <li>Bekerja secara cerdas dan otomatis memindai seluruh portal LPSE tanpa jeda.</li>
+                                        <li>Mencocokkan judul lelang, uraian singkat pengadaan, dan batas pagu anggaran secara ketat.</li>
+                                        <li>Menghindari duplikasi notifikasi sehingga Anda tidak akan menerima spam untuk paket yang sama.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={() => onNavigateTab && onNavigateTab('alerts')}
+                                    className="btn-primary"
+                                    style={{
+                                        padding: '12px 24px',
+                                        borderRadius: '12px',
+                                        fontSize: '13.5px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        boxShadow: '0 4px 16px rgba(37, 211, 102, 0.35)'
+                                    }}
+                                >
+                                    <span>⚙️</span> Kelola Notifikasi WhatsApp &amp; Email ➔
+                                </button>
+                            </div>
                         </div>
                     )}
 
