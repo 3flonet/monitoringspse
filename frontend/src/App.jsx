@@ -12518,6 +12518,7 @@ function App() {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         currentUser={currentUser}
+                        adminSettings={adminSettings}
                     />
                 )}
 

@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 
-export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUser }) {
+export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUser, adminSettings }) {
     const [activeModule, setActiveModule] = useState('quickstart');
     const [searchQuery, setSearchQuery] = useState('');
     const [alertPreviewMode, setAlertPreviewMode] = useState('all'); // 'all', 'whatsapp', 'email'
+
+    const handleOpenWhatsAppCS = () => {
+        const rawPhone = adminSettings?.contact_whatsapp || '6282120664105';
+        let cleanPhone = String(rawPhone).replace(/\D/g, '');
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.substring(1);
+        }
+        const userIdentifier = currentUser?.email || currentUser?.username || 'Pengguna';
+        const msg = `Halo Tim CS Spy SPSE, saya ${userIdentifier}. Saya membutuhkan bantuan terkait panduan dan fitur platform Spy SPSE.`;
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    };
 
     const modules = [
         {
@@ -200,20 +211,34 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
                             Tim Customer Success kami siap membantu kendala teknis atau konsultasi tender.
                         </p>
                         <button
-                            onClick={() => onNavigateTab && onNavigateTab('alerts')}
+                            onClick={handleOpenWhatsAppCS}
                             style={{
                                 width: '100%',
-                                padding: '8px',
-                                background: 'rgba(16, 185, 129, 0.15)',
+                                padding: '9px 12px',
+                                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))',
                                 color: '#34d399',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
                                 borderRadius: '8px',
                                 fontSize: '12px',
                                 fontWeight: '700',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                                e.currentTarget.style.color = '#ffffff';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))';
+                                e.currentTarget.style.color = '#34d399';
                             }}
                         >
-                            Hubungi Dukungan CS 💬
+                            <span>💬</span> Hubungi Dukungan CS
                         </button>
                     </div>
                 </div>
@@ -269,7 +294,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
                                     <div>
                                         <div style={{ fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Daftarkan Kata Kunci Utama Bisnis Anda</div>
                                         <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
-                                            Kunjungi menu <strong>Peluang Anda</strong> dan tambahkan kata kunci pengadaan yang ingin Anda buru, misalnya: <em>Konstruksi, Renovasi, Pengadaan Laptop, Catering, Konsultansi</em>.
+                                            Kunjungi menu <strong>Alerts Notifikasi</strong> dan daftarkan kata kunci pengadaan yang ingin Anda buru, misalnya: <em>Konstruksi, Renovasi, Pengadaan Laptop, Catering, Konsultansi</em>.
                                         </div>
                                     </div>
                                 </div>
@@ -289,7 +314,7 @@ export default function UserDocumentation({ onOpenTour, onNavigateTab, currentUs
 
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                 <button
-                                    onClick={() => onNavigateTab && onNavigateTab('keyword-tenders')}
+                                    onClick={() => onNavigateTab && onNavigateTab('alerts')}
                                     className="btn-primary"
                                     style={{ padding: '10px 20px', borderRadius: '10px', fontSize: '13px', cursor: 'pointer' }}
                                 >
