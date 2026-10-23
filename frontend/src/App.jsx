@@ -7450,6 +7450,24 @@ function App() {
         }
     };
 
+    const scrollToAuthForm = () => {
+        try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            const focusWrapper = () => {
+                const el = document.getElementById('auth-split-wrapper');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+            requestAnimationFrame(focusWrapper);
+            setTimeout(focusWrapper, 60);
+            setTimeout(focusWrapper, 180);
+            setTimeout(focusWrapper, 350);
+        } catch (e) {
+            window.scrollTo(0, 0);
+        }
+    };
+
     // Centralized routing effect
     useEffect(() => {
         const handleHashChange = () => {
@@ -7617,6 +7635,7 @@ function App() {
                 setResetToken(token);
                 setPublicView('auth');
                 setAuthMode('reset');
+                scrollToAuthForm();
                 if (token) {
                     verifyResetToken(token);
                 }
@@ -7626,6 +7645,7 @@ function App() {
                 if (!userToken) {
                     setPublicView('auth');
                     setAuthMode('forgot');
+                    scrollToAuthForm();
                 } else {
                     window.location.hash = '#/dashboard';
                 }
@@ -7636,6 +7656,7 @@ function App() {
                     setPublicView('auth');
                     setIsRegistering(false);
                     setAuthMode('login');
+                    scrollToAuthForm();
                 } else {
                     window.location.hash = '#/dashboard';
                 }
@@ -7646,6 +7667,7 @@ function App() {
                     setPublicView('auth');
                     setIsRegistering(true);
                     setAuthMode('register');
+                    scrollToAuthForm();
                 } else {
                     window.location.hash = '#/dashboard';
                 }
@@ -7702,6 +7724,13 @@ function App() {
 
         return () => window.removeEventListener('hashchange', handleHashChange);
     }, [userToken, currentUser]);
+
+    // Scroll to auth form when auth view is active
+    useEffect(() => {
+        if (publicView === 'auth') {
+            scrollToAuthForm();
+        }
+    }, [publicView, authMode, isRegistering]);
 
     // Initial public articles load
     useEffect(() => {
@@ -8841,9 +8870,21 @@ function App() {
         } else if (target === 'blog') {
             window.location.hash = '#/blog';
         } else if (target === 'auth') {
+            if (!userToken) {
+                setPublicView('auth');
+                setIsRegistering(false);
+                setAuthMode('login');
+            }
             window.location.hash = '#/auth';
+            scrollToAuthForm();
         } else if (target === 'register') {
+            if (!userToken) {
+                setPublicView('auth');
+                setIsRegistering(true);
+                setAuthMode('register');
+            }
             window.location.hash = '#/register';
+            scrollToAuthForm();
         } else {
             if (subView === 'contact') {
                 window.location.hash = '#/contact';
@@ -9380,7 +9421,7 @@ function App() {
                 </div>
 
                 <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '40px 20px', boxSizing: 'border-box' }}>
-                    <div className="auth-split-wrapper">
+                    <div id="auth-split-wrapper" className="auth-split-wrapper">
                         {/* LEFT HERO / VALUE PROPS PANEL */}
                         <div className="auth-hero-section">
                             <div className="auth-badge-pill">

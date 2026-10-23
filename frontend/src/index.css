@@ -1029,6 +1029,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Auth Page Modern SaaS Styles */
+#auth-split-wrapper,
 .auth-split-wrapper {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -1039,6 +1040,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   position: relative;
   z-index: 2;
+  scroll-margin-top: 24px;
 }
 
 .auth-hero-section {
