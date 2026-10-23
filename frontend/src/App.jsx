@@ -4755,41 +4755,219 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
                 </div>
 
-                {/* Problem & Solution Section */}
-                <div style={{ padding: '80px 20px', maxWidth: '1000px', margin: '0 auto', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', marginBottom: '40px' }}>
-                    <h2 style={{ textAlign: 'center', fontSize: '32px', marginBottom: '12px', fontFamily: "'Outfit', sans-serif" }}>Mengapa Perusahaan Anda Butuh Ini?</h2>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '40px', fontSize: '15px' }}>Setiap hari tanpa sistem pemantauan adalah hari di mana kompetitor Anda selangkah lebih maju</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', alignItems: 'stretch' }}>
-                        <div style={{ background: 'rgba(239, 68, 68, 0.05)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                            <h3 style={{ fontSize: '22px', marginBottom: '20px', color: '#f87171', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span>❌</span> Tanpa {adminSettings.app_name || 'Spy SPSE'}
-                            </h3>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af', lineHeight: '1.9', fontSize: '14px' }}>
-                                <li style={{ marginBottom: '10px' }}>📉 Buka puluhan website LPSE satu per satu — buang waktu &amp; tenaga tim.</li>
-                                <li style={{ marginBottom: '10px' }}>😰 Tender bernilai miliaran terlewat karena terlambat tahu jadwal pengumuman.</li>
-                                <li style={{ marginBottom: '10px' }}>🔍 Cari kata kunci manual berjam-jam tanpa hasil maksimal.</li>
-                                <li style={{ marginBottom: '10px' }}>⏰ Deadline pendaftaran &amp; penawaran terlupa — gugur sebelum sempat bersaing.</li>
-                                <li style={{ marginBottom: '10px' }}>🤷 Buta terhadap rekam jejak &amp; histori harga penawaran lawan.</li>
-                                <li style={{ marginBottom: '10px' }}>🏛️ Masuk ke lelang tanpa tahu basis dinas langganan &amp; peta dominasi wilayah lawan.</li>
-                                <li style={{ marginBottom: '10px' }}>⚔️ Menebak kekuatan pesaing tanpa perbandingan Head-to-Head langsung.</li>
-                                <li>📑 Menyusun strategi tender tanpa laporan dossier intelijen eksekutif.</li>
-                            </ul>
+                {/* Problem & Solution Comparison Section */}
+                <div style={{
+                    padding: '70px 24px',
+                    maxWidth: '1160px',
+                    margin: '0 auto 50px auto',
+                    background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(11, 15, 25, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '28px',
+                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)'
+                }}>
+                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(99, 102, 241, 0.12)',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                            padding: '6px 16px',
+                            borderRadius: '30px',
+                            color: '#a5b4fc',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            marginBottom: '12px'
+                        }}>
+                            <span>⚖️ KOMPARASI METODE PENGADAAN</span>
                         </div>
-                        <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                            <h3 style={{ fontSize: '22px', marginBottom: '20px', color: '#34d399', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span>✅</span> Dengan {adminSettings.app_name || 'Spy SPSE'}
-                            </h3>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af', lineHeight: '1.9', fontSize: '14px' }}>
-                                <li style={{ marginBottom: '10px' }}>🤖 <strong style={{ color: '#d1fae5' }}>Radar Tender Otomatis 24/7</strong> — deteksi peluang proyek seluruh Indonesia tanpa jeda.</li>
-                                <li style={{ marginBottom: '10px' }}>📱 <strong style={{ color: '#d1fae5' }}>Notifikasi WhatsApp Instan</strong> — terima info lelang dalam menit setelah pengumuman terbit.</li>
-                                <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Kata kunci &amp; instansi pilihan</strong> — hanya tender relevan yang masuk ke radar Anda.</li>
-                                <li style={{ marginBottom: '10px' }}>🏛️ <strong style={{ color: '#d1fae5' }}>Peta Dominasi Wilayah &amp; Satker</strong> — deteksi instansi basis langganan lawan &amp; strategi memenangkan persaingan di wilayahnya.</li>
-                                <li style={{ marginBottom: '10px' }}>⚔️ <strong style={{ color: '#d1fae5' }}>Head-to-Head Arena</strong> — adu rekam jejak langsung dua kontraktor, selisih harga, &amp; skor menang.</li>
-                                <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Matriks Kelemahan Pokja</strong> — petakan alasan detail gugur kualifikasi lawan untuk amunisi evaluasi &amp; sanggah.</li>
-                                <li style={{ marginBottom: '10px' }}>📑 <strong style={{ color: '#d1fae5' }}>Dossier Eksekutif PDF &amp; Excel</strong> — laporan komprehensif A4 &amp; formula analitis siap bawa ke ruang rapat direksi.</li>
-                                <li>💰 Investasi mulai <strong style={{ color: '#34d399' }}>Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — ROI berkali-kali lipat dari satu kemenangan tender.</li>
-                            </ul>
+                        <h2 style={{
+                            fontSize: '32px',
+                            fontWeight: '800',
+                            color: '#ffffff',
+                            margin: '0 0 10px 0',
+                            fontFamily: "'Outfit', sans-serif"
+                        }}>
+                            Mengapa Perusahaan Anda Butuh Ini?
+                        </h2>
+                        <p style={{
+                            color: '#9ca3af',
+                            fontSize: '15px',
+                            maxWidth: '650px',
+                            margin: '0 auto',
+                            lineHeight: '1.6'
+                        }}>
+                            Bandingkan cara konvensional yang menyita waktu dan berisiko dengan otomasi intelijen tender yang presisi.
+                        </p>
+                    </div>
+
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                        gap: '24px',
+                        alignItems: 'stretch',
+                        marginBottom: '32px'
+                    }}>
+                        {/* Left Card: Tanpa Spy SPSE */}
+                        <div style={{
+                            background: 'linear-gradient(145deg, rgba(239, 68, 68, 0.04), rgba(15, 23, 42, 0.6))',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            borderRadius: '20px',
+                            padding: '30px 24px',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid rgba(239, 68, 68, 0.15)', paddingBottom: '16px' }}>
+                                <div>
+                                    <span style={{ fontSize: '11px', fontWeight: '800', color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CARA KONVENSIONAL</span>
+                                    <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: '800', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ color: '#ef4444' }}>❌</span> Tanpa {adminSettings.app_name || 'Spy SPSE'}
+                                    </h3>
+                                </div>
+                                <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700' }}>
+                                    Risiko &amp; Boros Waktu
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
+                                {[
+                                    { icon: '📉', title: 'Buka LPSE Manual Satu Per Satu', desc: 'Menghabiskan puluhan jam kerja staf hanya untuk mengecek portal yang terpisah.' },
+                                    { icon: '😰', title: 'Tender Terlewat / Terlambat Tahu', desc: 'Pengumuman terbit berhari-hari sebelum disadari tim penawar.' },
+                                    { icon: '🔍', title: 'Pencarian Kata Kunci Terbatas', desc: 'Sistem pencarian kaku menyebabkan banyak peluang bernilai miliaran luput.' },
+                                    { icon: '⏰', title: 'Gugur Karena Melewatkan Jadwal', desc: 'Terlambat mengunggah penawaran atau terlewat jadwal klarifikasi dokumen.' },
+                                    { icon: '🤷', title: 'Buta Pola Harga & Rekam Jejak Lawan', desc: 'Memasukkan harga tanpa referensi histori diskon penawaran kompetitor.' },
+                                    { icon: '🏛️', title: 'Tidak Tahu Basis Wilayah Lawan', desc: 'Masuk ke dinas tanpa tahu kontraktor yang selama ini mendominasi satker.' },
+                                    { icon: '⚔️', title: 'Menebak Kekuatan Kompetitor', desc: 'Tidak memiliki data rekam jejak langsung saat bersaing di lelang yang sama.' },
+                                    { icon: '📑', title: 'Penyusunan Strategi Tanpa Data Formal', desc: 'Kesulitan menyajikan analisis persaingan saat rapat pimpinan direksi.' },
+                                ].map((item, idx) => (
+                                    <div key={idx} style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '12px',
+                                        background: 'rgba(239, 68, 68, 0.03)',
+                                        border: '1px solid rgba(239, 68, 68, 0.1)',
+                                        padding: '12px 14px',
+                                        borderRadius: '12px',
+                                        transition: 'all 0.2s'
+                                    }}>
+                                        <span style={{ fontSize: '16px', lineHeight: '1.2', flexShrink: 0 }}>{item.icon}</span>
+                                        <div>
+                                            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fca5a5', marginBottom: '2px' }}>
+                                                {item.title}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#9ca3af', lineHeight: '1.45' }}>
+                                                {item.desc}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+
+                        {/* Right Card: Dengan Spy SPSE */}
+                        <div style={{
+                            background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.05), rgba(15, 23, 42, 0.7))',
+                            border: '1px solid rgba(16, 185, 129, 0.35)',
+                            borderRadius: '20px',
+                            padding: '30px 24px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 12px 30px rgba(16, 185, 129, 0.08)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid rgba(16, 185, 129, 0.2)', paddingBottom: '16px' }}>
+                                <div>
+                                    <span style={{ fontSize: '11px', fontWeight: '800', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OTOMASI INTELIJEN TENDER</span>
+                                    <h3 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: '800', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ color: '#10b981' }}>✅</span> Dengan {adminSettings.app_name || 'Spy SPSE'}
+                                    </h3>
+                                </div>
+                                <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700' }}>
+                                    Cepat &amp; Presisi 24/7
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
+                                {[
+                                    { icon: '🤖', title: 'Radar Tender Otomatis 24/7', desc: 'Bot memantau ribuan portal LPSE nasional tanpa jeda dan mendeteksi peluang baru.' },
+                                    { icon: '📱', title: 'Notifikasi WhatsApp Instan', desc: 'Info lelang relevan dikirim langsung ke WhatsApp tim dalam hitungan menit.' },
+                                    { icon: '🎯', title: 'Filter Cerdas Multi-Instansi', desc: 'Hanya proyek yang cocok dengan kualifikasi, izin, dan target wilayah yang masuk.' },
+                                    { icon: '⏱️', title: 'Sinkronisasi Jadwal & Countdown', desc: 'Pemantauan tahapan lelang real-time agar tidak pernah melewatkan batas waktu.' },
+                                    { icon: '🏛️', title: 'Peta Dominasi Wilayah & Satker', desc: 'Ketahui instansi basis terkuat kompetitor dan taktik penetrasi wilayahnya.' },
+                                    { icon: '⚔️', title: 'Head-to-Head Arena & Gap Harga', desc: 'Adu langsung rekam jejak kemenangan bersama, selisih penawaran, dan skor menang.' },
+                                    { icon: '🎯', title: 'Matriks Evaluasi & Gugur Pokja', desc: 'Deteksi celah gugur kualifikasi teknis lawan sebagai amunisi audit & sanggahan.' },
+                                    { icon: '📑', title: 'Dossier Eksekutif PDF & Excel A4', desc: 'Laporan resmi siap bawa ke rapat pimpinan serta spreadsheet analitis berformula.' },
+                                ].map((item, idx) => (
+                                    <div key={idx} style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '12px',
+                                        background: 'rgba(16, 185, 129, 0.04)',
+                                        border: '1px solid rgba(16, 185, 129, 0.15)',
+                                        padding: '12px 14px',
+                                        borderRadius: '12px',
+                                        transition: 'all 0.2s'
+                                    }}>
+                                        <span style={{ fontSize: '16px', lineHeight: '1.2', flexShrink: 0 }}>{item.icon}</span>
+                                        <div>
+                                            <div style={{ fontSize: '13px', fontWeight: '700', color: '#6ee7b7', marginBottom: '2px' }}>
+                                                {item.title}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#d1d5db', lineHeight: '1.45' }}>
+                                                {item.desc}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom ROI & Action Bar */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8))',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
+                        borderRadius: '16px',
+                        padding: '18px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '16px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '24px' }}>💡</span>
+                            <div>
+                                <div style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff' }}>
+                                    Investasi Terjangkau dengan Potensi ROI Maksimal
+                                </div>
+                                <div style={{ fontSize: '12.5px', color: '#9ca3af' }}>
+                                    Mulai dari <strong style={{ color: '#fbbf24' }}>Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — satu kemenangan proyek lelang sudah menutup biaya langganan bertahun-tahun.
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onGetStarted}
+                            style={{
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '10px 22px',
+                                borderRadius: '10px',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            <span>Mulai Sekarang</span>
+                            <span>➜</span>
+                        </button>
                     </div>
                 </div>
 
