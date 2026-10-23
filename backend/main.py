@@ -3769,6 +3769,22 @@ def get_llms_txt():
         content = """# Spy SPSE (https://spyspse.com)
 > Spy SPSE adalah platform intelijen pengadaan dan pemantauan tender SPSE (LPSE) se-Indonesia yang dirancang untuk membantu kontraktor, konsultan, dan vendor pengadaan pemerintah memenangkan tender secara efisien dan berbasis data akurat.
 """
+    try:
+        published_articles = get_all_articles(include_unpublished=False)
+        if published_articles:
+            content += "\n## Daftar Artikel, Panduan & Studi Kasus Taktis Terbaru\n"
+            for art in published_articles[:50]:
+                art_slug = art.get("slug", "")
+                art_title = (art.get("title") or "").replace("{lpse_name}", "Indonesia")
+                art_desc = (art.get("meta_description") or "").replace("{lpse_name}", "Indonesia")
+                art_cat = art.get("category") or "Informasi"
+                if art_slug and art_title:
+                    line = f"- [{art_title}](https://spyspse.com/artikel/{art_slug}) [{art_cat}]"
+                    if art_desc:
+                        line += f": {art_desc}"
+                    content += line + "\n"
+    except Exception:
+        pass
     return Response(content=content, media_type="text/plain; charset=utf-8")
 
 
@@ -3796,16 +3812,20 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
         except Exception:
             pass
             
+    import re
     title = (article.get("title") or "Artikel Tender LPSE").replace("{lpse_name}", lpse_name)
+    raw_content = (article.get("content") or "").replace("{lpse_name}", lpse_name)
+    plain_body = ' '.join(re.sub(r'<[^>]+>', ' ', raw_content).split())
     meta_desc = article.get("meta_description") or ""
     if not meta_desc:
-        raw_content = article.get("content") or ""
-        import re
-        plain = re.sub(r'<[^>]+>', ' ', raw_content).replace("{lpse_name}", lpse_name)
-        plain = ' '.join(plain.split())
-        meta_desc = (plain[:155] + "...") if len(plain) > 155 else plain
+        meta_desc = (plain_body[:155] + "...") if len(plain_body) > 155 else plain_body
     else:
         meta_desc = meta_desc.replace("{lpse_name}", lpse_name)
+        
+    meta_keywords = (article.get("meta_keywords") or "spy spse, tender lpse, analisis kompetitor tender, e-procurement").replace("{lpse_name}", lpse_name)
+    category = article.get("category") or "Strategi Tender & E-Procurement"
+    created_at = article.get("created_at") or ""
+    updated_at = article.get("updated_at") or created_at
         
     image_url = article.get("image_url") or "https://spyspse.com/static/og-banner.png"
     if image_url.startswith("/"):
@@ -3813,6 +3833,78 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
         
     canonical_url = f"https://spyspse.com/artikel/{slug}" + (f"/lpse/{lpse_slug}" if lpse_slug and lpse_slug != 'nasional' else "")
     spa_target_hash = f"/#/artikel/{slug}" + (f"/lpse/{lpse_slug}" if lpse_slug and lpse_slug != 'nasional' else "")
+
+    doc_html = ""
+    if article.get("document_url"):
+        doc_title = article.get("document_title") or "Dokumen Lampiran Resmi"
+        doc_url = article.get("document_url")
+        if doc_url.startswith("/"):
+            doc_url = f"https://spyspse.com{doc_url}"
+        doc_html = f'<section class="doc-attachment"><h3>Lampiran Dokumen Resmi</h3><p><a href="{doc_url}">{doc_title}</a></p></section>'
+
+    structured_data = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": "https://spyspse.com/#organization",
+                "name": "Spy SPSE",
+                "url": "https://spyspse.com/",
+                "logo": "https://spyspse.com/favicon.svg",
+                "description": "Platform intelijen pemantauan tender SPSE/LPSE seluruh Indonesia dan strategi pemenangan pengadaan pemerintah."
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://spyspse.com/#software",
+                "name": "Spy SPSE",
+                "alternateName": "Spy SPSE - E-Procurement & Tender Competitor Intelligence Tool",
+                "operatingSystem": "Web, Windows, macOS, Android, iOS",
+                "applicationCategory": "BusinessApplication",
+                "applicationSubCategory": "E-Procurement, Tender Monitoring & Competitor Intelligence Software",
+                "url": "https://spyspse.com/",
+                "provider": {"@id": "https://spyspse.com/#organization"},
+                "offers": {
+                    "@type": "Offer",
+                    "price": "150000",
+                    "priceCurrency": "IDR",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://spyspse.com/"
+                },
+                "description": "Tool e-procurement dan platform intelijen tender LPSE/SPSE Indonesia untuk memantau peluang lelang pemerintah, membaca pola bidding & rasio diskon kompetitor (Bidding Sweet Spot), mendeteksi alasan gugur evaluasi Pokja (Spy Weakness Matrix), memetakan Satker dominan, komparasi Head-to-Head peserta tender, Early Warning Radar, serta notifikasi WhatsApp realtime.",
+                "featureList": [
+                    "Radar Notifikasi Tender WhatsApp Realtime",
+                    "Monitoring Tender & Non-Tender Nasional Seluruh LPSE Indonesia",
+                    "Analisis Profil Badan Usaha, Win Rate & Riwayat Kontrak Kompetitor",
+                    "Analisis Pola Penawaran Harga & Bidding Sweet Spot (% Rasio terhadap Pagu/HPS)",
+                    "Spy Weakness Matrix: Deteksi 6 Klaster Titik Lemah & Alasan Gugur Evaluasi Pokja",
+                    "Pemetaan Klien & Basis Wilayah Satker Dominan (Home Ground Kompetitor)",
+                    "Analisis Jejaring KSO, Konsorsium & Aliansi Co-Bidders",
+                    "Komparasi Head-to-Head (Duel Statistik & Rekam Jejak Bentrok 2 Perusahaan)",
+                    "Early Warning Radar: Prediksi Kompetitor & Threat Score pada Tender Aktif",
+                    "Export Executive Intelligence Dossier (Laporan Rahasia PDF & Excel)"
+                ]
+            },
+            {
+                "@type": "Article",
+                "@id": f"{canonical_url}#article",
+                "mainEntityOfPage": canonical_url,
+                "headline": title,
+                "description": meta_desc,
+                "keywords": meta_keywords,
+                "articleSection": category,
+                "articleBody": plain_body,
+                "image": [image_url],
+                "url": canonical_url,
+                "inLanguage": "id-ID",
+                "datePublished": created_at,
+                "dateModified": updated_at,
+                "author": {"@id": "https://spyspse.com/#organization"},
+                "publisher": {"@id": "https://spyspse.com/#organization"},
+                "about": {"@id": "https://spyspse.com/#software"},
+                "mentions": [{"@id": "https://spyspse.com/#software"}]
+            }
+        ]
+    }
     
     html = f"""<!doctype html>
 <html lang="id">
@@ -3821,8 +3913,9 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} | Spy SPSE</title>
     <meta name="description" content="{meta_desc}">
+    <meta name="keywords" content="{meta_keywords}">
     <link rel="canonical" href="{canonical_url}">
-    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
     
     <!-- OpenGraph Facebook / WhatsApp -->
     <meta property="og:type" content="article">
@@ -3839,22 +3932,9 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
     <meta name="twitter:description" content="{meta_desc}">
     <meta name="twitter:image" content="{image_url}">
     
-    <!-- JSON-LD Article for Google & AI Engines -->
+    <!-- JSON-LD Article & SoftwareApplication for Google & AI Engines (GEO) -->
     <script type="application/ld+json">
-    {{
-      "@context": "https://schema.org",
-      "@type": "Article",
-      "headline": {json.dumps(title)},
-      "description": {json.dumps(meta_desc)},
-      "image": [{json.dumps(image_url)}],
-      "url": {json.dumps(canonical_url)},
-      "publisher": {{
-        "@type": "Organization",
-        "name": "Spy SPSE",
-        "url": "https://spyspse.com/",
-        "logo": "https://spyspse.com/favicon.svg"
-      }}
-    }}
+    {json.dumps(structured_data, ensure_ascii=False, indent=2)}
     </script>
     
     <!-- Instant Client Redirect to SPA Interactive View -->
@@ -3862,15 +3942,29 @@ def get_article_social_preview(slug: str, lpse_slug: Optional[str] = None):
       window.location.replace('{spa_target_hash}');
     </script>
     <style>
-      body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #fff; padding: 40px 20px; text-align: center; }}
+      body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f3f4f6; padding: 40px 20px; max-width: 820px; margin: 0 auto; line-height: 1.7; }}
       a {{ color: #818cf8; text-decoration: none; font-weight: 600; }}
       .btn {{ display: inline-block; background: #4f46e5; color: #fff; padding: 12px 24px; border-radius: 8px; margin-top: 20px; }}
+      .tool-summary {{ margin-top: 32px; padding: 20px; border: 1px solid #312e81; border-radius: 12px; background: #111827; }}
     </style>
 </head>
 <body>
-    <h1>{title}</h1>
-    <p>{meta_desc}</p>
-    <p><a href="{spa_target_hash}" class="btn">Buka Artikel Lengkap di Spy SPSE &rarr;</a></p>
+    <article>
+        <header>
+            <p>Kategori: {category} | Wilayah LPSE: {lpse_name}</p>
+            <h1>{title}</h1>
+            <p><em>{meta_desc}</em></p>
+        </header>
+        <div class="article-content">
+            {raw_content}
+        </div>
+        {doc_html}
+        <aside class="tool-summary">
+            <h2>Tentang Spy SPSE — E-Procurement &amp; Competitor Intelligence Tool</h2>
+            <p><strong>Spy SPSE</strong> (<a href="https://spyspse.com">https://spyspse.com</a>) adalah platform intelijen tender LPSE/SPSE Indonesia yang menyediakan fitur Analisis Pola Penawaran Harga (Bidding Sweet Spot), Spy Weakness Matrix (Deteksi 6 Klaster Alasan Gugur Pokja), Pemetaan Satker Dominan, Komparasi Head-to-Head Kompetitor, Early Warning Radar, serta Radar Notifikasi Tender WhatsApp Realtime.</p>
+            <p><a href="{spa_target_hash}" class="btn">Buka Artikel Interaktif di Spy SPSE &rarr;</a></p>
+        </aside>
+    </article>
 </body>
 </html>"""
     return HTMLResponse(content=html)

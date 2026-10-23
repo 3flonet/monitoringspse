@@ -7785,19 +7785,34 @@ function App() {
                 "@type": "Article",
                 "headline": resolvedTitle,
                 "description": resolvedDesc,
+                "articleSection": selectedArticle.category || "Strategi Tender & E-Procurement",
                 "image": [selectedArticle.image_url || "https://spyspse.com/static/og-banner.png"],
                 "datePublished": selectedArticle.created_at || new Date().toISOString(),
+                "dateModified": selectedArticle.updated_at || selectedArticle.created_at || new Date().toISOString(),
                 "author": {
                     "@type": "Organization",
+                    "@id": "https://spyspse.com/#organization",
                     "name": appName,
                     "url": "https://spyspse.com/"
                 },
                 "publisher": {
                     "@type": "Organization",
+                    "@id": "https://spyspse.com/#organization",
                     "name": appName,
                     "url": "https://spyspse.com/",
                     "logo": "https://spyspse.com/favicon.svg"
-                }
+                },
+                "about": {
+                    "@type": "SoftwareApplication",
+                    "@id": "https://spyspse.com/#software",
+                    "name": appName,
+                    "applicationCategory": "BusinessApplication",
+                    "applicationSubCategory": "E-Procurement, Tender Monitoring & Competitor Intelligence Software",
+                    "url": "https://spyspse.com/"
+                },
+                "mentions": [
+                    { "@id": "https://spyspse.com/#software" }
+                ]
             });
         } else {
             // Remove article JSON-LD if leaving article detail

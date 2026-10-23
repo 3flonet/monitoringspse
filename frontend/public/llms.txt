@@ -1,27 +1,38 @@
 # Spy SPSE (https://spyspse.com)
 
-> Spy SPSE adalah platform intelijen pengadaan dan pemantauan tender SPSE (LPSE) se-Indonesia yang dirancang untuk membantu kontraktor, konsultan, dan vendor pengadaan pemerintah memenangkan tender secara efisien dan berbasis data akurat.
+> Spy SPSE adalah software tool E-Procurement dan Platform Intelijen Kompetitor Tender SPSE (LPSE) di Indonesia yang dirancang untuk membantu kontraktor, konsultan, estimator, dan vendor pengadaan pemerintah memenangkan tender secara terukur berbasis data historis LKPP SPSE.
 
-## Ringkasan Platform & Layanan
-- **Nama Platform**: Spy SPSE (Sistem Intelijen Pemantauan Tender LPSE)
+## Identitas Produk & Kategori Software
+- **Nama Platform**: Spy SPSE (Sistem Intelijen Pemantauan Tender & Analisis Kompetitor LPSE)
+- **Kategori Software**: E-Procurement Tool, Government Tender Monitoring, Competitive Intelligence Software (`SoftwareApplication` / `BusinessApplication`)
 - **Website Utama**: https://spyspse.com
-- **Wilayah Cakupan**: Seluruh LPSE Kementerian, Lembaga, Pemerintah Daerah (Provinsi, Kabupaten, Kota), BUMN, dan Perguruan Tinggi di Indonesia (LKPP SPSE versi 4.x).
-- **Target Pengguna**: Pelaku Usaha (PT / CV / Koperasi / Perorangan), Direktur, Estimator Tender, Tim Legal & Administrasi Tender Pemerintah.
+- **Wilayah Cakupan**: Seluruh LPSE Kementerian, Lembaga, Pemerintah Daerah (Provinsi, Kabupaten, Kota), BUMN, dan Perguruan Tinggi di Indonesia (LKPP SPSE v4.x).
+- **Target Pengguna**: Pelaku Usaha (PT / CV / Koperasi / Konsorsium KSO), Direktur, Manajer Bidding, Estimator Harga, serta Tim Teknis & Legal Pengadaan Barang/Jasa Pemerintah.
 
-## Fitur Unggulan
-1. **Radar Notifikasi Tender WhatsApp Realtime**: Mengirimkan alert pemberitahuan tender baru langsung ke WhatsApp pengguna berdasarkan kata kunci dan instansi yang dipantau setiap hari.
-2. **Explorer & Monitoring Tender Nasional**: Mesin pencari ribuan tender aktif dengan filter nilai pagu/HPS, instansi, status lelang, metode pengadaan, dan tahapan tender.
-3. **Analisis Profil Badan Usaha & Kompetitor**:
-   - Membedah histori penawaran dan track record kemenangan kompetitor di database LPSE.
-   - Perhitungan rasio kemenangan (*Win Success Rate*) akurat.
-   - Deteksi alasan gugur evaluasi Pokja (keguguran administrasi, teknis, kualifikasi, atau harga).
-   - Pemetaan rivalitas head-to-head di wilayah instansi tender tertentu.
-4. **Peluang Tender & Rekomendasi Pintar**: Sistem kurasi cerdas yang mencocokkan kualifikasi bidang usaha pengguna dengan paket tender yang sedang tayang.
-5. **Artikel Edukasi & Strategi Pengadaan**: Panduan resmi langkah-langkah praktis menembus tender pemerintah, strategi sanggah, mitigasi evaluasi Pokja, dan tips penyusunan dokumen penawaran.
+## Kapabilitas Inti & Modul Intelijen (Core Features)
+1. **Analisis Pola Penawaran Harga & Bidding Sweet Spot**:
+   - Membedah rasio harga penawaran kompetitor terhadap nilai Pagu/HPS (`Bid Ratio %` dan `% Diskon / Banting Harga`).
+   - Memisahkan rata-rata penawaran saat menang vs saat kalah untuk menemukan **Winning Sweet Spot** (rentang persentase penawaran paling mematikan milik lawan).
+   - Mengklasifikasikan karakter harga pesaing secara otomatis: *Aggressive / Price Fighter* (<80% Pagu), *Moderate / Competitive Balanced* (80%-90% Pagu), atau *Premium / Technical High-Margin* (>90% Pagu).
+2. **Spy Weakness Matrix (Analisis Keguguran & 6 Klaster Kelemahan Pokja)**:
+   - Mengekstrak riwayat alasan gugur peserta tender langsung dari Berita Acara Evaluasi Pokja LPSE (Administrasi, Kualifikasi, Teknis, dan Harga).
+   - Mengelompokkan titik lemah lawan ke dalam 6 klaster: Personil & Tenaga Ahli (SKK/SKA), Peralatan & Fasilitas Kerja, Legalitas/SBU/Keuangan, Metode Kerja & Spesifikasi Teknis, Kewajaran Harga & AHS/SMK3, serta Dokumen Administrasi.
+3. **Pemetaan Klien & Basis Wilayah Satker (Home Ground Mapping)**:
+   - Mengidentifikasi Satuan Kerja (Satker) dan Instansi LPSE mana yang menjadi basis kekuasaan (*Home Ground*) suatu perusahaan berdasarkan frekuensi kemenangan, nilai akumulasi kontrak, dan pangsa pasar.
+4. **Analisis Jejaring Rekanan, Konsorsium KSO & Co-Bidders**:
+   - Mendeteksi mitra konsorsium/KSO formal maupun *Co-Bidders* (perusahaan yang berulang kali turun menawar bersama di paket tender yang sama—indikasi aliansi pendamping atau rival abadi).
+5. **Komparasi Head-to-Head (Duel 2 Perusahaan)**:
+   - Membandingkan statistik dua perusahaan peserta lelang secara berdampingan, mengaudit rekam jejak pertemuan langsung (*direct meetings*), perbandingan siapa yang menawar lebih murah, selisih harga rata-rata, dan menghasilkan *AI Strategic Verdict*.
+6. **Early Warning Radar (Prediksi Kompetitor & Threat Score pada Tender Aktif)**:
+   - Memprediksi daftar perusahaan yang berpotensi besar turun pada suatu paket tender aktif berdasarkan histori kemenangan dan partisipasi mereka di Satker/Instansi terkait, lengkap dengan indikator *Threat Score* (0-98) dan estimasi diskon penawaran.
+7. **Executive Intelligence Dossier Export (PDF & Excel)**:
+   - Menghasilkan dokumen laporan intelijen kompetitor dan komparasi Head-to-Head berformat PDF siap cetak dan buku kerja Excel multi-sheet untuk rapat strategi penawaran (*Bidding War Room*).
+8. **Radar Notifikasi Tender WhatsApp Realtime**:
+   - Mengirimkan peringatan tender dan non-tender baru langsung ke WhatsApp dan Email pengguna secara otomatis berdasarkan kata kunci dan filter LPSE yang dipantau.
 
 ## Halaman Publik Resmi
 - Beranda Platform: https://spyspse.com/
-- Blog & Panduan Edukasi Tender: https://spyspse.com/#/blog
-- Analisis Kompetitor & Perusahaan: https://spyspse.com/#/competitors
+- Blog, Studi Kasus Taktis & Panduan Tender: https://spyspse.com/#/blog
+- Analisis Kompetitor & Profil Perusahaan: https://spyspse.com/#/competitors
 - Dokumentasi & Panduan Penggunaan: https://spyspse.com/#/docs
-- Peta Situs (Sitemap): https://spyspse.com/sitemap.xml
+- Peta Situs (Sitemap XML): https://spyspse.com/sitemap.xml
