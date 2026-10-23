@@ -95,11 +95,6 @@ const Icons = {
       <polyline points="9 18 15 12 9 6" />
     </svg>
   ),
-  Sparkles: ({ className = 'w-4 h-4' }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
-    </svg>
-  ),
   Layers: ({ className = 'w-4 h-4' }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -141,7 +136,7 @@ export default function PublicFeaturesPage({
   const [activeFaq, setActiveFaq] = useState(null);
 
   const categories = [
-    { id: 'all', label: 'Semua Fitur' },
+    { id: 'all', label: 'Semua Modul' },
     { id: 'monitoring', label: 'Monitoring & Alert' },
     { id: 'intelligence', label: 'Intelijen & Kompetitor' },
     { id: 'tactical', label: 'Taktis & Sanggahan' },
@@ -153,85 +148,81 @@ export default function PublicFeaturesPage({
       id: 'radar-alert',
       category: 'monitoring',
       badge: 'Real-Time Alert',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      accentColor: '#34d399',
       icon: Icons.Bell,
-      iconBg: 'bg-emerald-500/10 text-emerald-600',
+      iconBg: 'rgba(16, 185, 129, 0.12)',
       title: 'Radar Notifikasi Otomatis WhatsApp & Email 24/7',
       subtitle: 'Jangan pernah terlambat tahu saat tender incaran Anda tayang di LPSE',
-      problem: 'Banyak kontraktor kehilangan peluang miliaran rupiah hanya karena telat 1 hari mengecek ratusan website LPSE atau melewatkan masa aanwijzing.',
-      solution: 'Mesin bot Spy SPSE memindai ribuan server LPSE nasional non-stop setiap beberapa menit. Saat ada paket baru yang cocok dengan kriteria kata kunci, pagu anggaran, atau instansi pilihan Anda, notifikasi ringkas otomatis dikirim ke WhatsApp dan Email Anda.',
+      problem: 'Banyak kontraktor kehilangan peluang proyek miliaran rupiah hanya karena telat mengecek puluhan portal LPSE atau melewatkan masa aanwijzing.',
+      solution: 'Mesin bot Spy SPSE memindai ratusan LPSE nasional secara otomatis setiap beberapa menit. Saat ada paket lelang baru yang sesuai dengan kata kunci, rentang pagu, atau satker incaran Anda, notifikasi langsung dikirim ke WhatsApp dan Email Anda.',
       capabilities: [
         'Filter cerdas multi-keyword (contoh: "Gedung", "Jalan", "Pengadaan IT", "Alkes")',
         'Pengaturan rentang nilai pagu (contoh: Rp 500 Juta – Rp 25 Miliar)',
         'Pemilihan instansi atau LPSE spesifik (Provinsi, Kabupaten/Kota, Kementerian, BUMN)',
-        'Pengingat otomatis perubahan tahapan krusial (pembukaan penawaran, evaluasi, pengumuman pemenang)'
-      ],
-      tag: 'Monitoring Otomatis'
+        'Pengingat otomatis perubahan tahapan krusial (pembukaan penawaran, evaluasi, sanggahan, pengumuman pemenang)'
+      ]
     },
     {
       id: 'explorer-tender',
       category: 'monitoring',
       badge: 'Database Nasional',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+      accentColor: '#60a5fa',
       icon: Icons.Search,
-      iconBg: 'bg-blue-500/10 text-blue-600',
+      iconBg: 'rgba(59, 130, 246, 0.12)',
       title: 'Explorer & Mesin Pencari Tender Multi-LPSE',
       subtitle: 'Pencarian instan ribuan paket pengadaan aktif se-Indonesia dalam satu layar',
-      problem: 'Membuka puluhan tab browser untuk mengecek LPSE Kementerian PUPR, Pemprov, Pemkab, dan LPSE lain satu per satu sangat melelahkan dan rentan terlewat.',
-      solution: 'Spy SPSE mengumpulkan seluruh paket lelang tender dari ratusan LPSE nasional ke dalam satu antarmuka terpusat yang responsif, cepat, dan selalu diperbarui.',
+      problem: 'Membuka puluhan tab browser untuk mengecek LPSE Kementerian PUPR, Pemprov, Pemkab, dan instansi lain satu per satu sangat melelahkan dan rawan terlewat.',
+      solution: 'Spy SPSE mengumpulkan seluruh paket lelang tender dari ratusan LPSE nasional ke dalam satu antarmuka terpusat yang responsif, cepat, dan selalu terbarui.',
       capabilities: [
         'Pencarian instan berdasarkan nama tender, kode lelang, lokasi satker, atau metode pengadaan',
-        'Filter komprehensif: Metode Evaluasi (Harga Terendah / Kualitas / Biaya), Kualifikasi (Usaha Kecil / Non-Kecil)',
+        'Filter komprehensif: Metode Evaluasi (Harga Terendah / Kualitas), Kualifikasi (Usaha Kecil / Non-Kecil)',
         'Sinkronisasi real-time jadwal tahapan resmi LPSE dengan hitung mundur (countdown)',
         'Akses langsung 1-klik menuju link paket resmi di portal LPSE asal tanpa perlu login ulang'
-      ],
-      tag: 'Multi-LPSE Search'
+      ]
     },
     {
       id: 'competitor-profile',
       category: 'intelligence',
       badge: 'Deep Analytics',
-      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+      accentColor: '#c084fc',
       icon: Icons.Users,
-      iconBg: 'bg-purple-500/10 text-purple-600',
+      iconBg: 'rgba(168, 85, 247, 0.12)',
       title: 'Profil Lengkap & Intelijen Kompetitor',
       subtitle: 'Bongkar track record, rasio kemenangan (Win Rate), dan gaya penawaran lawan',
       problem: 'Saat mengajukan penawaran, Anda sering kali buta siapa saja kontraktor lain yang ikut menawar dan berapa rata-rata harga yang biasa mereka tawarkan.',
-      solution: 'Ketik nama perusahaan kontraktor atau peserta tender mana pun, dan dapatkan profil lengkap historis: total tender yang pernah diikuti, tingkat kemenangan riil (Win Rate %), total nilai kontrak yang dimenangkan, serta pola diskon penawaran harga terhadap HPS.',
+      solution: 'Ketik nama perusahaan kontraktor mana pun, dan dapatkan profil lengkap historis: total tender yang pernah diikuti, tingkat kemenangan riil (Win Rate %), total nilai kontrak yang dimenangkan, serta pola diskon penawaran harga terhadap HPS.',
       capabilities: [
         'Kalkulasi otomatis Win Rate % (rasio menang vs kalah dalam 3 tahun terakhir)',
         'Akumulasi nilai kemenangan proyek dan tren skala proyek yang biasa digarap',
         'Distribusi nilai penawaran rata-rata (pola banting harga agresif vs realistis)',
         'Daftar lengkap riwayat keikutsertaan lelang beserta nilai HPS dan penawaran akhirnya'
-      ],
-      tag: 'Profil Kontraktor'
+      ]
     },
     {
       id: 'peta-dominasi',
       category: 'intelligence',
       badge: 'Strategi Penetrasi',
-      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+      accentColor: '#fbbf24',
       icon: Icons.MapPin,
-      iconBg: 'bg-amber-500/10 text-amber-600',
+      iconBg: 'rgba(245, 158, 11, 0.12)',
       title: 'Peta Dominasi Wilayah & Satker Langganan',
       subtitle: 'Deteksi instansi/dinas mana yang menjadi basis dominasi utama kompetitor',
       problem: 'Sering kali kontraktor menghabiskan biaya jaminan penawaran dan waktu menyusun dokumen tender di dinas tertentu yang ternyata sudah dikuasai oleh rekanan langganan tetap.',
-      solution: 'Algoritma Spy SPSE memetakan konsentrasi kemenangan kontraktor per Satuan Kerja (Satker) dan Dinas. Jika satu kontraktor memenangkan ≥35% proyek di satker yang sama, sistem langsung melabelinya sebagai "Satker Langganan Utama" dengan indikator status proteksi.',
+      solution: 'Algoritma Spy SPSE memetakan konsentrasi kemenangan kontraktor per Satuan Kerja (Satker) dan Dinas. Jika satu kontraktor memenangkan ≥35% proyek di satker yang sama, sistem langsung melabelinya sebagai "Satker Langganan Utama" dengan indikator status proteksi wilayah.',
       capabilities: [
         'Deteksi konsentrasi kemenangan per dinas dan instansi secara matematis',
         'Klasifikasi status wilayah: "Dominasi Tinggi" (Sangat Terproteksi) vs "Wilayah Terbuka/Netral"',
         'Rekomendasi taktis: Identifikasi dinas mana yang peluang menangnya tinggi untuk penetrasi baru dan mana yang berisiko tinggi',
         'Visualisasi ranking satker tempat kompetitor paling sering memenangkan proyek APBD/APBN'
-      ],
-      tag: 'Home Ground Detector'
+      ]
     },
     {
       id: 'head-to-head',
       category: 'tactical',
       badge: 'Arena Adu Kontraktor',
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
+      accentColor: '#f87171',
       icon: Icons.Swords,
-      iconBg: 'bg-rose-500/10 text-rose-600',
+      iconBg: 'rgba(239, 68, 68, 0.12)',
       title: 'Head-to-Head Comparator Arena (Adu Dua Kontraktor)',
       subtitle: 'Simulasikan duel langsung antara perusahaan Anda dan kompetitor terberat',
       problem: 'Sulit mengetahui seberapa sering Anda bentrok dengan kompetitor utama dan siapa yang lebih unggul dalam lelang bersama di masa lalu.',
@@ -241,16 +232,15 @@ export default function PublicFeaturesPage({
         'Perbandingan skor menang langsung (Win-Loss Direct Record)',
         'Analisis Price Gap: berapa persen biasanya lawan memasang harga lebih tinggi atau lebih rendah dari Anda',
         'Strategic Verdict otomatis: rekomendasi taktik penawaran bila kembali bertemu di paket mendatang'
-      ],
-      tag: 'H2H Battle Analyzer'
+      ]
     },
     {
       id: 'pokja-weakness',
       category: 'tactical',
       badge: 'Amunisi Sanggahan',
-      badgeColor: 'bg-red-50 text-red-700 border-red-200',
+      accentColor: '#f43f5e',
       icon: Icons.FileWarning,
-      iconBg: 'bg-red-500/10 text-red-600',
+      iconBg: 'rgba(244, 63, 94, 0.12)',
       title: 'Matriks Kelemahan Pokja & Amunisi Sanggahan',
       subtitle: 'Audit alasan gugur kompetitor dan siapkan materi sanggahan tender berbasis data',
       problem: 'Saat mengajukan sanggahan ke Pokja Pemilihan, kontraktor sering kali kekurangan data pembanding atau tidak tahu titik lemah riil dari pemenang lelang.',
@@ -260,16 +250,15 @@ export default function PublicFeaturesPage({
         'Akses catatan asli Pokja saat menggugurkan rekanan dalam tender-tender sebelumnya',
         'Amunisi kuat untuk menyusun materi sanggahan resmi jika pemenang dinilai tidak memenuhi syarat',
         'Checklist preventif bagi tim tender Anda agar tidak melakukan kesalahan gugur yang sama'
-      ],
-      tag: 'Audit Kegagalan & Sanggah'
+      ]
     },
     {
       id: 'executive-dossier',
       category: 'reporting',
       badge: 'Ekspor Formal',
-      badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
+      accentColor: '#2dd4bf',
       icon: Icons.FileSpreadsheet,
-      iconBg: 'bg-teal-500/10 text-teal-600',
+      iconBg: 'rgba(45, 212, 191, 0.12)',
       title: 'Dossier Intelijen Eksekutif (PDF A4 & Excel Multi-Sheet)',
       subtitle: 'Unduh laporan intelijen rahasia siap presentasi untuk direksi dan pemilik modal',
       problem: 'Menyusun laporan analisa kompetitor secara manual memakan waktu berhari-hari dan sering kali tidak memiliki tampilan formal berstandar eksekutif.',
@@ -279,34 +268,32 @@ export default function PublicFeaturesPage({
         'Ekspor Excel multi-sheet (Sheet Profil, Riwayat Menang, Satker Dominasi, Analisis Evaluasi)',
         'Siap dibawa ke rapat direksi untuk penentuan pagu penawaran proyek strategis',
         'Watermark keamanan resmi untuk menjaga kerahasiaan intelijen internal perusahaan'
-      ],
-      tag: 'PDF & Excel Export'
+      ]
     },
     {
       id: 'co-bidding',
       category: 'intelligence',
       badge: 'Deteksi Koalisi',
-      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      accentColor: '#818cf8',
       icon: Icons.Share2,
-      iconBg: 'bg-indigo-500/10 text-indigo-600',
+      iconBg: 'rgba(129, 140, 248, 0.12)',
       title: 'Pelacak Rekanan Co-Bidding & Konsorsium',
       subtitle: 'Ketahui siapa rekanan yang sering maju bersama atau berkoalisi (KSO)',
-      problem: 'Sering ada perusahaan bayangan atau grup kontraktor yang selalu ikut bersamaan untuk memenuhi kuota penawar atau mengatur strategi penawaran.',
+      problem: 'Sering ada rekanan bayangan atau grup kontraktor yang selalu ikut bersamaan untuk memenuhi kuota penawar atau mengatur strategi penawaran.',
       solution: 'Sistem menganalisis korelasi keikutsertaan antar rekanan. Anda dapat melihat dengan siapa saja kompetitor Anda paling sering muncul bersama dalam satu lelang, mendeteksi pola aliansi, dan potensi kemitraan KSO.',
       capabilities: [
         'Matriks frekuensi lelang bersama antar kontraktor',
         'Deteksi pola penawaran pendamping (co-bidding patterns)',
         'Identifikasi partner strategis yang cocok diajak konsorsium (KSO) untuk proyek besar'
-      ],
-      tag: 'Koalisi & Jaringan'
+      ]
     },
     {
       id: 'sweet-spot',
       category: 'tactical',
       badge: 'Kalkulator Penawaran',
-      badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+      accentColor: '#38bdf8',
       icon: Icons.Calculator,
-      iconBg: 'bg-cyan-500/10 text-cyan-600',
+      iconBg: 'rgba(56, 189, 248, 0.12)',
       title: 'Kalkulator Sweet Spot Penawaran Harga',
       subtitle: 'Tentukan harga penawaran paling kompetitif tanpa mengorbankan margin profit',
       problem: 'Menawar terlalu rendah membuat margin proyek habis atau rugi, sedangkan menawar terlalu tinggi pasti kalah dari kontraktor lain.',
@@ -315,8 +302,7 @@ export default function PublicFeaturesPage({
         'Rekomendasi persentase penawaran ideal terhadap HPS (misal 88.5% – 93.2%)',
         'Simulasi margin keuntungan vs risiko dikalahkan oleh banting harga lawan',
         'Histori persentase penawaran pemenang di paket sejenis di wilayah yang sama'
-      ],
-      tag: 'Strategi Harga'
+      ]
     }
   ];
 
@@ -348,574 +334,435 @@ export default function PublicFeaturesPage({
   ];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #070a14 0%, #030509 100%)',
-      color: '#f1f5f9',
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: "'Inter', sans-serif"
-    }}>
-      {/* Top Notice Bar */}
-      <div style={{
-        background: 'linear-gradient(90deg, #f59e0b, #d97706)',
-        color: '#020617',
-        padding: '8px 16px',
-        textAlign: 'center',
-        fontSize: '13px',
-        fontWeight: '700',
-        letterSpacing: '0.02em'
-      }}>
-        ⚡ Dokumentasi Resmi Fitur & Kemampuan Platform Intelijen Pengadaan Spy SPSE
+    <main style={{ flexGrow: 1, padding: '40px 20px 60px', maxWidth: '1180px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+      {/* Hero Section */}
+      <div style={{ textAlign: 'center', marginBottom: '48px', maxWidth: '860px', margin: '0 auto 48px' }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(99, 102, 241, 0.12)',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          padding: '6px 16px',
+          borderRadius: '24px',
+          fontSize: '12px',
+          fontWeight: '700',
+          color: '#a5b4fc',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: '20px'
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 8px #6366f1' }} />
+          Katalog Modul & Spesifikasi Sistem
+        </div>
+
+        <h1 style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontSize: 'clamp(30px, 5vw, 48px)',
+          fontWeight: '900',
+          color: '#ffffff',
+          lineHeight: '1.22',
+          letterSpacing: '-0.02em',
+          margin: '0 0 16px'
+        }}>
+          Kekuatan Penuh di Tangan Anda untuk <br />
+          <span style={{
+            background: 'linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #c084fc 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Memenangkan Tender Pengadaan Pemerintah
+          </span>
+        </h1>
+
+        <p style={{ color: '#94a3b8', fontSize: '16px', maxWidth: '660px', margin: '0 auto 36px', lineHeight: '1.6' }}>
+          Jelajahi setiap modul dan teknologi intelijen yang dirancang khusus untuk membebaskan kontraktor dari ketidakpastian lelang dan tebak-tebakan harga.
+        </p>
+
+        {/* Quick Stats Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: '14px',
+          maxWidth: '720px',
+          margin: '0 auto'
+        }}>
+          <div style={{ background: '#0e1424', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', borderRadius: '16px', boxShadow: '0 8px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '28px', fontWeight: '900', color: '#818cf8', fontFamily: "'Outfit', sans-serif" }}>9+</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', marginTop: '2px' }}>Modul Intelijen</div>
+          </div>
+          <div style={{ background: '#0e1424', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', borderRadius: '16px', boxShadow: '0 8px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '28px', fontWeight: '900', color: '#34d399', fontFamily: "'Outfit', sans-serif" }}>24/7</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', marginTop: '2px' }}>Radar Non-Stop</div>
+          </div>
+          <div style={{ background: '#0e1424', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', borderRadius: '16px', boxShadow: '0 8px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '28px', fontWeight: '900', color: '#60a5fa', fontFamily: "'Outfit', sans-serif" }}>100%</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', marginTop: '2px' }}>Multi-LPSE Nasional</div>
+          </div>
+          <div style={{ background: '#0e1424', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', borderRadius: '16px', boxShadow: '0 8px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '28px', fontWeight: '900', color: '#c084fc', fontFamily: "'Outfit', sans-serif" }}>Instan</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', marginTop: '2px' }}>Ekspor PDF & Excel</div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Navigation Bar */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        background: 'rgba(7, 10, 20, 0.92)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        padding: '14px 24px',
+      {/* Category Filter Pills (matching PublicBlogPage style) */}
+      <div style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
+        gap: '10px',
+        overflowX: 'auto',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        marginBottom: '40px',
+        padding: '4px'
       }}>
-        <div 
-          onClick={() => onNavigate('landing')}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-        >
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: '900',
-            color: '#020617',
-            fontSize: '18px',
-            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-          }}>
-            S
-          </div>
-          <div>
-            <div style={{ fontWeight: '800', fontSize: '16px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>{adminSettings?.brand_name || 'Spy SPSE'}</span>
-              <span style={{ fontSize: '10px', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-                FITUR
-              </span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Platform Intelijen Tender & Kompetitor LPSE</div>
-          </div>
-        </div>
-
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button 
-            onClick={() => onNavigate('landing')} 
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'transparent'; }}
-          >
-            Beranda
-          </button>
-          <button 
-            onClick={onGoTenders} 
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'transparent'; }}
-          >
-            Cari Tender
-          </button>
-          <button 
-            onClick={onGetStarted} 
-            style={{
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              border: 'none',
-              color: '#020617',
-              padding: '9px 18px',
-              borderRadius: '10px',
-              fontSize: '13px',
-              fontWeight: '800',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)',
-              transition: 'all 0.2s'
-            }}
-          >
-            <span>{userToken ? 'Buka Dashboard' : 'Mulai Sekarang'}</span>
-            <Icons.ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </nav>
-      </header>
-
-      {/* Hero Section */}
-      <section style={{
-        padding: '60px 20px 70px',
-        textAlign: 'center',
-        position: 'relative',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-        background: 'radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08), transparent 70%)'
-      }}>
-        <div style={{ maxWidth: '840px', margin: '0 auto' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 16px',
-            borderRadius: '20px',
-            background: 'rgba(245, 158, 11, 0.12)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            color: '#fbbf24',
-            fontSize: '12px',
-            fontWeight: '700',
-            marginBottom: '20px'
-          }}>
-            <Icons.Sparkles className="w-4 h-4" />
-            <span>Katalog Lengkap & Spesifikasi Sistem</span>
-          </div>
-
-          <h1 style={{
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: 'clamp(28px, 5vw, 44px)',
-            fontWeight: '900',
-            color: '#ffffff',
-            lineHeight: '1.25',
-            margin: '0 0 16px'
-          }}>
-            Kekuatan Penuh di Tangan Anda untuk <br />
-            <span style={{
-              background: 'linear-gradient(90deg, #fbbf24, #f59e0b, #d97706)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              Memenangkan Tender Pengadaan Pemerintah
-            </span>
-          </h1>
-
-          <p style={{ color: '#94a3b8', fontSize: '16px', maxWidth: '640px', margin: '0 auto 36px', lineHeight: '1.6' }}>
-            Jelajahi setiap modul dan teknologi intelijen yang dirancang khusus untuk membebaskan kontraktor dari ketidakpastian lelang dan tebak-tebakan harga.
-          </p>
-
-          {/* Quick Stats Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: '12px',
-            maxWidth: '680px',
-            margin: '0 auto'
-          }}>
-            <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255,255,255,0.08)', padding: '14px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#fbbf24' }}>9+</div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Modul Intelijen</div>
-            </div>
-            <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255,255,255,0.08)', padding: '14px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#34d399' }}>24/7</div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Radar Non-Stop</div>
-            </div>
-            <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255,255,255,0.08)', padding: '14px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#60a5fa' }}>100%</div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Multi-LPSE Nasional</div>
-            </div>
-            <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255,255,255,0.08)', padding: '14px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#c084fc' }}>Instan</div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>Ekspor PDF & Excel</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Category Tabs */}
-      <section style={{
-        position: 'sticky',
-        top: '64px',
-        zIndex: 30,
-        background: 'rgba(7, 10, 20, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        padding: '12px 20px'
-      }}>
-        <div style={{
-          maxWidth: '1000px',
-          margin: '0 auto',
-          display: 'flex',
-          gap: '8px',
-          overflowX: 'auto',
-          justifyContent: 'flex-start',
-          paddingBottom: '2px'
-        }}>
-          {categories.map((cat) => {
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                style={{
-                  background: isActive ? '#f59e0b' : 'rgba(15, 23, 42, 0.8)',
-                  color: isActive ? '#020617' : '#cbd5e1',
-                  border: isActive ? '1px solid #f59e0b' : '1px solid rgba(255, 255, 255, 0.08)',
-                  padding: '8px 16px',
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              style={{
+                background: isActive ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(255, 255, 255, 0.04)',
+                color: isActive ? '#ffffff' : '#9ca3af',
+                border: `1px solid ${isActive ? '#818cf8' : 'rgba(255, 255, 255, 0.08)'}`,
+                padding: '8px 18px',
+                borderRadius: '24px',
+                fontSize: '13px',
+                fontWeight: isActive ? '700' : '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: isActive ? '0 4px 14px rgba(79, 70, 229, 0.4)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>{cat.label}</span>
+              {cat.id === 'all' && (
+                <span style={{
+                  fontSize: '11px',
+                  padding: '1px 6px',
                   borderRadius: '10px',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <span>{cat.label}</span>
-                {cat.id === 'all' && (
-                  <span style={{
-                    fontSize: '10px',
-                    padding: '1px 6px',
-                    borderRadius: '10px',
-                    background: isActive ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)',
-                    color: isActive ? '#020617' : '#94a3b8'
-                  }}>
-                    {features.length}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                  background: isActive ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.1)',
+                  color: isActive ? '#ffffff' : '#94a3b8'
+                }}>
+                  {features.length}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Features Showcase List */}
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 20px', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {filteredFeatures.map((feat, idx) => {
-            const IconComponent = feat.icon;
-            return (
-              <div 
-                key={feat.id}
-                id={feat.id}
-                style={{
-                  background: 'rgba(15, 20, 34, 0.85)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '20px',
-                  padding: '32px',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
-                  transition: 'border-color 0.2s'
-                }}
-              >
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
-                  {/* Left Column: Title & Overview */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '12px',
-                        background: 'rgba(245, 158, 11, 0.12)',
-                        color: '#fbbf24',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '1px solid rgba(245, 158, 11, 0.3)'
-                      }}>
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span style={{
-                          display: 'inline-block',
-                          fontSize: '11px',
-                          fontWeight: '800',
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          background: 'rgba(245, 158, 11, 0.15)',
-                          color: '#fbbf24',
-                          border: '1px solid rgba(245, 158, 11, 0.3)'
-                        }}>
-                          {feat.badge}
-                        </span>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', fontWeight: '600' }}>
-                          MODUL 0{idx + 1}
-                        </div>
-                      </div>
-                    </div>
-
-                    <h2 style={{
-                      fontFamily: "'Outfit', sans-serif",
-                      fontSize: '22px',
-                      fontWeight: '800',
-                      color: '#ffffff',
-                      margin: 0,
-                      lineHeight: '1.3'
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '60px' }}>
+        {filteredFeatures.map((feat, idx) => {
+          const IconComponent = feat.icon;
+          return (
+            <div 
+              key={feat.id}
+              id={feat.id}
+              style={{
+                background: '#0d1222',
+                border: '1px solid rgba(99, 102, 241, 0.18)',
+                borderRadius: '20px',
+                padding: '32px',
+                boxShadow: '0 12px 35px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '32px' }}>
+                {/* Left Column: Title & Overview */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '14px',
+                      background: feat.iconBg,
+                      color: feat.accentColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `1px solid ${feat.accentColor}33`
                     }}>
-                      {feat.title}
-                    </h2>
-
-                    <p style={{ color: '#fbbf24', fontSize: '14px', fontWeight: '600', margin: 0 }}>
-                      {feat.subtitle}
-                    </p>
-
-                    <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
-                      <button 
-                        onClick={onGetStarted}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#fbbf24',
-                          fontSize: '13px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: 0
-                        }}
-                      >
-                        <span>Coba fitur ini di dashboard</span>
-                        <Icons.ChevronRight className="w-4 h-4" />
-                      </button>
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span style={{
+                        display: 'inline-block',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        background: `${feat.accentColor}18`,
+                        color: feat.accentColor,
+                        border: `1px solid ${feat.accentColor}40`
+                      }}>
+                        {feat.badge}
+                      </span>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', fontWeight: '600', letterSpacing: '0.05em' }}>
+                        MODUL 0{idx + 1}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right Column: Problem, Solution & Capabilities */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                      <div style={{
-                        background: 'rgba(239, 68, 68, 0.08)',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        borderRadius: '12px',
-                        padding: '14px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f87171', fontSize: '12px', fontWeight: '800', marginBottom: '6px' }}>
-                          <Icons.AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Tantangan Lapangan:</span>
-                        </div>
-                        <p style={{ color: '#cbd5e1', fontSize: '12px', margin: 0, lineHeight: '1.5' }}>
-                          {feat.problem}
-                        </p>
-                      </div>
+                  <h2 style={{
+                    fontFamily: "'Outfit', sans-serif",
+                    fontSize: '22px',
+                    fontWeight: '800',
+                    color: '#ffffff',
+                    margin: 0,
+                    lineHeight: '1.3'
+                  }}>
+                    {feat.title}
+                  </h2>
 
-                      <div style={{
-                        background: 'rgba(16, 185, 129, 0.08)',
-                        border: '1px solid rgba(16, 185, 129, 0.2)',
-                        borderRadius: '12px',
-                        padding: '14px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '12px', fontWeight: '800', marginBottom: '6px' }}>
-                          <Icons.CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Solusi Spy SPSE:</span>
-                        </div>
-                        <p style={{ color: '#cbd5e1', fontSize: '12px', margin: 0, lineHeight: '1.5' }}>
-                          {feat.solution}
-                        </p>
+                  <p style={{ color: '#a5b4fc', fontSize: '14px', fontWeight: '500', margin: 0, lineHeight: '1.5' }}>
+                    {feat.subtitle}
+                  </p>
+
+                  <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                    <button 
+                      onClick={onGetStarted}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#818cf8',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: 0,
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#c7d2fe'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#818cf8'}
+                    >
+                      <span>Coba fitur ini di dashboard</span>
+                      <Icons.ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Column: Problem, Solution & Capabilities */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    <div style={{
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.22)',
+                      borderRadius: '12px',
+                      padding: '16px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f87171', fontSize: '12px', fontWeight: '800', marginBottom: '8px' }}>
+                        <Icons.AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Tantangan Lapangan:</span>
                       </div>
+                      <p style={{ color: '#cbd5e1', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
+                        {feat.problem}
+                      </p>
                     </div>
 
-                    {/* Capabilities */}
                     <div style={{
-                      background: 'rgba(11, 15, 25, 0.7)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      borderRadius: '14px',
-                      padding: '18px'
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.22)',
+                      borderRadius: '12px',
+                      padding: '16px'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '800', color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
-                        <Icons.Layers className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Kemampuan & Spesifikasi:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34d399', fontSize: '12px', fontWeight: '800', marginBottom: '8px' }}>
+                        <Icons.CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Solusi Spy SPSE:</span>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {feat.capabilities.map((cap, cIdx) => (
-                          <div key={cIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
-                            <span style={{ color: '#fbbf24', marginTop: '2px', shrink: 0 }}>✓</span>
-                            <span>{cap}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <p style={{ color: '#cbd5e1', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
+                        {feat.solution}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Capabilities List */}
+                  <div style={{
+                    background: '#090d19',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '14px',
+                    padding: '18px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '800', color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                      <Icons.Layers className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Kemampuan & Spesifikasi:</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {feat.capabilities.map((cap, cIdx) => (
+                        <div key={cIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                          <span style={{ color: '#818cf8', marginTop: '2px', flexShrink: 0, fontWeight: 'bold' }}>✓</span>
+                          <span>{cap}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FAQ Section */}
+      <div style={{
+        background: '#0d1222',
+        border: '1px solid rgba(99, 102, 241, 0.18)',
+        borderRadius: '24px',
+        padding: '40px 28px',
+        marginBottom: '60px',
+        boxShadow: '0 12px 35px rgba(0,0,0,0.3)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            borderRadius: '20px',
+            background: 'rgba(99, 102, 241, 0.12)',
+            color: '#a5b4fc',
+            fontSize: '12px',
+            fontWeight: '700',
+            marginBottom: '10px'
+          }}>
+            <Icons.HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Tanya Jawab</span>
+          </div>
+          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '26px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+            Pertanyaan yang Sering Diajukan
+          </h2>
+          <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '6px' }}>
+            Pahami lebih mendalam cara kerja sistem kami sebelum mulai berlangganan
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '840px', margin: '0 auto' }}>
+          {faqs.map((faq, fIdx) => {
+            const isOpen = activeFaq === fIdx;
+            return (
+              <div 
+                key={fIdx}
+                style={{
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  background: 'rgba(9, 13, 25, 0.7)',
+                  overflow: 'hidden'
+                }}
+              >
+                <button
+                  onClick={() => setActiveFaq(isOpen ? null : fIdx)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#f1f5f9',
+                    fontSize: '15px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span>{faq.q}</span>
+                  <span style={{
+                    transform: isOpen ? 'rotate(90deg)' : 'none',
+                    transition: 'transform 0.2s',
+                    color: isOpen ? '#818cf8' : '#64748b'
+                  }}>
+                    ➜
+                  </span>
+                </button>
+                {isOpen && (
+                  <div style={{
+                    padding: '0 20px 18px',
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    lineHeight: '1.6',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                    paddingTop: '12px'
+                  }}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
-      </main>
-
-      {/* FAQ Section */}
-      <section style={{
-        background: 'rgba(10, 13, 24, 0.95)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        padding: '60px 20px'
-      }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 12px',
-              borderRadius: '20px',
-              background: 'rgba(255,255,255,0.05)',
-              color: '#94a3b8',
-              fontSize: '12px',
-              fontWeight: '700',
-              marginBottom: '10px'
-            }}>
-              <Icons.HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-              <span>Tanya Jawab</span>
-            </div>
-            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '28px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
-              Pertanyaan yang Sering Diajukan
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>
-              Pahami lebih mendalam cara kerja sistem kami sebelum mulai berlangganan
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {faqs.map((faq, fIdx) => {
-              const isOpen = activeFaq === fIdx;
-              return (
-                <div 
-                  key={fIdx}
-                  style={{
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <button
-                    onClick={() => setActiveFaq(isOpen ? null : fIdx)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#f1f5f9',
-                      fontSize: '15px',
-                      fontWeight: '700',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <span>{faq.q}</span>
-                    <span style={{
-                      transform: isOpen ? 'rotate(90deg)' : 'none',
-                      transition: 'transform 0.2s',
-                      color: isOpen ? '#fbbf24' : '#64748b'
-                    }}>
-                      ➜
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div style={{
-                      padding: '0 20px 18px',
-                      fontSize: '14px',
-                      color: '#94a3b8',
-                      lineHeight: '1.6',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                      paddingTop: '12px'
-                    }}>
-                      {faq.a}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* Bottom CTA Banner */}
-      <section style={{
-        padding: '60px 20px 80px',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'linear-gradient(180deg, #0a0d18 0%, #030509 100%)'
-      }}>
-        <div style={{
-          maxWidth: '860px',
-          margin: '0 auto',
-          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(99, 102, 241, 0.08) 100%)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '24px',
-          padding: '40px 24px',
-          textAlign: 'center',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.4)'
-        }}>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '28px', fontWeight: '800', color: '#ffffff', margin: '0 0 12px' }}>
-            Siap Menembus Dominasi Kompetitor Anda?
-          </h2>
-          <p style={{ color: '#cbd5e1', fontSize: '15px', maxWidth: '580px', margin: '0 auto 28px', lineHeight: '1.6' }}>
-            Mulai pantau ribuan tender LPSE dan buka seluruh intelijen kompetitor di wilayah Anda sekarang juga.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={onGetStarted}
-              style={{
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                border: 'none',
-                color: '#020617',
-                padding: '14px 32px',
-                borderRadius: '12px',
-                fontSize: '15px',
-                fontWeight: '800',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 8px 24px rgba(245, 158, 11, 0.35)',
-                transition: 'all 0.2s'
-              }}
-            >
-              <span>{userToken ? 'Akses Dashboard Intelijen' : 'Daftar & Coba Gratis Sekarang'}</span>
-              <Icons.ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onGoTenders}
-              style={{
-                background: 'rgba(15, 23, 42, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#e2e8f0',
-                padding: '14px 28px',
-                borderRadius: '12px',
-                fontSize: '15px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s'
-              }}
-            >
-              <span>Jelajahi Database Tender</span>
-              <Icons.ExternalLink className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{
-        background: '#030509',
-        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-        padding: '30px 20px',
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%)',
+        border: '1px solid rgba(99, 102, 241, 0.3)',
+        borderRadius: '24px',
+        padding: '48px 24px',
         textAlign: 'center',
-        fontSize: '12px',
-        color: '#64748b'
+        boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-          <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: '#f59e0b', color: '#020617', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '11px' }}>
-            S
-          </div>
-          <span style={{ fontWeight: '700', color: '#cbd5e1' }}>{adminSettings?.brand_name || 'Spy SPSE'}</span>
+        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '28px', fontWeight: '800', color: '#ffffff', margin: '0 0 12px' }}>
+          Siap Menembus Dominasi Kompetitor Anda?
+        </h2>
+        <p style={{ color: '#cbd5e1', fontSize: '15px', maxWidth: '580px', margin: '0 auto 28px', lineHeight: '1.6' }}>
+          Mulai pantau ribuan tender LPSE dan buka seluruh intelijen kompetitor di wilayah Anda sekarang juga.
+        </p>
+        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={onGetStarted}
+            style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              border: 'none',
+              color: '#ffffff',
+              padding: '14px 32px',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <span>{userToken ? 'Akses Dashboard Intelijen' : 'Daftar & Coba Gratis Sekarang'}</span>
+            <Icons.ArrowRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onGoTenders}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#e2e8f0',
+              padding: '14px 28px',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+          >
+            <span>Jelajahi Database Tender</span>
+            <Icons.ExternalLink className="w-4 h-4" />
+          </button>
         </div>
-        <p style={{ margin: 0 }}>© {new Date().getFullYear()} {adminSettings?.brand_name || 'Spy SPSE'}. Platform Intelijen Pengadaan & Monitoring Tender SPSE Nasional.</p>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }

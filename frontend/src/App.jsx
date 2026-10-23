@@ -8861,29 +8861,42 @@ function App() {
 
     if (publicView === 'features') {
         return (
-            <PublicFeaturesPage
-                adminSettings={adminSettings}
-                onNavigate={handlePublicNavigate}
-                onGetStarted={() => {
-                    if (userToken) {
-                        setPublicView(null);
-                        window.location.hash = '#/dashboard';
-                        setActiveTab('dashboard');
-                    } else {
-                        handlePublicNavigate('auth');
-                    }
-                }}
-                onGoTenders={() => {
-                    if (userToken) {
-                        setPublicView(null);
-                        window.location.hash = '#/explorer';
-                        setActiveTab('explorer');
-                    } else {
-                        handlePublicNavigate('tenders');
-                    }
-                }}
-                userToken={userToken}
-            />
+            <div style={{
+                minHeight: '100vh',
+                background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+                color: '#f3f4f6',
+                fontFamily: "'Inter', sans-serif",
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%'
+            }}>
+                <PublicHeader adminSettings={adminSettings} onNavigate={handlePublicNavigate} userToken={userToken} activePage="features" />
+                <PublicFeaturesPage
+                    adminSettings={adminSettings}
+                    onNavigate={handlePublicNavigate}
+                    onGetStarted={() => {
+                        if (userToken) {
+                            setPublicView(null);
+                            window.location.hash = '#/dashboard';
+                            setActiveTab('dashboard');
+                        } else {
+                            handlePublicNavigate('auth');
+                        }
+                    }}
+                    onGoTenders={() => {
+                        if (userToken) {
+                            setPublicView(null);
+                            window.location.hash = '#/explorer';
+                            setActiveTab('explorer');
+                        } else {
+                            handlePublicNavigate('tenders');
+                        }
+                    }}
+                    userToken={userToken}
+                />
+                <PremiumFooter adminSettings={adminSettings} onNavigate={handlePublicNavigate} />
+                <Chatbot adminSettings={adminSettings} />
+            </div>
         );
     }
 
