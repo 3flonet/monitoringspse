@@ -16874,7 +16874,7 @@ function App() {
                                 {competitorSubTab === 'compare' && (
                                     <div>
                                         {/* COMPARISON SELECTOR PANEL */}
-                                        <div className="panel" style={{ marginBottom: '24px' }}>
+                                        <div className="panel" style={{ marginBottom: '24px', position: 'relative', zIndex: 40, overflow: 'visible' }}>
                                             <div className="panel-header">
                                                 <h3 className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     ⚔️ Komparasi Head-to-Head Antar Kompetitor
@@ -16889,7 +16889,9 @@ function App() {
                                                 background: 'rgba(0,0,0,0.2)',
                                                 padding: '20px',
                                                 borderRadius: '12px',
-                                                border: '1px solid rgba(255,255,255,0.05)'
+                                                border: '1px solid rgba(255,255,255,0.05)',
+                                                position: 'relative',
+                                                zIndex: 30
                                             }}>
                                                 {/* Comp 1 (Current Profile) */}
                                                 <div style={{
