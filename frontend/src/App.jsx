@@ -4765,11 +4765,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <span>❌</span> Tanpa {adminSettings.app_name || 'Spy SPSE'}
                             </h3>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af', lineHeight: '1.9', fontSize: '14px' }}>
-                                <li style={{ marginBottom: '10px' }}>📉 Buka puluhan website LPSE satu per satu — buang waktu & tenaga tim.</li>
-                                <li style={{ marginBottom: '10px' }}>😰 Tender bernilai miliaran terlewat karena terlambat tahu.</li>
+                                <li style={{ marginBottom: '10px' }}>📉 Buka puluhan website LPSE satu per satu — buang waktu &amp; tenaga tim.</li>
+                                <li style={{ marginBottom: '10px' }}>😰 Tender bernilai miliaran terlewat karena terlambat tahu jadwal pengumuman.</li>
                                 <li style={{ marginBottom: '10px' }}>🔍 Cari kata kunci manual berjam-jam tanpa hasil maksimal.</li>
-                                <li style={{ marginBottom: '10px' }}>⏰ Deadline penawaran terlupa — gugur sebelum bersaing.</li>
-                                <li>🤷 Buta terhadap strategi harga & rekam jejak pesaing.</li>
+                                <li style={{ marginBottom: '10px' }}>⏰ Deadline pendaftaran &amp; penawaran terlupa — gugur sebelum sempat bersaing.</li>
+                                <li style={{ marginBottom: '10px' }}>🤷 Buta terhadap rekam jejak &amp; histori harga penawaran lawan.</li>
+                                <li style={{ marginBottom: '10px' }}>🏛️ Masuk ke dinas lawan tanpa tahu peta kandang &amp; loyalitas Pokja.</li>
+                                <li style={{ marginBottom: '10px' }}>⚔️ Menebak kekuatan pesaing tanpa perbandingan Head-to-Head langsung.</li>
+                                <li>📑 Menyusun strategi tender tanpa laporan dossier intelijen eksekutif.</li>
                             </ul>
                         </div>
                         <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
@@ -4777,11 +4780,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 <span>✅</span> Dengan {adminSettings.app_name || 'Spy SPSE'}
                             </h3>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af', lineHeight: '1.9', fontSize: '14px' }}>
-                                <li style={{ marginBottom: '10px' }}>🤖 <strong style={{ color: '#d1fae5' }}>Radar Tender Otomatis bekerja 24/7 untuk Anda</strong> — deteksi peluang proyek seluruh Indonesia tanpa jeda.</li>
-                                <li style={{ marginBottom: '10px' }}>📱 <strong style={{ color: '#d1fae5' }}>Notifikasi WhatsApp dalam hitungan menit</strong> setelah tender diterbitkan.</li>
-                                <li style={{ marginBottom: '10px' }}>🎯 Kata kunci & instansi pilihan = <strong style={{ color: '#d1fae5' }}>hanya tender relevan yang masuk</strong>.</li>
-                                <li style={{ marginBottom: '10px' }}>📊 <strong style={{ color: '#d1fae5' }}>Analisis kompetitor</strong>: strategi harga, kemenangan, alasan gugur.</li>
-                                <li>💰 Investasi mulai <strong style={{ color: '#34d399' }}>Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — ROI dari satu kemenangan tender.</li>
+                                <li style={{ marginBottom: '10px' }}>🤖 <strong style={{ color: '#d1fae5' }}>Radar Tender Otomatis 24/7</strong> — deteksi peluang proyek seluruh Indonesia tanpa jeda.</li>
+                                <li style={{ marginBottom: '10px' }}>📱 <strong style={{ color: '#d1fae5' }}>Notifikasi WhatsApp Instan</strong> — terima info lelang dalam menit setelah pengumuman terbit.</li>
+                                <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Kata kunci &amp; instansi pilihan</strong> — hanya tender relevan yang masuk ke radar Anda.</li>
+                                <li style={{ marginBottom: '10px' }}>🏛️ <strong style={{ color: '#d1fae5' }}>Peta Kandang Dinas &amp; Satker</strong> — deteksi basis loyalitas dinas lawan &amp; taktik menembus dominasinya.</li>
+                                <li style={{ marginBottom: '10px' }}>⚔️ <strong style={{ color: '#d1fae5' }}>Head-to-Head Arena</strong> — adu rekam jejak langsung dua kontraktor, selisih harga, &amp; skor menang.</li>
+                                <li style={{ marginBottom: '10px' }}>🎯 <strong style={{ color: '#d1fae5' }}>Matriks Kelemahan Pokja</strong> — petakan alasan detail gugur kualifikasi lawan untuk amunisi evaluasi &amp; sanggah.</li>
+                                <li style={{ marginBottom: '10px' }}>📑 <strong style={{ color: '#d1fae5' }}>Dossier Eksekutif PDF &amp; Excel</strong> — laporan komprehensif A4 &amp; formula analitis siap bawa ke ruang rapat direksi.</li>
+                                <li>💰 Investasi mulai <strong style={{ color: '#34d399' }}>Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — ROI berkali-kali lipat dari satu kemenangan tender.</li>
                             </ul>
                         </div>
                     </div>
