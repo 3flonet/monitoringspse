@@ -6,6 +6,7 @@ import UserOnboardingTour from './components/UserOnboardingTour';
 import UserDocumentation from './components/UserDocumentation';
 import AdminAlertsManager from './components/AdminAlertsManager';
 import ArticleRichEditor from './components/ArticleRichEditor';
+import PublicFeaturesPage from './components/PublicFeaturesPage';
 
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
@@ -967,6 +968,10 @@ const PublicHeader = ({ adminSettings, onNavigate, userToken, activePage }) => {
                     onMouseEnter={(e) => e.currentTarget.style.color = '#a5b4fc'}
                     onMouseLeave={(e) => e.currentTarget.style.color = activePage === 'home' ? '#a5b4fc' : '#9ca3af'}
                 >Beranda</button>
+                <button onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }} style={navBtnStyle(activePage === 'features')}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#a5b4fc'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = activePage === 'features' ? '#a5b4fc' : '#9ca3af'}
+                >Fitur</button>
                 <button onClick={() => onNavigate('tenders')} style={navBtnStyle(activePage === 'tenders')}
                     onMouseEnter={(e) => e.currentTarget.style.color = '#a5b4fc'}
                     onMouseLeave={(e) => e.currentTarget.style.color = activePage === 'tenders' ? '#a5b4fc' : '#9ca3af'}
@@ -1031,6 +1036,12 @@ const PublicHeader = ({ adminSettings, onNavigate, userToken, activePage }) => {
                         style={{ background: 'transparent', color: activePage === 'home' ? '#a5b4fc' : '#d1d5db', border: 'none', padding: '12px 16px', fontSize: '15px', fontWeight: '600', textAlign: 'left', borderRadius: '8px' }}
                     >
                         🏠 Beranda
+                    </button>
+                    <button
+                        onClick={() => { setIsMobileMenuOpen(false); window.location.hash = '#/features'; onNavigate('features'); }}
+                        style={{ background: 'transparent', color: activePage === 'features' ? '#a5b4fc' : '#d1d5db', border: 'none', padding: '12px 16px', fontSize: '15px', fontWeight: '600', textAlign: 'left', borderRadius: '8px' }}
+                    >
+                        ⚡ Fitur Lengkap
                     </button>
                     <button
                         onClick={() => { setIsMobileMenuOpen(false); onNavigate('tenders'); }}
@@ -4018,6 +4029,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         Beranda
                     </button>
                     <button
+                        onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }}
+                        style={{ background: 'transparent', color: '#9ca3af', border: 'none', padding: '8px 16px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'color 0.2s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#a5b4fc'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                    >
+                        Fitur
+                    </button>
+                    <button
                         onClick={onGoTenders}
                         style={{ background: 'transparent', color: '#9ca3af', border: 'none', padding: '8px 16px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'color 0.2s' }}
                     >
@@ -4073,6 +4092,12 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         style={{ background: 'transparent', color: landingPage === 'home' ? '#a5b4fc' : '#d1d5db', border: 'none', padding: '12px 16px', fontSize: '15px', fontWeight: '600', textAlign: 'left', borderRadius: '8px' }}
                     >
                         🏠 Beranda
+                    </button>
+                    <button
+                        onClick={() => { setIsMobileMenuOpen(false); window.location.hash = '#/features'; onNavigate('features'); }}
+                        style={{ background: 'transparent', color: '#d1d5db', border: 'none', padding: '12px 16px', fontSize: '15px', fontWeight: '600', textAlign: 'left', borderRadius: '8px' }}
+                    >
+                        ⚡ Fitur Lengkap
                     </button>
                     <button
                         onClick={() => { setIsMobileMenuOpen(false); onGoTenders(); }}
@@ -4456,8 +4481,8 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                                 color: '#fff',
                                 border: 'none',
-                                padding: '16px 40px',
-                                fontSize: '17px',
+                                padding: '16px 36px',
+                                fontSize: '16px',
                                 fontWeight: 'bold',
                                 borderRadius: '12px',
                                 cursor: 'pointer',
@@ -4473,13 +4498,34 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             🚀 Mulai Gratis Sekarang
                         </button>
                         <button
+                            onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }}
+                            style={{
+                                background: 'rgba(245, 158, 11, 0.1)',
+                                color: '#fbbf24',
+                                border: '1px solid rgba(245, 158, 11, 0.4)',
+                                padding: '16px 28px',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }}
+                        >
+                            ⚡ Pelajari Semua Fitur
+                        </button>
+                        <button
                             onClick={() => document.getElementById('landing-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                             style={{
                                 background: 'transparent',
                                 color: '#a5b4fc',
                                 border: '1px solid rgba(165,180,252,0.35)',
-                                padding: '16px 32px',
-                                fontSize: '17px',
+                                padding: '16px 28px',
+                                fontSize: '16px',
                                 fontWeight: '600',
                                 borderRadius: '12px',
                                 cursor: 'pointer',
@@ -5020,6 +5066,56 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#60a5fa' }}>Dossier Eksekutif PDF & Excel</h3>
                             <p style={{ color: '#9ca3af', lineHeight: '1.6', fontSize: '14px' }}>Ekspor laporan intelijen lengkap berstandar A4 resmi siap bawa ke rapat direksi, serta file Excel multi-sheet lengkap dengan formula analisis otomatis.</p>
                         </div>
+                    </div>
+
+                    {/* CTA Banner Menuju Halaman Detail Fitur */}
+                    <div style={{
+                        textAlign: 'center',
+                        margin: '0 0 50px 0',
+                        padding: '32px 24px',
+                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '12px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#fbbf24', fontSize: '13px', fontWeight: '800', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                            <span>✨ DOKUMENTASI LENGKAP 9+ MODUL INTELIJEN</span>
+                        </div>
+                        <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#ffffff', margin: 0, fontFamily: "'Outfit', sans-serif" }}>
+                            Ingin Tahu Lebih Dalam Cara Kerja Seluruh Fitur Spy SPSE?
+                        </h3>
+                        <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0, maxWidth: '640px', lineHeight: '1.6' }}>
+                            Pelajari spesifikasi teknis, mekanisme deteksi radar, cara hitung dominasi wilayah, hingga simulasi duel kontraktor secara lengkap dan mudah dipahami.
+                        </p>
+                        <button
+                            onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }}
+                            style={{
+                                marginTop: '8px',
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                color: '#020617',
+                                border: 'none',
+                                padding: '14px 32px',
+                                borderRadius: '12px',
+                                fontSize: '14px',
+                                fontWeight: '800',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                boxShadow: '0 8px 24px rgba(245, 158, 11, 0.35)',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(245, 158, 11, 0.5)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(245, 158, 11, 0.35)'; }}
+                        >
+                            <span>Lihat Penjelasan Semua Fitur Secara Detail</span>
+                            <span style={{ fontSize: '16px' }}>➜</span>
+                        </button>
                     </div>
 
                     {/* Interactive Intelijen Showcase / Demo Box */}
@@ -7574,6 +7670,10 @@ function App() {
                     setPublicView('landing');
                     setLandingPage('terms');
                 }
+            } else if (hash.startsWith('#/features') || hash.startsWith('#/fitur')) {
+                setSelectedArticleSlug(null);
+                setSelectedArticleLpseSlug(null);
+                setPublicView('features');
             } else if (hash.startsWith('#/pricing')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
@@ -8736,6 +8836,8 @@ function App() {
     const handlePublicNavigate = (target, subView, anchor) => {
         if (target === 'tenders') {
             window.location.hash = '#/explorer';
+        } else if (target === 'features') {
+            window.location.hash = '#/features';
         } else if (target === 'blog') {
             window.location.hash = '#/blog';
         } else if (target === 'auth') {
@@ -8756,6 +8858,34 @@ function App() {
             }
         }
     };
+
+    if (publicView === 'features') {
+        return (
+            <PublicFeaturesPage
+                adminSettings={adminSettings}
+                onNavigate={handlePublicNavigate}
+                onGetStarted={() => {
+                    if (userToken) {
+                        setPublicView(null);
+                        window.location.hash = '#/dashboard';
+                        setActiveTab('dashboard');
+                    } else {
+                        handlePublicNavigate('auth');
+                    }
+                }}
+                onGoTenders={() => {
+                    if (userToken) {
+                        setPublicView(null);
+                        window.location.hash = '#/explorer';
+                        setActiveTab('explorer');
+                    } else {
+                        handlePublicNavigate('tenders');
+                    }
+                }}
+                userToken={userToken}
+            />
+        );
+    }
 
     if (!userToken) {
         // Maintenance gate for unauthenticated visitors (admin can still login via auth page)
