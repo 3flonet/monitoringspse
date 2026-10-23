@@ -2377,9 +2377,11 @@ def search_competitors(q: str):
         SELECT DISTINCT nama_peserta FROM competitor_evaluations WHERE nama_peserta LIKE ?
         UNION
         SELECT DISTINCT nama_pemenang FROM tender_winners WHERE nama_pemenang LIKE ?
+        UNION
+        SELECT DISTINCT nama_peserta FROM tender_participants WHERE nama_peserta LIKE ?
         LIMIT 20
-    """, (f"%{q}%", f"%{q}%"))
-    results = [r[0] for r in cursor.fetchall()]
+    """, (f"%{q}%", f"%{q}%", f"%{q}%"))
+    results = [r[0] for r in cursor.fetchall() if r and r[0]]
     conn.close()
     return results
 
@@ -3095,6 +3097,36 @@ def compare_competitors(comp1: str = Query(...), comp2: str = Query(...)):
 
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    def resolve_canonical_name(raw_name):
+        # Exact match first
+        cursor.execute("""
+            SELECT nama_peserta FROM competitor_evaluations WHERE nama_peserta = ?
+            UNION
+            SELECT nama_pemenang FROM tender_winners WHERE nama_pemenang = ?
+            UNION
+            SELECT nama_peserta FROM tender_participants WHERE nama_peserta = ?
+            LIMIT 1
+        """, (raw_name, raw_name, raw_name))
+        row = cursor.fetchone()
+        if row and row[0]:
+            return row[0]
+        # Case-insensitive / substring match fallback
+        cursor.execute("""
+            SELECT nama_peserta FROM competitor_evaluations WHERE nama_peserta LIKE ?
+            UNION
+            SELECT nama_pemenang FROM tender_winners WHERE nama_pemenang LIKE ?
+            UNION
+            SELECT nama_peserta FROM tender_participants WHERE nama_peserta LIKE ?
+            LIMIT 1
+        """, (f"%{raw_name}%", f"%{raw_name}%", f"%{raw_name}%"))
+        row = cursor.fetchone()
+        if row and row[0]:
+            return row[0]
+        return raw_name
+
+    name1 = resolve_canonical_name(name1)
+    name2 = resolve_canonical_name(name2)
 
     # 1. Fetch profile snapshots for both companies
     def get_comp_summary(comp_name):

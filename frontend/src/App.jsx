@@ -16935,7 +16935,18 @@ function App() {
                                                                 value={compareComp2Query}
                                                                 onChange={(e) => {
                                                                     setCompareComp2Query(e.target.value);
+                                                                    setCompareComp2Name(e.target.value);
                                                                     fetchCompareComp2Suggestions(e.target.value);
+                                                                }}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        e.preventDefault();
+                                                                        const targetName = (compareComp2Name || compareComp2Query || '').trim();
+                                                                        if (targetName && competitorProfile?.name) {
+                                                                            setCompareComp2Suggestions([]);
+                                                                            fetchCompetitorCompare(competitorProfile.name, targetName);
+                                                                        }
+                                                                    }
                                                                 }}
                                                                 style={{
                                                                     width: '100%',
@@ -16953,45 +16964,65 @@ function App() {
                                                                     top: '100%',
                                                                     left: 0,
                                                                     right: 0,
-                                                                    background: '#1e293b',
-                                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                                    borderRadius: '8px',
-                                                                    marginTop: '4px',
-                                                                    zIndex: 50,
-                                                                    maxHeight: '200px',
+                                                                    background: '#0f172a',
+                                                                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                                                                    borderRadius: '10px',
+                                                                    marginTop: '6px',
+                                                                    zIndex: 100,
+                                                                    maxHeight: '240px',
                                                                     overflowY: 'auto',
-                                                                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+                                                                    boxShadow: '0 12px 32px rgba(0,0,0,0.75)'
                                                                 }}>
-                                                                    {compareComp2Suggestions.map((s, idx) => (
-                                                                        <div
-                                                                            key={idx}
-                                                                            onClick={() => {
-                                                                                setCompareComp2Name(s.nama);
-                                                                                setCompareComp2Query(s.nama);
-                                                                                setCompareComp2Suggestions([]);
-                                                                            }}
-                                                                            style={{
-                                                                                padding: '10px 14px',
-                                                                                cursor: 'pointer',
-                                                                                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                                                                fontSize: '13px',
-                                                                                color: '#e5e7eb'
-                                                                            }}
-                                                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                                                        >
-                                                                            <strong>{s.nama}</strong>
-                                                                            {s.npwp && <div style={{ fontSize: '11px', color: '#9ca3af' }}>NPWP: {s.npwp}</div>}
-                                                                        </div>
-                                                                    ))}
+                                                                    {compareComp2Suggestions.map((s, idx) => {
+                                                                        const compName = typeof s === 'string' ? s : (s.nama || s.name || '');
+                                                                        const compNpwp = typeof s === 'object' && s !== null ? s.npwp : null;
+                                                                        return (
+                                                                            <div
+                                                                                key={idx}
+                                                                                onClick={() => {
+                                                                                    setCompareComp2Name(compName);
+                                                                                    setCompareComp2Query(compName);
+                                                                                    setCompareComp2Suggestions([]);
+                                                                                    if (competitorProfile?.name && compName) {
+                                                                                        fetchCompetitorCompare(competitorProfile.name, compName);
+                                                                                    }
+                                                                                }}
+                                                                                style={{
+                                                                                    padding: '10px 14px',
+                                                                                    cursor: 'pointer',
+                                                                                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                                                                    fontSize: '13px',
+                                                                                    color: '#f8fafc',
+                                                                                    display: 'flex',
+                                                                                    justifyContent: 'space-between',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '10px'
+                                                                                }}
+                                                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.15)'}
+                                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                                            >
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                                                                                    <span style={{ flexShrink: 0 }}>🏢</span>
+                                                                                    <div style={{ minWidth: 0 }}>
+                                                                                        <strong style={{ color: '#ffffff', display: 'block', wordBreak: 'break-word' }}>{compName}</strong>
+                                                                                        {compNpwp && <div style={{ fontSize: '11px', color: '#9ca3af' }}>NPWP: {compNpwp}</div>}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <span style={{ fontSize: '10.5px', color: '#22d3ee', background: 'rgba(6, 182, 212, 0.15)', padding: '2px 8px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0, fontWeight: '600' }}>
+                                                                                    Pilih ➔
+                                                                                </span>
+                                                                            </div>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             )}
                                                         </div>
 
                                                         <button
                                                             onClick={() => {
-                                                                const targetName = compareComp2Name || compareComp2Query;
+                                                                const targetName = (compareComp2Name || compareComp2Query || '').trim();
                                                                 if (targetName) {
+                                                                    setCompareComp2Suggestions([]);
                                                                     fetchCompetitorCompare(competitorProfile.name, targetName);
                                                                 }
                                                             }}
