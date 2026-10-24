@@ -9716,13 +9716,41 @@ function App() {
                                             background: forgotMsg.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                                             color: forgotMsg.type === 'success' ? '#34d399' : '#f87171',
                                             border: `1px solid ${forgotMsg.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                                            padding: '12px 16px',
-                                            borderRadius: '10px',
+                                            padding: '14px 18px',
+                                            borderRadius: '12px',
                                             fontSize: '13px',
                                             marginBottom: '20px',
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            lineHeight: '1.6'
                                         }}>
-                                            {forgotMsg.text}
+                                            <div>{forgotMsg.text}</div>
+                                            {forgotMsg.type === 'error' && (
+                                                <div style={{ marginTop: '12px' }}>
+                                                    <a
+                                                        href={`https://wa.me/${String(adminSettings.contact_whatsapp || '6282120664105').replace(/\D/g, '')}?text=${encodeURIComponent(`Halo Admin Spy SPSE, saya mengalami kendala lupa password untuk email: ${forgotEmail || ''}. Mohon bantuannya.`)}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            background: '#25D366',
+                                                            color: '#ffffff',
+                                                            padding: '7px 16px',
+                                                            borderRadius: '20px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '700',
+                                                            textDecoration: 'none',
+                                                            boxShadow: '0 2px 8px rgba(37, 211, 102, 0.35)',
+                                                            transition: 'transform 0.15s ease'
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                    >
+                                                        <span>💬</span> Hubungi WhatsApp Admin (wa.me)
+                                                    </a>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
