@@ -1608,9 +1608,19 @@ def create_user_alert(req: AlertCreate, background_tasks: BackgroundTasks, curre
     cursor.execute("SELECT COUNT(*) FROM alerts WHERE user_id = ?", (current_user["id"],))
     alert_count = cursor.fetchone()[0]
     
-    if plan == "trial" and alert_count >= 3:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Batas maksimum alerts untuk akun Trial adalah 3 K/L/Pemda/Instansi.")
+    if plan == "trial":
+        if alert_count >= 1:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Batas maksimum alerts untuk akun Free/Trial adalah 1 pemantauan. Silakan upgrade ke Premium untuk pemantauan tanpa batas.")
+        
+        sub_kw = [k.strip() for k in req.keyword.split(",") if k.strip()]
+        if len(sub_kw) > 1:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Akun Free/Trial hanya dapat mendaftarkan 1 kata kunci. Silakan upgrade ke Premium untuk mendaftarkan beberapa kata kunci sekaligus.")
+            
+        if req.instansi.strip().lower() == "all":
+            conn.close()
+            raise HTTPException(status_code=400, detail="Akun Free/Trial hanya dapat memilih 1 instansi LPSE spesifik. Opsi 'Pilih semua LPSE' hanya untuk pengguna Premium.")
         
     target_wa = req.whatsapp.strip() if (req.whatsapp and req.whatsapp.strip()) else None
     clean_target_wa = "".join(filter(str.isdigit, target_wa)) if target_wa else None

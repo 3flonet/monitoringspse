@@ -8641,9 +8641,21 @@ function App() {
 
     const handleCreateAlert = async (e) => {
         e.preventDefault();
-        if (currentUser?.subscription?.plan_type === 'trial' && alerts.length >= 1) {
-            setActiveTab('billing');
-            return;
+        const isTrial = currentUser?.subscription?.plan_type === 'trial';
+        if (isTrial) {
+            if (alerts.length >= 1) {
+                setActiveTab('billing');
+                return;
+            }
+            const kwList = alertKeyword.split(',').map(k => k.trim()).filter(Boolean);
+            if (kwList.length > 1) {
+                setActiveTab('billing');
+                return;
+            }
+            if (alertInstansi === 'all') {
+                setActiveTab('billing');
+                return;
+            }
         }
         if (!alertKeyword || !alertEmail || !alertInstansi) return;
         setIsSubmittingAlert(true);
@@ -11605,6 +11617,12 @@ function App() {
 
                 {/* TAB: ALERTS NOTIFIKASI */}
                 {activeTab === 'alerts' && (() => {
+                    const isTrial = currentUser?.subscription?.plan_type === 'trial';
+                    const parsedKeywords = alertKeyword.split(',').map(k => k.trim()).filter(Boolean);
+                    const isKeywordTrialExceeded = isTrial && parsedKeywords.length > 1;
+                    const isLpseAllTrialBlocked = isTrial && alertInstansi === 'all';
+                    const isTrialAlertQuotaExceeded = isTrial && alerts.length >= 1;
+
                     const totalKeywordsCount = alerts.reduce((acc, alert) => {
                         if (!alert.keyword) return acc;
                         const kwList = alert.keyword.split(',').map(k => k.trim()).filter(Boolean);
@@ -11970,7 +11988,14 @@ function App() {
                                 </div>
                                 <form onSubmit={handleCreateAlert} className="alert-form-panel">
                                     <div className="form-group" style={{ marginBottom: '20px' }}>
-                                        <label>Kata Kunci Pencarian (Keyword)</label>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label style={{ margin: 0 }}>Kata Kunci Pencarian (Keyword)</label>
+                                            {isTrial && (
+                                                <span style={{ fontSize: '11px', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)', padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.25)', fontWeight: '600' }}>
+                                                    Maks. 1 Kata Kunci (Free/Trial)
+                                                </span>
+                                            )}
+                                        </div>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -11978,18 +12003,62 @@ function App() {
                                             value={alertKeyword}
                                             onChange={(e) => setAlertKeyword(e.target.value)}
                                             required
+                                            style={{
+                                                borderColor: isKeywordTrialExceeded ? '#ef4444' : undefined,
+                                                boxShadow: isKeywordTrialExceeded ? '0 0 0 2px rgba(239, 68, 68, 0.25)' : undefined
+                                            }}
                                         />
                                         <small style={{ color: '#6b7280', fontSize: '11px', display: 'block', marginTop: '4px', marginBottom: '8px' }}>
-                                            Sistem akan menyaring nama tender, syarat kualifikasi, dan uraian singkat secara otomatis. 💡 Anda bisa memasukkan <strong>beberapa kata kunci sekaligus</strong> dipisahkan dengan tanda koma (<code>,</code>).
+                                            Sistem akan menyaring nama tender, syarat kualifikasi, dan uraian singkat secara otomatis. {isTrial ? '💡 Akun Free/Trial hanya dapat memasukkan 1 kata kunci tanpa tanda koma.' : '💡 Anda bisa memasukkan beberapa kata kunci sekaligus dipisahkan dengan tanda koma (,).'}
                                         </small>
+
+                                        {/* Inline Warning Rejection for Trial Keyword Limit */}
+                                        {isKeywordTrialExceeded && (
+                                            <div style={{
+                                                background: 'rgba(239, 68, 68, 0.12)',
+                                                border: '1px solid rgba(239, 68, 68, 0.35)',
+                                                borderRadius: '8px',
+                                                padding: '10px 12px',
+                                                color: '#f87171',
+                                                fontSize: '12px',
+                                                marginTop: '6px',
+                                                marginBottom: '10px',
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: '8px',
+                                                lineHeight: '1.5'
+                                            }}>
+                                                <span style={{ fontSize: '15px', flexShrink: 0 }}>⛔</span>
+                                                <div>
+                                                    <strong>Batas Kuota Trial Terlampaui ({parsedKeywords.length} kata kunci terdeteksi).</strong><br />
+                                                    Akun Free/Trial hanya dapat memantau <strong>1 kata kunci</strong>. Hapus tanda koma (<code>,</code>) atau{' '}
+                                                    <span
+                                                        onClick={() => setActiveTab('billing')}
+                                                        style={{ color: '#fbbf24', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}
+                                                    >
+                                                        Upgrade ke Premium 👑
+                                                    </span>{' '}
+                                                    untuk memantau multi-keyword tanpa batas.
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {alertKeyword.trim() && (
                                             <div className="keyword-tags-container">
-                                                {alertKeyword.split(',').map((tag, idx) => {
-                                                    const cleanTag = tag.trim();
-                                                    if (!cleanTag) return null;
+                                                {parsedKeywords.map((tag, idx) => {
+                                                    const isTagBlocked = isTrial && idx > 0;
                                                     return (
-                                                        <span key={idx} className="keyword-tag">
-                                                            🔑 {cleanTag}
+                                                        <span
+                                                            key={idx}
+                                                            className="keyword-tag"
+                                                            style={isTagBlocked ? {
+                                                                background: 'rgba(239, 68, 68, 0.18)',
+                                                                color: '#f87171',
+                                                                border: '1px solid rgba(239, 68, 68, 0.45)',
+                                                                fontWeight: '600'
+                                                            } : {}}
+                                                        >
+                                                            {isTagBlocked ? '❌' : '🔑'} {tag} {isTagBlocked ? '(Ditolak - Melebihi Batas Trial)' : ''}
                                                         </span>
                                                     );
                                                 })}
@@ -11998,18 +12067,60 @@ function App() {
                                     </div>
 
                                     <div className="form-group">
-                                        <label>Pilih LPSE (K/L/Pemda/Instansi Target)</label>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                            <label style={{ margin: 0 }}>Pilih LPSE (K/L/Pemda/Instansi Target)</label>
+                                            {isTrial && (
+                                                <span style={{ fontSize: '11px', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)', padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.25)', fontWeight: '600' }}>
+                                                    Pilih 1 LPSE Spesifik (Free/Trial)
+                                                </span>
+                                            )}
+                                        </div>
                                         <select
                                             className="form-control"
                                             value={alertInstansi}
                                             onChange={(e) => setAlertInstansi(e.target.value)}
                                             required
+                                            style={{
+                                                borderColor: isLpseAllTrialBlocked ? '#ef4444' : undefined,
+                                                boxShadow: isLpseAllTrialBlocked ? '0 0 0 2px rgba(239, 68, 68, 0.25)' : undefined
+                                            }}
                                         >
-                                            <option value="all">Pilih semua LPSE</option>
+                                            <option value="all">
+                                                {isTrial ? '🌐 Pilih semua LPSE (Khusus Akun Premium 👑)' : 'Pilih semua LPSE'}
+                                            </option>
                                             {lpseInstances.map((inst, idx) => (
                                                 <option key={idx} value={inst.slug}>{inst.name}</option>
                                             ))}
                                         </select>
+
+                                        {/* Inline Warning Rejection for Trial All LPSE */}
+                                        {isLpseAllTrialBlocked && (
+                                            <div style={{
+                                                background: 'rgba(239, 68, 68, 0.12)',
+                                                border: '1px solid rgba(239, 68, 68, 0.35)',
+                                                borderRadius: '8px',
+                                                padding: '10px 12px',
+                                                color: '#f87171',
+                                                fontSize: '12px',
+                                                marginTop: '8px',
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: '8px',
+                                                lineHeight: '1.5'
+                                            }}>
+                                                <span style={{ fontSize: '15px', flexShrink: 0 }}>⛔</span>
+                                                <div>
+                                                    <strong>Instansi LPSE Melebihi Batasan Kuota.</strong><br />
+                                                    Akun Free/Trial hanya dapat memantau <strong>1 instansi LPSE spesifik</strong>. Opsi <em>Pilih semua LPSE</em> hanya tersedia untuk{' '}
+                                                    <span
+                                                        onClick={() => setActiveTab('billing')}
+                                                        style={{ color: '#fbbf24', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}
+                                                    >
+                                                        Pengguna Premium 👑
+                                                    </span>. Silakan pilih salah satu LPSE spesifik pada daftar di atas.
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group">
@@ -12044,12 +12155,24 @@ function App() {
                                         style={{
                                             width: '100%',
                                             marginTop: '8px',
-                                            background: (currentUser?.subscription?.plan_type === 'trial' && alerts.length >= 1) ? 'linear-gradient(135deg, var(--color-warning), var(--color-secondary))' : undefined,
-                                            borderColor: (currentUser?.subscription?.plan_type === 'trial' && alerts.length >= 1) ? 'transparent' : undefined
+                                            background: (isTrialAlertQuotaExceeded || isKeywordTrialExceeded || isLpseAllTrialBlocked)
+                                                ? (isTrialAlertQuotaExceeded
+                                                    ? 'linear-gradient(135deg, var(--color-warning), var(--color-secondary))'
+                                                    : 'linear-gradient(135deg, #ef4444, #b91c1c)')
+                                                : undefined,
+                                            borderColor: (isTrialAlertQuotaExceeded || isKeywordTrialExceeded || isLpseAllTrialBlocked) ? 'transparent' : undefined
                                         }}
                                         disabled={isSubmittingAlert}
                                     >
-                                        {isSubmittingAlert ? 'Menyimpan...' : (currentUser?.subscription?.plan_type === 'trial' && alerts.length >= 1) ? 'Kuota Trial Habis (Upgrade ke Premium)' : 'Aktifkan Alert'}
+                                        {isSubmittingAlert
+                                            ? 'Menyimpan...'
+                                            : isTrialAlertQuotaExceeded
+                                                ? '🔒 Kuota Trial Habis (Upgrade ke Premium)'
+                                                : isKeywordTrialExceeded
+                                                    ? '⛔ Batas 1 Kata Kunci Terlampaui (Upgrade ke Premium)'
+                                                    : isLpseAllTrialBlocked
+                                                        ? '⛔ Pilih 1 LPSE Spesifik (Upgrade ke Premium)'
+                                                        : 'Aktifkan Alert'}
                                     </button>
                                 </form>
                             </div>
