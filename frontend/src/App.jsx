@@ -11740,86 +11740,302 @@ function App() {
                                                 key={idx}
                                                 style={{
                                                     display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '16px 20px',
-                                                    background: alert.is_active === 0 ? 'rgba(15, 23, 42, 0.45)' : 'rgba(30, 41, 59, 0.25)',
-                                                    border: `1px solid ${alert.is_active === 0 ? 'rgba(148, 163, 184, 0.15)' : 'var(--border-color)'}`,
-                                                    borderRadius: '12px',
-                                                    gap: '16px',
-                                                    flexWrap: 'wrap',
-                                                    opacity: alert.is_active === 0 ? 0.8 : 1,
-                                                    transition: 'all 0.2s'
+                                                    flexDirection: 'column',
+                                                    background: alert.is_active === 0 ? 'rgba(15, 23, 42, 0.5)' : 'rgba(30, 41, 59, 0.35)',
+                                                    border: `1px solid ${alert.is_active === 0 ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.22)'}`,
+                                                    borderRadius: '14px',
+                                                    padding: '18px 20px',
+                                                    gap: '14px',
+                                                    opacity: alert.is_active === 0 ? 0.75 : 1,
+                                                    transition: 'all 0.25s ease',
+                                                    boxShadow: alert.is_active === 0 ? 'none' : '0 4px 20px -4px rgba(0, 0, 0, 0.25)',
+                                                    position: 'relative'
                                                 }}
                                             >
-                                                {/* Keyword & LPSE */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 240px' }}>
-                                                    <div style={{
-                                                        width: '40px',
-                                                        height: '40px',
-                                                        borderRadius: '10px',
-                                                        background: 'rgba(99, 102, 241, 0.1)',
-                                                        border: '1px solid rgba(99, 102, 241, 0.2)',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        color: '#818cf8',
-                                                        fontSize: '18px',
-                                                        flexShrink: 0
-                                                    }}>
-                                                        🔍
+                                                {/* BARIS 1: HEADER CARD (Target Keyword, LPSE, Status Master Radar, Dibuat, & Hapus) */}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    flexWrap: 'wrap',
+                                                    gap: '14px',
+                                                    paddingBottom: '14px',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.07)'
+                                                }}>
+                                                    {/* Kiri: Icon + Target Kata Kunci + LPSE */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '240px' }}>
+                                                        <div style={{
+                                                            width: '44px',
+                                                            height: '44px',
+                                                            borderRadius: '12px',
+                                                            background: alert.is_active === 0 ? 'rgba(100, 116, 139, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                                                            border: `1px solid ${alert.is_active === 0 ? 'rgba(100, 116, 139, 0.3)' : 'rgba(99, 102, 241, 0.35)'}`,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '20px',
+                                                            flexShrink: 0,
+                                                            boxShadow: alert.is_active === 0 ? 'none' : '0 0 14px rgba(99, 102, 241, 0.25)'
+                                                        }}>
+                                                            🎯
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
+                                                                <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+                                                                    Target Pemantauan
+                                                                </span>
+                                                                <span style={{
+                                                                    fontSize: '11px',
+                                                                    background: 'rgba(99, 102, 241, 0.15)',
+                                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                                                    color: '#a5b4fc',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '4px',
+                                                                    fontWeight: '600',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px'
+                                                                }}>
+                                                                    🏛️ {getLpseNameBySlug(alert.instansi)}
+                                                                </span>
+                                                            </div>
+                                                            <h4 style={{ margin: 0, fontSize: '17px', color: '#fff', fontWeight: '700', letterSpacing: '-0.01em', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                                                {alert.keyword && alert.keyword.includes(',') ? (
+                                                                    alert.keyword.split(',').map((kw, kIdx) => (
+                                                                        <span key={kIdx} style={{
+                                                                            background: 'rgba(99, 102, 241, 0.2)',
+                                                                            border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                                            color: '#c7d2fe',
+                                                                            padding: '2px 10px',
+                                                                            borderRadius: '6px',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: '700'
+                                                                        }}>
+                                                                            🔍 {kw.trim()}
+                                                                        </span>
+                                                                    ))
+                                                                ) : (
+                                                                    <span style={{ color: '#e0e7ff' }}>"{alert.keyword}"</span>
+                                                                )}
+                                                            </h4>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', fontWeight: '600', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                                                            {alert.keyword && alert.keyword.includes(',') ? (
-                                                                alert.keyword.split(',').map((kw, kIdx) => (
-                                                                    <span key={kIdx} style={{
-                                                                        background: 'rgba(99, 102, 241, 0.18)',
-                                                                        border: '1px solid rgba(99, 102, 241, 0.35)',
-                                                                        color: '#c7d2fe',
-                                                                        padding: '2px 8px',
-                                                                        borderRadius: '6px',
-                                                                        fontSize: '13px',
-                                                                        fontWeight: '600'
-                                                                    }}>
-                                                                        🔍 {kw.trim()}
-                                                                    </span>
-                                                                ))
-                                                            ) : (
-                                                                `"${alert.keyword}"`
-                                                            )}
-                                                        </h4>
-                                                        <div style={{ marginTop: '4px' }}>
+
+                                                    {/* Kanan: Master Toggle Switch, Tanggal, & Tombol Hapus */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                                        {/* Status Radar Master Switch */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleUserAlert(alert.id, 'is_active', alert.is_active !== 0)}
+                                                            style={{
+                                                                background: alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(239, 68, 68, 0.14)',
+                                                                border: `1px solid ${alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.45)' : 'rgba(239, 68, 68, 0.35)'}`,
+                                                                color: alert.is_active !== 0 ? '#4ade80' : '#f87171',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '700',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px'
+                                                            }}
+                                                            title={alert.is_active !== 0 ? 'Klik untuk menjeda pemantauan alert ini' : 'Klik untuk mengaktifkan kembali pemantauan alert ini'}
+                                                        >
                                                             <span style={{
-                                                                fontSize: '11px',
-                                                                color: '#818cf8',
-                                                                background: 'rgba(99, 102, 241, 0.12)',
-                                                                border: '1px solid rgba(99, 102, 241, 0.2)',
-                                                                padding: '2px 8px',
-                                                                borderRadius: '4px',
-                                                                textTransform: 'capitalize',
-                                                                display: 'inline-block'
-                                                            }}>
-                                                                {getLpseNameBySlug(alert.instansi)}
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                background: alert.is_active !== 0 ? '#22c55e' : '#ef4444',
+                                                                boxShadow: alert.is_active !== 0 ? '0 0 8px #22c55e' : 'none'
+                                                            }} />
+                                                            {alert.is_active !== 0 ? 'Radar Aktif' : 'Radar Dijeda'}
+                                                        </button>
+
+                                                        {/* Tanggal */}
+                                                        <div style={{
+                                                            fontSize: '11px',
+                                                            color: '#94a3b8',
+                                                            padding: '5px 10px',
+                                                            background: 'rgba(15, 23, 42, 0.4)',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px'
+                                                        }}>
+                                                            <span style={{ color: '#64748b' }}>Dibuat:</span>
+                                                            <span style={{ color: '#cbd5e1', fontWeight: '500' }}>
+                                                                {new Date(alert.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                             </span>
                                                         </div>
+
+                                                        {/* Tombol Hapus */}
+                                                        <button
+                                                            className="btn-delete"
+                                                            type="button"
+                                                            style={{
+                                                                background: 'rgba(239, 68, 68, 0.08)',
+                                                                color: '#f87171',
+                                                                border: '1px solid rgba(239, 68, 68, 0.22)',
+                                                                padding: '6px 12px',
+                                                                borderRadius: '8px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '600',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px'
+                                                            }}
+                                                            onClick={() => handleDeleteAlert(alert)}
+                                                            onMouseOver={(e) => {
+                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                                                            }}
+                                                            onMouseOut={(e) => {
+                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.22)';
+                                                            }}
+                                                            title="Hapus pemantauan kata kunci ini"
+                                                        >
+                                                            🗑️ Hapus
+                                                        </button>
                                                     </div>
                                                 </div>
 
-                                                {/* Email & WA Targets */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 200px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#9ca3af' }}>
-                                                        <span style={{ width: '20px', textAlign: 'center' }}>✉️</span>
-                                                        <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{alert.email}</span>
+                                                {/* BARIS 2: SALURAN NOTIFIKASI (GRID 2 KARTU BERSIH: EMAIL & WHATSAPP) */}
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                                                    gap: '12px'
+                                                }}>
+                                                    {/* KARTU EMAIL */}
+                                                    <div style={{
+                                                        background: 'rgba(15, 23, 42, 0.45)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                        borderRadius: '10px',
+                                                        padding: '12px 14px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '8px'
+                                                    }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                ✉️ Saluran Email
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleUserAlert(alert.id, 'email_active', alert.email_active !== 0)}
+                                                                disabled={alert.is_active === 0}
+                                                                style={{
+                                                                    background: alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.16)' : 'rgba(100, 116, 139, 0.15)',
+                                                                    border: `1px solid ${alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
+                                                                    color: alert.email_active !== 0 && alert.is_active !== 0 ? '#60a5fa' : '#94a3b8',
+                                                                    padding: '3px 10px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
+                                                                    opacity: alert.is_active === 0 ? 0.5 : 1,
+                                                                    transition: 'all 0.2s',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px'
+                                                                }}
+                                                                title="Aktifkan/nonaktifkan pengiriman lelang ke Email"
+                                                            >
+                                                                <span style={{
+                                                                    width: '6px',
+                                                                    height: '6px',
+                                                                    borderRadius: '50%',
+                                                                    background: alert.email_active !== 0 && alert.is_active !== 0 ? '#3b82f6' : '#64748b'
+                                                                }} />
+                                                                {alert.email_active !== 0 ? 'Email ON' : 'Email OFF'}
+                                                            </button>
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '13px',
+                                                            color: alert.email_active !== 0 && alert.is_active !== 0 ? '#e2e8f0' : '#64748b',
+                                                            fontWeight: '500',
+                                                            wordBreak: 'break-all',
+                                                            background: 'rgba(0, 0, 0, 0.25)',
+                                                            padding: '7px 10px',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.04)'
+                                                        }}>
+                                                            {alert.email || currentUser?.email || 'Belum diatur'}
+                                                        </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', flexWrap: 'wrap' }}>
-                                                        <span style={{ width: '20px', textAlign: 'center' }}>💬</span>
-                                                        {alert.whatsapp || currentUser?.whatsapp ? (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                                                <span style={{ color: '#34d399', fontWeight: '500' }}>
-                                                                    {alert.whatsapp ? alert.whatsapp : `${currentUser?.whatsapp} (Default)`}
-                                                                </span>
-                                                                {alert.wa_verified ? (
+
+                                                    {/* KARTU WHATSAPP */}
+                                                    <div style={{
+                                                        background: 'rgba(15, 23, 42, 0.45)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                        borderRadius: '10px',
+                                                        padding: '12px 14px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '8px'
+                                                    }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                💬 Saluran WhatsApp
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleUserAlert(alert.id, 'wa_active', alert.wa_active !== 0)}
+                                                                disabled={alert.is_active === 0}
+                                                                style={{
+                                                                    background: alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(100, 116, 139, 0.15)',
+                                                                    border: `1px solid ${alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
+                                                                    color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#4ade80' : '#94a3b8',
+                                                                    padding: '3px 10px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
+                                                                    opacity: alert.is_active === 0 ? 0.5 : 1,
+                                                                    transition: 'all 0.2s',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px'
+                                                                }}
+                                                                title="Aktifkan/nonaktifkan pengiriman lelang ke WhatsApp"
+                                                            >
+                                                                <span style={{
+                                                                    width: '6px',
+                                                                    height: '6px',
+                                                                    borderRadius: '50%',
+                                                                    background: alert.wa_active !== 0 && alert.is_active !== 0 ? '#22c55e' : '#64748b'
+                                                                }} />
+                                                                {alert.wa_active !== 0 ? 'WA ON' : 'WA OFF'}
+                                                            </button>
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            flexWrap: 'wrap',
+                                                            gap: '8px',
+                                                            background: 'rgba(0, 0, 0, 0.25)',
+                                                            padding: '6px 10px',
+                                                            borderRadius: '6px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.04)',
+                                                            minHeight: '34px'
+                                                        }}>
+                                                            <span style={{
+                                                                fontSize: '13px',
+                                                                color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#34d399' : '#64748b',
+                                                                fontWeight: '600'
+                                                            }}>
+                                                                {alert.whatsapp ? alert.whatsapp : (currentUser?.whatsapp ? `${currentUser.whatsapp}` : 'Belum diset')}
+                                                            </span>
+
+                                                            {/* Status Verifikasi / Tombol Hubungkan */}
+                                                            {alert.whatsapp || currentUser?.whatsapp ? (
+                                                                alert.wa_verified ? (
                                                                     <span style={{
                                                                         fontSize: '11px',
                                                                         background: 'rgba(16, 185, 129, 0.15)',
@@ -11854,144 +12070,33 @@ function App() {
                                                                             type="button"
                                                                             onClick={() => handleOpenWaActivationModal(alert)}
                                                                             style={{
-                                                                                background: 'rgba(16, 185, 129, 0.18)',
-                                                                                border: '1px solid rgba(16, 185, 129, 0.4)',
-                                                                                color: '#10b981',
-                                                                                padding: '2px 8px',
+                                                                                background: 'rgba(16, 185, 129, 0.2)',
+                                                                                border: '1px solid rgba(16, 185, 129, 0.45)',
+                                                                                color: '#34d399',
+                                                                                padding: '2px 10px',
                                                                                 borderRadius: '6px',
                                                                                 fontSize: '11px',
-                                                                                fontWeight: '600',
+                                                                                fontWeight: '700',
                                                                                 cursor: 'pointer',
                                                                                 transition: 'all 0.2s',
                                                                                 display: 'inline-flex',
                                                                                 alignItems: 'center',
-                                                                                gap: '3px'
+                                                                                gap: '3px',
+                                                                                boxShadow: '0 0 8px rgba(16, 185, 129, 0.2)'
                                                                             }}
-                                                                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.32)'}
-                                                                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.18)'}
+                                                                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.35)'}
+                                                                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
                                                                             title="Klik untuk membuka WhatsApp dan mengaktifkan notifikasi lelang"
                                                                         >
-                                                                            📱 Hubungkan
+                                                                            📱 Hubungkan Bot
                                                                         </button>
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span style={{ color: '#ef4444' }}>Belum diset</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Channels & Active Status Controls */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '0 0 auto', minWidth: '180px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleToggleUserAlert(alert.id, 'is_active', alert.is_active !== 0)}
-                                                            style={{
-                                                                background: alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(239, 68, 68, 0.14)',
-                                                                border: `1px solid ${alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.45)' : 'rgba(239, 68, 68, 0.35)'}`,
-                                                                color: alert.is_active !== 0 ? '#4ade80' : '#f87171',
-                                                                padding: '4px 10px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '11px',
-                                                                fontWeight: '700',
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.2s',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '5px'
-                                                            }}
-                                                            title={alert.is_active !== 0 ? 'Klik untuk menjeda pemantauan alert ini' : 'Klik untuk mengaktifkan kembali pemantauan alert ini'}
-                                                        >
-                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: alert.is_active !== 0 ? '#22c55e' : '#ef4444' }} />
-                                                            {alert.is_active !== 0 ? '🟢 Radar Aktif' : '⏸️ Radar Dijeda'}
-                                                        </button>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleToggleUserAlert(alert.id, 'email_active', alert.email_active !== 0)}
-                                                            disabled={alert.is_active === 0}
-                                                            style={{
-                                                                background: alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.16)' : 'rgba(100, 116, 139, 0.15)',
-                                                                border: `1px solid ${alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
-                                                                color: alert.email_active !== 0 && alert.is_active !== 0 ? '#60a5fa' : '#94a3b8',
-                                                                padding: '3px 8px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '11px',
-                                                                fontWeight: '600',
-                                                                cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
-                                                                opacity: alert.is_active === 0 ? 0.5 : 1,
-                                                                transition: 'all 0.2s',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px'
-                                                            }}
-                                                            title="Aktifkan/nonaktifkan pengiriman lelang ke Email"
-                                                        >
-                                                            ✉️ {alert.email_active !== 0 ? 'Email ON' : 'Email OFF'}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleToggleUserAlert(alert.id, 'wa_active', alert.wa_active !== 0)}
-                                                            disabled={alert.is_active === 0}
-                                                            style={{
-                                                                background: alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(100, 116, 139, 0.15)',
-                                                                border: `1px solid ${alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
-                                                                color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#4ade80' : '#94a3b8',
-                                                                padding: '3px 8px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '11px',
-                                                                fontWeight: '600',
-                                                                cursor: alert.is_active === 0 ? 'not-allowed' : 'pointer',
-                                                                opacity: alert.is_active === 0 ? 0.5 : 1,
-                                                                transition: 'all 0.2s',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px'
-                                                            }}
-                                                            title="Aktifkan/nonaktifkan pengiriman lelang ke WhatsApp"
-                                                        >
-                                                            💬 {alert.wa_active !== 0 ? 'WA ON' : 'WA OFF'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Date & Action Button */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'flex-end', flex: '1 1 150px' }}>
-                                                    <div style={{ textAlign: 'right' }}>
-                                                        <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dibuat</div>
-                                                        <div style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500', marginTop: '2px' }}>
-                                                            {new Date(alert.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                )
+                                                            ) : (
+                                                                <span style={{ fontSize: '11px', color: '#ef4444' }}>Nomor WA Kosong</span>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        className="btn-delete"
-                                                        style={{
-                                                            background: 'rgba(239, 68, 68, 0.1)',
-                                                            color: '#f87171',
-                                                            border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                            padding: '8px 14px',
-                                                            borderRadius: '8px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '600',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s'
-                                                        }}
-                                                        onClick={() => handleDeleteAlert(alert)}
-                                                        onMouseOver={(e) => {
-                                                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                                                            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                                                        }}
-                                                        onMouseOut={(e) => {
-                                                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                                                            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                                                        }}
-                                                    >
-                                                        Hapus
-                                                    </button>
                                                 </div>
                                             </div>
                                         ))
