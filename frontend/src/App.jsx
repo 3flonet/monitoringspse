@@ -11732,65 +11732,70 @@ function App() {
                                 <div className="panel-header">
                                     <h3 className="panel-title">Daftar Pemantauan Aktif ({alerts.length})</h3>
                                 </div>
-                                <div className="alerts-list" style={{ gap: '12px' }}>
+                                <div className="alerts-list" style={{ gap: '14px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', boxSizing: 'border-box' }}>
                                     {alerts.length > 0 ? (
                                         alerts.map((alert, idx) => (
                                             <div
                                                 className="alert-item"
                                                 key={idx}
                                                 style={{
+                                                    width: '100%',
+                                                    boxSizing: 'border-box',
                                                     display: 'flex',
                                                     flexDirection: 'column',
-                                                    background: alert.is_active === 0 ? 'rgba(15, 23, 42, 0.5)' : 'rgba(30, 41, 59, 0.35)',
-                                                    border: `1px solid ${alert.is_active === 0 ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.22)'}`,
+                                                    alignItems: 'stretch',
+                                                    background: alert.is_active === 0 ? 'rgba(15, 23, 42, 0.5)' : 'rgba(30, 41, 59, 0.4)',
+                                                    border: `1px solid ${alert.is_active === 0 ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.28)'}`,
                                                     borderRadius: '14px',
-                                                    padding: '18px 20px',
-                                                    gap: '14px',
+                                                    padding: '20px 22px',
+                                                    gap: '16px',
                                                     opacity: alert.is_active === 0 ? 0.75 : 1,
                                                     transition: 'all 0.25s ease',
-                                                    boxShadow: alert.is_active === 0 ? 'none' : '0 4px 20px -4px rgba(0, 0, 0, 0.25)',
+                                                    boxShadow: alert.is_active === 0 ? 'none' : '0 4px 20px -4px rgba(0, 0, 0, 0.3)',
                                                     position: 'relative'
                                                 }}
                                             >
                                                 {/* BARIS 1: HEADER CARD (Target Keyword, LPSE, Status Master Radar, Dibuat, & Hapus) */}
                                                 <div style={{
+                                                    width: '100%',
+                                                    boxSizing: 'border-box',
                                                     display: 'flex',
                                                     justifyContent: 'space-between',
                                                     alignItems: 'center',
                                                     flexWrap: 'wrap',
                                                     gap: '14px',
-                                                    paddingBottom: '14px',
-                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.07)'
+                                                    paddingBottom: '16px',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
                                                 }}>
                                                     {/* Kiri: Icon + Target Kata Kunci + LPSE */}
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '240px' }}>
                                                         <div style={{
-                                                            width: '44px',
-                                                            height: '44px',
+                                                            width: '46px',
+                                                            height: '46px',
                                                             borderRadius: '12px',
-                                                            background: alert.is_active === 0 ? 'rgba(100, 116, 139, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                                                            border: `1px solid ${alert.is_active === 0 ? 'rgba(100, 116, 139, 0.3)' : 'rgba(99, 102, 241, 0.35)'}`,
+                                                            background: alert.is_active === 0 ? 'rgba(100, 116, 139, 0.15)' : 'rgba(99, 102, 241, 0.18)',
+                                                            border: `1px solid ${alert.is_active === 0 ? 'rgba(100, 116, 139, 0.3)' : 'rgba(99, 102, 241, 0.4)'}`,
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
-                                                            fontSize: '20px',
+                                                            fontSize: '22px',
                                                             flexShrink: 0,
-                                                            boxShadow: alert.is_active === 0 ? 'none' : '0 0 14px rgba(99, 102, 241, 0.25)'
+                                                            boxShadow: alert.is_active === 0 ? 'none' : '0 0 16px rgba(99, 102, 241, 0.3)'
                                                         }}>
                                                             🎯
                                                         </div>
                                                         <div>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                                                                <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                                                                <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: '700' }}>
                                                                     Target Pemantauan
                                                                 </span>
                                                                 <span style={{
                                                                     fontSize: '11px',
-                                                                    background: 'rgba(99, 102, 241, 0.15)',
-                                                                    border: '1px solid rgba(99, 102, 241, 0.3)',
-                                                                    color: '#a5b4fc',
+                                                                    background: 'rgba(99, 102, 241, 0.18)',
+                                                                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                                                                    color: '#c7d2fe',
                                                                     padding: '2px 8px',
-                                                                    borderRadius: '4px',
+                                                                    borderRadius: '5px',
                                                                     fontWeight: '600',
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
@@ -11799,14 +11804,14 @@ function App() {
                                                                     🏛️ {getLpseNameBySlug(alert.instansi)}
                                                                 </span>
                                                             </div>
-                                                            <h4 style={{ margin: 0, fontSize: '17px', color: '#fff', fontWeight: '700', letterSpacing: '-0.01em', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                                            <h4 style={{ margin: 0, fontSize: '18px', color: '#fff', fontWeight: '700', letterSpacing: '-0.01em', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
                                                                 {alert.keyword && alert.keyword.includes(',') ? (
                                                                     alert.keyword.split(',').map((kw, kIdx) => (
                                                                         <span key={kIdx} style={{
-                                                                            background: 'rgba(99, 102, 241, 0.2)',
-                                                                            border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                                            background: 'rgba(99, 102, 241, 0.22)',
+                                                                            border: '1px solid rgba(99, 102, 241, 0.45)',
                                                                             color: '#c7d2fe',
-                                                                            padding: '2px 10px',
+                                                                            padding: '3px 10px',
                                                                             borderRadius: '6px',
                                                                             fontSize: '14px',
                                                                             fontWeight: '700'
@@ -11815,7 +11820,7 @@ function App() {
                                                                         </span>
                                                                     ))
                                                                 ) : (
-                                                                    <span style={{ color: '#e0e7ff' }}>"{alert.keyword}"</span>
+                                                                    <span style={{ color: '#e0e7ff', fontWeight: '800' }}>"{alert.keyword}"</span>
                                                                 )}
                                                             </h4>
                                                         </div>
@@ -11831,7 +11836,7 @@ function App() {
                                                                 background: alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(239, 68, 68, 0.14)',
                                                                 border: `1px solid ${alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.45)' : 'rgba(239, 68, 68, 0.35)'}`,
                                                                 color: alert.is_active !== 0 ? '#4ade80' : '#f87171',
-                                                                padding: '6px 12px',
+                                                                padding: '6px 14px',
                                                                 borderRadius: '8px',
                                                                 fontSize: '12px',
                                                                 fontWeight: '700',
@@ -11857,16 +11862,16 @@ function App() {
                                                         <div style={{
                                                             fontSize: '11px',
                                                             color: '#94a3b8',
-                                                            padding: '5px 10px',
-                                                            background: 'rgba(15, 23, 42, 0.4)',
-                                                            borderRadius: '6px',
+                                                            padding: '6px 12px',
+                                                            background: 'rgba(15, 23, 42, 0.5)',
+                                                            borderRadius: '7px',
                                                             border: '1px solid rgba(255, 255, 255, 0.06)',
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             gap: '5px'
                                                         }}>
                                                             <span style={{ color: '#64748b' }}>Dibuat:</span>
-                                                            <span style={{ color: '#cbd5e1', fontWeight: '500' }}>
+                                                            <span style={{ color: '#cbd5e1', fontWeight: '600' }}>
                                                                 {new Date(alert.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                             </span>
                                                         </div>
@@ -11876,10 +11881,10 @@ function App() {
                                                             className="btn-delete"
                                                             type="button"
                                                             style={{
-                                                                background: 'rgba(239, 68, 68, 0.08)',
+                                                                background: 'rgba(239, 68, 68, 0.1)',
                                                                 color: '#f87171',
-                                                                border: '1px solid rgba(239, 68, 68, 0.22)',
-                                                                padding: '6px 12px',
+                                                                border: '1px solid rgba(239, 68, 68, 0.25)',
+                                                                padding: '6px 14px',
                                                                 borderRadius: '8px',
                                                                 fontSize: '12px',
                                                                 fontWeight: '600',
@@ -11891,12 +11896,12 @@ function App() {
                                                             }}
                                                             onClick={() => handleDeleteAlert(alert)}
                                                             onMouseOver={(e) => {
-                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.22)';
+                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.45)';
                                                             }}
                                                             onMouseOut={(e) => {
-                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
-                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.22)';
+                                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
                                                             }}
                                                             title="Hapus pemantauan kata kunci ini"
                                                         >
@@ -11907,22 +11912,24 @@ function App() {
 
                                                 {/* BARIS 2: SALURAN NOTIFIKASI (GRID 2 KARTU BERSIH: EMAIL & WHATSAPP) */}
                                                 <div style={{
+                                                    width: '100%',
+                                                    boxSizing: 'border-box',
                                                     display: 'grid',
                                                     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                                                    gap: '12px'
+                                                    gap: '14px'
                                                 }}>
                                                     {/* KARTU EMAIL */}
                                                     <div style={{
-                                                        background: 'rgba(15, 23, 42, 0.45)',
-                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                        background: 'rgba(15, 23, 42, 0.5)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.07)',
                                                         borderRadius: '10px',
-                                                        padding: '12px 14px',
+                                                        padding: '14px 16px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
-                                                        gap: '8px'
+                                                        gap: '10px'
                                                     }}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <span style={{ fontSize: '13px', fontWeight: '700', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                 ✉️ Saluran Email
                                                             </span>
                                                             <button
@@ -11933,7 +11940,7 @@ function App() {
                                                                     background: alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.16)' : 'rgba(100, 116, 139, 0.15)',
                                                                     border: `1px solid ${alert.email_active !== 0 && alert.is_active !== 0 ? 'rgba(59, 130, 246, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
                                                                     color: alert.email_active !== 0 && alert.is_active !== 0 ? '#60a5fa' : '#94a3b8',
-                                                                    padding: '3px 10px',
+                                                                    padding: '4px 12px',
                                                                     borderRadius: '6px',
                                                                     fontSize: '11px',
                                                                     fontWeight: '700',
@@ -11942,7 +11949,7 @@ function App() {
                                                                     transition: 'all 0.2s',
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
-                                                                    gap: '4px'
+                                                                    gap: '5px'
                                                                 }}
                                                                 title="Aktifkan/nonaktifkan pengiriman lelang ke Email"
                                                             >
@@ -11957,30 +11964,34 @@ function App() {
                                                         </div>
                                                         <div style={{
                                                             fontSize: '13px',
-                                                            color: alert.email_active !== 0 && alert.is_active !== 0 ? '#e2e8f0' : '#64748b',
-                                                            fontWeight: '500',
+                                                            color: alert.email_active !== 0 && alert.is_active !== 0 ? '#f1f5f9' : '#64748b',
+                                                            fontWeight: '600',
                                                             wordBreak: 'break-all',
-                                                            background: 'rgba(0, 0, 0, 0.25)',
-                                                            padding: '7px 10px',
-                                                            borderRadius: '6px',
-                                                            border: '1px solid rgba(255, 255, 255, 0.04)'
+                                                            background: 'rgba(0, 0, 0, 0.3)',
+                                                            padding: '9px 12px',
+                                                            borderRadius: '7px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px'
                                                         }}>
-                                                            {alert.email || currentUser?.email || 'Belum diatur'}
+                                                            <span style={{ color: '#818cf8', fontSize: '14px' }}>📬</span>
+                                                            <span>{alert.email || currentUser?.email || 'Belum diatur'}</span>
                                                         </div>
                                                     </div>
 
                                                     {/* KARTU WHATSAPP */}
                                                     <div style={{
-                                                        background: 'rgba(15, 23, 42, 0.45)',
-                                                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                        background: 'rgba(15, 23, 42, 0.5)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.07)',
                                                         borderRadius: '10px',
-                                                        padding: '12px 14px',
+                                                        padding: '14px 16px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
-                                                        gap: '8px'
+                                                        gap: '10px'
                                                     }}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <span style={{ fontSize: '13px', fontWeight: '700', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                 💬 Saluran WhatsApp
                                                             </span>
                                                             <button
@@ -11991,7 +12002,7 @@ function App() {
                                                                     background: alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.16)' : 'rgba(100, 116, 139, 0.15)',
                                                                     border: `1px solid ${alert.wa_active !== 0 && alert.is_active !== 0 ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'}`,
                                                                     color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#4ade80' : '#94a3b8',
-                                                                    padding: '3px 10px',
+                                                                    padding: '4px 12px',
                                                                     borderRadius: '6px',
                                                                     fontSize: '11px',
                                                                     fontWeight: '700',
@@ -12000,7 +12011,7 @@ function App() {
                                                                     transition: 'all 0.2s',
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
-                                                                    gap: '4px'
+                                                                    gap: '5px'
                                                                 }}
                                                                 title="Aktifkan/nonaktifkan pengiriman lelang ke WhatsApp"
                                                             >
@@ -12019,19 +12030,22 @@ function App() {
                                                             justifyContent: 'space-between',
                                                             flexWrap: 'wrap',
                                                             gap: '8px',
-                                                            background: 'rgba(0, 0, 0, 0.25)',
-                                                            padding: '6px 10px',
-                                                            borderRadius: '6px',
-                                                            border: '1px solid rgba(255, 255, 255, 0.04)',
-                                                            minHeight: '34px'
+                                                            background: 'rgba(0, 0, 0, 0.3)',
+                                                            padding: '7px 12px',
+                                                            borderRadius: '7px',
+                                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                            minHeight: '38px'
                                                         }}>
-                                                            <span style={{
-                                                                fontSize: '13px',
-                                                                color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#34d399' : '#64748b',
-                                                                fontWeight: '600'
-                                                            }}>
-                                                                {alert.whatsapp ? alert.whatsapp : (currentUser?.whatsapp ? `${currentUser.whatsapp}` : 'Belum diset')}
-                                                            </span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <span style={{ color: '#34d399', fontSize: '14px' }}>📱</span>
+                                                                <span style={{
+                                                                    fontSize: '13px',
+                                                                    color: alert.wa_active !== 0 && alert.is_active !== 0 ? '#34d399' : '#64748b',
+                                                                    fontWeight: '700'
+                                                                }}>
+                                                                    {alert.whatsapp ? alert.whatsapp : (currentUser?.whatsapp ? `${currentUser.whatsapp}` : 'Belum diset')}
+                                                                </span>
+                                                            </div>
 
                                                             {/* Status Verifikasi / Tombol Hubungkan */}
                                                             {alert.whatsapp || currentUser?.whatsapp ? (
@@ -12073,7 +12087,7 @@ function App() {
                                                                                 background: 'rgba(16, 185, 129, 0.2)',
                                                                                 border: '1px solid rgba(16, 185, 129, 0.45)',
                                                                                 color: '#34d399',
-                                                                                padding: '2px 10px',
+                                                                                padding: '3px 10px',
                                                                                 borderRadius: '6px',
                                                                                 fontSize: '11px',
                                                                                 fontWeight: '700',
