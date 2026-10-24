@@ -280,11 +280,11 @@ def forgot_password(req: ForgotPasswordReq):
     clean_email = req.email.strip().lower()
     user = get_user_by_email(clean_email)
     
-    # Generic success message for security (Anti Account Enumeration)
-    generic_msg = "Jika email terdaftar di sistem kami, instruksi reset kata sandi telah dikirim ke Email / WhatsApp Anda."
-    
     if not user:
-        return {"status": "success", "message": generic_msg}
+        raise HTTPException(
+            status_code=404,
+            detail="Alamat email tidak terdaftar di sistem kami. Silakan periksa kembali atau daftar akun baru."
+        )
         
     # Generate crypto-secure plain token
     plain_token = secrets.token_urlsafe(32)
@@ -305,10 +305,13 @@ def forgot_password(req: ForgotPasswordReq):
     send_password_reset_email(clean_email, reset_link, expire_minutes=15)
     
     # Send via WhatsApp if user has registered WhatsApp number
+    has_wa = False
     if user.get("whatsapp"):
         send_password_reset_whatsapp(user["whatsapp"], reset_link, expire_minutes=15)
+        has_wa = True
         
-    return {"status": "success", "message": generic_msg}
+    msg = f"Instruksi dan tautan reset kata sandi telah berhasil dikirim ke Email {clean_email}" + (" & WhatsApp Anda." if has_wa else ". Silakan periksa kotak masuk/spam email Anda.")
+    return {"status": "success", "message": msg}
 
 @app.get("/api/auth/verify-reset-token")
 def verify_reset_token(token: str = Query(...)):
