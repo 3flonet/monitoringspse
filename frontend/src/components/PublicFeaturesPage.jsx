@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Explicit-sized SVG icons (avoids missing Tailwind class issue)
 const Icons = {
@@ -134,6 +134,17 @@ export default function PublicFeaturesPage({
 }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeFaq, setActiveFaq] = useState(null);
+
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      });
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   const categories = [
     { id: 'all', label: 'Semua Modul' },

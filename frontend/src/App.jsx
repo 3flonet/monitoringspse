@@ -4506,7 +4506,18 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             🚀 Mulai Gratis Sekarang
                         </button>
                         <button
-                            onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }}
+                            onClick={() => {
+                                window.location.hash = '#/features';
+                                try {
+                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    requestAnimationFrame(() => {
+                                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    });
+                                } catch (e) {
+                                    window.scrollTo(0, 0);
+                                }
+                                onNavigate('features');
+                            }}
                             style={{
                                 background: 'rgba(245, 158, 11, 0.1)',
                                 color: '#fbbf24',
@@ -5101,7 +5112,18 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             Pelajari spesifikasi teknis, mekanisme deteksi radar, cara hitung dominasi wilayah, hingga simulasi duel kontraktor secara lengkap dan mudah dipahami.
                         </p>
                         <button
-                            onClick={() => { window.location.hash = '#/features'; onNavigate('features'); }}
+                            onClick={() => {
+                                window.location.hash = '#/features';
+                                try {
+                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    requestAnimationFrame(() => {
+                                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    });
+                                } catch (e) {
+                                    window.scrollTo(0, 0);
+                                }
+                                onNavigate('features');
+                            }}
                             style={{
                                 marginTop: '8px',
                                 background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
@@ -7793,6 +7815,14 @@ function App() {
             } else if (hash.startsWith('#/features') || hash.startsWith('#/fitur')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
+                try {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    requestAnimationFrame(() => {
+                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    });
+                } catch (e) {
+                    window.scrollTo(0, 0);
+                }
                 setPublicView('features');
             } else if (hash.startsWith('#/pricing')) {
                 setSelectedArticleSlug(null);
@@ -9027,6 +9057,11 @@ function App() {
             window.location.hash = '#/explorer';
         } else if (target === 'features') {
             window.location.hash = '#/features';
+            try {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            } catch (e) {
+                window.scrollTo(0, 0);
+            }
         } else if (target === 'blog') {
             window.location.hash = '#/blog';
             try {
