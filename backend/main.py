@@ -2068,6 +2068,15 @@ def edit_user_subscription_admin(user_id: int, req: dict, current_user: dict = D
     update_user_subscription(user_id, plan_type=plan, status="active", duration_days=duration)
     return {"status": "success", "message": "Subscription updated successfully"}
 
+@app.post("/api/admin/subscriptions/trigger-reminders")
+def trigger_subscription_reminders_admin(req: dict = None, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    from backend.subscription_reminder import check_and_send_subscription_reminders
+    force = bool(req and req.get("force", False))
+    stats = check_and_send_subscription_reminders(force=force)
+    return {"status": "success", "message": "Pemeriksaan masa aktif berhasil dijalankan.", "data": stats}
+
 @app.delete("/api/admin/users/{user_id}")
 def delete_user_admin(user_id: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":

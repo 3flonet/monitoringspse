@@ -5912,6 +5912,7 @@ function App() {
     // Auth & Session States
     const [userToken, setUserToken] = useState(localStorage.getItem('user_token') || null);
     const [currentUser, setCurrentUser] = useState(null);
+    const [isExpiryBannerDismissed, setIsExpiryBannerDismissed] = useState(() => sessionStorage.getItem('dismissed_expiry_banner') === 'true');
     const [showOnboardingTour, setShowOnboardingTour] = useState(false);
 
     useEffect(() => {
@@ -8935,7 +8936,7 @@ function App() {
         if (!currentUser?.subscription) return null;
 
         const sub = currentUser.subscription;
-        if (sub.status !== 'active' || !sub.start_date || !sub.end_date) return null;
+        if (!sub.start_date || !sub.end_date) return null;
 
         const startDate = new Date(sub.start_date);
         const endDate = new Date(sub.end_date);
@@ -8943,26 +8944,31 @@ function App() {
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
 
         const now = new Date();
-
         const totalTime = endDate.getTime() - startDate.getTime();
         const remainingTime = endDate.getTime() - now.getTime();
 
-        if (remainingTime <= 0) return { daysLeft: 0, percent: 0, color: '#ef4444', totalDays: 0 };
-
-        const totalDays = Math.ceil(totalTime / (1000 * 60 * 60 * 24));
-        const daysLeft = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
-
-        const percent = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
+        const isExpired = sub.status === 'expired' || remainingTime <= 0;
+        const totalDays = Math.max(1, Math.ceil(totalTime / (1000 * 60 * 60 * 24)));
+        const daysLeft = isExpired ? 0 : Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+        const percent = isExpired ? 0 : Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
 
         let color = '#34d399'; // Green (Safe)
         if (daysLeft <= 7) {
             color = '#fbbf24'; // Orange/Yellow (Warning)
         }
-        if (daysLeft <= 2) {
+        if (daysLeft <= 2 || isExpired) {
             color = '#ef4444'; // Red (Danger)
         }
 
-        return { daysLeft, totalDays, percent, color };
+        const planType = (sub.plan_type || 'trial').toLowerCase();
+        let formattedEndDate = '';
+        try {
+            formattedEndDate = endDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        } catch (e) {
+            formattedEndDate = sub.end_date;
+        }
+
+        return { daysLeft, totalDays, percent, color, isExpired, planType, formattedEndDate };
     };
 
     const formatSubscriptionDays = (days) => {
@@ -10360,6 +10366,138 @@ function App() {
                     </div>
                     <div style={{ width: '24px' }}></div>
                 </div>
+
+                {/* Global Subscription Expiry Warning Banner (Displays across all tabs for users with <= 3 days left or expired) */}
+                {(() => {
+                    if (currentUser?.role === 'admin') return null;
+                    if (isExpiryBannerDismissed) return null;
+                    const progress = getSubscriptionProgress();
+                    if (!progress) return null;
+
+                    // Only show when remaining days <= 3 or already expired
+                    if (progress.daysLeft > 3 && !progress.isExpired) return null;
+
+                    const isTrial = progress.planType === 'trial';
+                    const isUrgent = progress.daysLeft <= 1 || progress.isExpired;
+
+                    const bgGradient = progress.isExpired
+                        ? 'linear-gradient(90deg, rgba(220, 38, 38, 0.22), rgba(153, 27, 27, 0.18))'
+                        : isUrgent
+                        ? 'linear-gradient(90deg, rgba(239, 68, 68, 0.18), rgba(249, 115, 22, 0.15))'
+                        : 'linear-gradient(90deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.14))';
+
+                    const borderColor = progress.isExpired
+                        ? 'rgba(239, 68, 68, 0.45)'
+                        : isUrgent
+                        ? 'rgba(249, 115, 22, 0.45)'
+                        : 'rgba(245, 158, 11, 0.45)';
+
+                    const icon = progress.isExpired ? '⏳' : isUrgent ? '⚠️' : '⏰';
+
+                    let messageText = '';
+                    let ctaText = '';
+
+                    if (progress.isExpired) {
+                        messageText = isTrial
+                            ? `Masa aktif akun Trial gratis Anda telah berakhir. Upgrade ke Paket Premium untuk mengaktifkan kembali pemantauan tender lelang dan notifikasi otomatis.`
+                            : `Masa aktif Paket Premium Anda telah berakhir. Segera perpanjang langganan untuk melanjutkan pemantauan tender lelang dan notifikasi tanpa gangguan.`;
+                        ctaText = isTrial ? 'Upgrade ke Premium' : 'Perpanjang Paket';
+                    } else if (progress.daysLeft === 1) {
+                        messageText = isTrial
+                            ? `Masa aktif akun Trial gratis Anda berakhir BESOK (${progress.formattedEndDate}). Upgrade ke Premium sekarang agar pemantauan tender lelang tidak terputus!`
+                            : `Masa aktif Paket Premium Anda berakhir BESOK (${progress.formattedEndDate}). Perpanjang hari ini agar notifikasi lelang tender tetap berjalan lancar!`;
+                        ctaText = isTrial ? 'Upgrade Sekarang' : 'Perpanjang Sekarang';
+                    } else {
+                        messageText = isTrial
+                            ? `Masa aktif akun Trial gratis Anda tersisa ${progress.daysLeft} hari lagi (berakhir ${progress.formattedEndDate}). Upgrade ke Premium untuk pemantauan tender lelang tanpa batas.`
+                            : `Masa aktif Paket Premium Anda tersisa ${progress.daysLeft} hari lagi (berakhir ${progress.formattedEndDate}). Segera perpanjang paket Anda agar pemantauan tender tetap aktif.`;
+                        ctaText = isTrial ? 'Upgrade ke Premium' : 'Perpanjang Paket';
+                    }
+
+                    return (
+                        <div style={{
+                            background: bgGradient,
+                            border: `1px solid ${borderColor}`,
+                            borderRadius: '12px',
+                            padding: '12px 18px',
+                            marginBottom: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '16px',
+                            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
+                            backdropFilter: 'blur(8px)',
+                            flexWrap: 'wrap'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 300px' }}>
+                                <span style={{ fontSize: '22px' }}>{icon}</span>
+                                <div style={{ fontSize: '13px', color: '#f3f4f6', lineHeight: '1.5' }}>
+                                    <strong style={{ color: '#fff', marginRight: '6px' }}>
+                                        {progress.isExpired ? 'Masa Aktif Berakhir:' : isUrgent ? 'Peringatan Masa Aktif:' : 'Pengingat Masa Aktif:'}
+                                    </strong>
+                                    {messageText}
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab('billing');
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap',
+                                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.35)',
+                                        transition: 'transform 0.15s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    {ctaText} →
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsExpiryBannerDismissed(true);
+                                        sessionStorage.setItem('dismissed_expiry_banner', 'true');
+                                    }}
+                                    title="Tutup pemberitahuan"
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.08)',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                        color: '#9ca3af',
+                                        width: '28px',
+                                        height: '28px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        lineHeight: 1,
+                                        transition: 'all 0.15s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.color = '#fff';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                        e.currentTarget.style.color = '#9ca3af';
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* TAB: DASHBOARD */}
                 {activeTab === 'dashboard' && (

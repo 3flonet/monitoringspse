@@ -194,10 +194,39 @@ async def sync_bookmarked_tenders():
     except Exception as e:
         logger.error(f"Bookmarked tenders sync failed: {e}")
 
+async def start_subscription_reminder_loop():
+    """Daily subscription expiry reminder loop running at ~08:30 - 09:00 WIB."""
+    from backend.database import get_setting, set_setting
+    from backend.subscription_reminder import check_and_send_subscription_reminders
+    
+    logger.info("Subscription Expiry Reminder loop started in background.")
+    while True:
+        try:
+            now_wib = datetime.utcnow() + timedelta(hours=7)
+            today_str = now_wib.strftime("%Y-%m-%d")
+            
+            # Target window: from 08:30 WIB onwards
+            is_window = (now_wib.hour == 8 and now_wib.minute >= 30) or (now_wib.hour >= 9)
+            last_run = get_setting("last_sub_reminder_date", "")
+            
+            if is_window and last_run != today_str:
+                logger.info(f"Triggering daily subscription expiry check at {now_wib.strftime('%H:%M:%S')} WIB...")
+                set_setting("last_sub_reminder_date", today_str)
+                stats = check_and_send_subscription_reminders()
+                logger.info(f"Daily subscription check completed: {stats}")
+        except Exception as e:
+            logger.error(f"Error in subscription reminder loop: {e}")
+            
+        await asyncio.sleep(60)
+
 async def start_scheduler_loop():
     """Daily scheduler loop that runs once every 24 hours when enabled."""
     from backend.database import get_setting, set_setting
     logger.info("Auto-Scraper Scheduler loop starting in background. Interval: 24 hours.")
+    
+    # Run subscription reminder task concurrently
+    asyncio.create_task(start_subscription_reminder_loop())
+    
     while True:
         is_enabled = get_setting("auto_scraper_enabled", "true") == "true"
         if is_enabled:
@@ -235,3 +264,4 @@ if __name__ == "__main__":
     
     logger.info("=== Memulai Background Scheduler SPSE ===")
     asyncio.run(start_scheduler_loop())
+

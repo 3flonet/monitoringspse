@@ -725,4 +725,104 @@ def send_admin_crawl_alert(instansi: str, error_reason: str) -> dict:
     return {"success": True, "message": "[LOG MODE] Peringatan kendala crawling dicatat di log."}
 
 
+def send_subscription_expiry_whatsapp(to_number: str, email: str, plan_type: str, days_left: int, end_date_str: str) -> dict:
+    """Send subscription expiry reminder (H-3, H-1, or expired) via Fonnte WhatsApp Gateway.
+    Rule: Never use the word 'radar'.
+    """
+    from backend.database import get_setting
+    app_name = get_setting("app_name", "Spy SPSE")
+    app_logo = get_setting("app_logo", "🕵🏼‍♂️")
+    billing_url = f"{get_setting('app_url', 'https://spyspse.com').rstrip('/')}/#/billing"
+    
+    formatted_date = end_date_str
+    try:
+        dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+        formatted_date = dt.strftime("%d %B %Y")
+    except Exception:
+        pass
+
+    is_trial = (plan_type or "").lower() == "trial"
+
+    if days_left == 1:
+        if is_trial:
+            header = f"⚠️ *{app_name} — Masa Aktif Trial Berakhir Besok!*"
+            body = (
+                f"Halo! Masa aktif akun *Trial Gratis* Anda di {app_name} akan *BERAKHIR BESOK* ({formatted_date}).\n\n"
+                f"Setelah masa aktif berakhir, sistem akan menghentikan pengiriman notifikasi tender baru ke WhatsApp Anda.\n\n"
+                f"Segera upgrade ke *Paket Premium* agar pemantauan tender Anda tetap berjalan otomatis tanpa jeda:\n"
+                f"🔗 {billing_url}"
+            )
+        else:
+            header = f"⚠️ *{app_name} — Masa Aktif Premium Berakhir Besok!*"
+            body = (
+                f"Halo! Masa aktif *Paket Premium* Anda di {app_name} akan *BERAKHIR BESOK* ({formatted_date}).\n\n"
+                f"Jangan sampai ketinggalan informasi lelang dan peluang tender strategis. Segera perpanjang masa aktif Anda hari ini agar pengiriman notifikasi tender lelang tetap aktif tanpa gangguan:\n"
+                f"🔗 {billing_url}"
+            )
+    elif days_left <= 0:
+        if is_trial:
+            header = f"⏳ *{app_name} — Masa Aktif Akun Trial Telah Berakhir*"
+            body = (
+                f"Halo! Masa aktif akun *Trial Gratis* Anda di {app_name} telah berakhir.\n\n"
+                f"Untuk mengaktifkan kembali pemantauan tender otomatis dan menerima info lelang terbaru via WhatsApp, silakan pilih Paket Premium di:\n"
+                f"🔗 {billing_url}"
+            )
+        else:
+            header = f"⏳ *{app_name} — Masa Aktif Paket Premium Telah Berakhir*"
+            body = (
+                f"Halo! Masa aktif *Paket Premium* Anda di {app_name} telah berakhir.\n\n"
+                f"Akun Anda kini berada pada mode terbatas. Segera perpanjang paket langganan Anda untuk melanjutkan pemantauan tender lelang:\n"
+                f"🔗 {billing_url}"
+            )
+    else:
+        if is_trial:
+            header = f"{app_logo} *{app_name} — Pengingat Masa Aktif Akun Trial*"
+            body = (
+                f"Halo! Masa aktif akun *Trial Gratis* Anda di {app_name} tersisa *{days_left} hari lagi* (berakhir pada *{formatted_date}*).\n\n"
+                f"Agar pemantauan tender lelang dan notifikasi proyek baru Anda tetap aktif tanpa terputus, segera upgrade ke *Paket Premium*.\n\n"
+                f"💎 *Keunggulan Paket Premium:*\n"
+                f"• Pemantauan kata kunci tender tanpa batas\n"
+                f"• Notifikasi otomatis via WhatsApp & Email\n"
+                f"• Analisis kompetitor & pemenang tender SPSE\n"
+                f"• Akses data ribuan LPSE seluruh Indonesia\n\n"
+                f"🔗 *Upgrade Sekarang:*\n"
+                f"{billing_url}"
+            )
+        else:
+            header = f"{app_logo} *{app_name} — Pengingat Masa Aktif Paket Premium*"
+            body = (
+                f"Halo! Masa aktif *Paket Premium* Anda di {app_name} tersisa *{days_left} hari lagi* (berakhir pada *{formatted_date}*).\n\n"
+                f"Pastikan pemantauan tender lelang dan notifikasi peluang proyek Anda tetap berjalan lancar dengan memperpanjang masa aktif paket Anda.\n\n"
+                f"🔗 *Perpanjang Paket Langganan:*\n"
+                f"{billing_url}"
+            )
+
+    footer = f"\n\nTerima kasih telah mempercayai platform {app_name}."
+    message = f"{header}\n\n{body}{footer}"
+
+    config = _get_whatsapp_config()
+    token = config["token"]
+    if token:
+        try:
+            url = "https://api.fonnte.com/send"
+            headers = {"Authorization": token}
+            data = {"target": to_number, "message": message, "countryCode": "62", "typing": True, "delay": "2"}
+            response = requests.post(url, headers=headers, data=data, timeout=15)
+            res_json = response.json()
+            if response.status_code == 200 and res_json.get("status"):
+                logging.info(f"Subscription expiry WA reminder sent to {to_number} (Days left: {days_left})")
+                return {"success": True, "message": f"Pengingat masa aktif berhasil dikirim ke WhatsApp {to_number}"}
+            else:
+                reason = res_json.get("reason", "Gagal mengirim via Fonnte API.")
+                logging.warning(f"Fonnte failure for {to_number}: {reason}")
+                return {"success": False, "message": f"Fonnte Error: {reason}"}
+        except Exception as e:
+            logging.error(f"Error sending subscription expiry WA to {to_number}: {e}")
+            return {"success": False, "message": f"Koneksi ke Fonnte gagal: {str(e)}"}
+
+    _write_mock_log(to_number, message)
+    return {"success": True, "message": "[LOG MODE] Pengingat masa aktif dicatat di log."}
+
+
+
 

@@ -485,3 +485,106 @@ def send_email_digest_alert(to_email: str, keyword: str, tenders: list) -> bool:
     return _write_mock_log(smtp["sender"], to_email, subject, keyword, {"nomor_pengadaan": "DIGEST", "nama_tender": f"{total} Tenders Summary"})
 
 
+def send_subscription_expiry_email(to_email: str, plan_type: str, days_left: int, end_date_str: str) -> dict:
+    """Send subscription expiry reminder (H-3, H-1, or expired) via SMTP Email.
+    Rule: Never use the word 'radar'.
+    """
+    from backend.database import get_setting
+    app_name = get_setting("app_name", "Spy SPSE")
+    app_logo = get_setting("app_logo", "🕵🏼‍♂️")
+    billing_url = f"{get_setting('app_url', 'https://spyspse.com').rstrip('/')}/#/billing"
+    
+    formatted_date = end_date_str
+    try:
+        dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+        formatted_date = dt.strftime("%d %B %Y")
+    except Exception:
+        pass
+
+    is_trial = (plan_type or "").lower() == "trial"
+    plan_name = "Trial Gratis" if is_trial else "Premium"
+
+    if days_left == 1:
+        subject = f"⚠️ [PENTING] Masa Aktif Paket {plan_name} SPY SPSE Berakhir Besok!"
+        accent_color = "#ef4444"
+        badge_text = "BERAKHIR BESOK"
+        if is_trial:
+            main_message = f"Masa aktif akun <strong>Trial Gratis</strong> Anda di <strong>{app_name}</strong> akan berakhir besok pada <strong>{formatted_date}</strong>. Setelah masa aktif habis, pengiriman notifikasi tender baru akan dihentikan."
+            cta_text = "Upgrade ke Paket Premium Sekarang"
+        else:
+            main_message = f"Masa aktif <strong>Paket Premium</strong> Anda di <strong>{app_name}</strong> akan berakhir besok pada <strong>{formatted_date}</strong>. Jangan sampai kehilangan peluang tender lelang penting bagi perusahaan Anda."
+            cta_text = "Perpanjang Paket Premium Sekarang"
+    elif days_left <= 0:
+        subject = f"⏳ Masa Aktif Paket {plan_name} SPY SPSE Telah Berakhir"
+        accent_color = "#dc2626"
+        badge_text = "KEDALUWARSA"
+        main_message = f"Masa aktif paket <strong>{plan_name}</strong> Anda di <strong>{app_name}</strong> telah berakhir. Akun Anda saat ini beralih ke mode terbatas."
+        cta_text = "Aktifkan Kembali Paket Sekarang"
+    else:
+        subject = f"⏰ [Pengingat] Masa Aktif Paket {plan_name} SPY SPSE Tersisa {days_left} Hari"
+        accent_color = "#f59e0b"
+        badge_text = f"SISA {days_left} HARI"
+        if is_trial:
+            main_message = f"Masa aktif akun <strong>Trial Gratis</strong> Anda di <strong>{app_name}</strong> tersisa <strong>{days_left} hari lagi</strong> (berakhir pada <strong>{formatted_date}</strong>). Segera upgrade untuk mempertahankan seluruh fitur pemantauan tender tanpa batas."
+            cta_text = "Upgrade ke Paket Premium"
+        else:
+            main_message = f"Masa aktif <strong>Paket Premium</strong> Anda di <strong>{app_name}</strong> tersisa <strong>{days_left} hari lagi</strong> (berakhir pada <strong>{formatted_date}</strong>). Pastikan pemantauan tender lelang Anda tetap berjalan tanpa jeda."
+            cta_text = "Perpanjang Masa Aktif"
+
+    html_content = f"""
+    <html><body style="font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #1e293b; background: #f8fafc; margin: 0;">
+        <div style="max-width: 540px; margin: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); padding: 28px 24px; text-align: center; color: white;">
+                <div style="font-size: 32px; margin-bottom: 6px;">{app_logo}</div>
+                <h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">{app_name}</h2>
+                <div style="display: inline-block; background: {accent_color}; color: #ffffff; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 10px; letter-spacing: 0.05em;">
+                    {badge_text}
+                </div>
+            </div>
+            <div style="padding: 28px 24px;">
+                <p style="font-size: 15px; margin: 0 0 16px;">Halo,</p>
+                <p style="font-size: 14px; line-height: 1.6; color: #334155; margin: 0 0 20px;">
+                    {main_message}
+                </p>
+                
+                <div style="background: #f1f5f9; border-left: 4px solid {accent_color}; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
+                    <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Rincian Langganan:</div>
+                    <div style="font-size: 14px; color: #0f172a;"><strong>Paket:</strong> {plan_name}</div>
+                    <div style="font-size: 14px; color: #0f172a;"><strong>Tanggal Berakhir:</strong> {formatted_date}</div>
+                </div>
+
+                <div style="text-align: center; margin: 28px 0 20px;">
+                    <a href="{billing_url}" style="display: inline-block; background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                        {cta_text}
+                    </a>
+                </div>
+                
+                <p style="font-size: 12px; color: #64748b; text-align: center; margin: 16px 0 0;">
+                    Atau salin tautan berikut ke browser Anda:<br>
+                    <a href="{billing_url}" style="color: #4f46e5; word-break: break-all;">{billing_url}</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0 16px;">
+                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                    Email ini dikirim otomatis oleh sistem {app_name}. Anda tidak perlu membalas email ini.
+                </p>
+            </div>
+        </div>
+    </body></html>
+    """
+
+    smtp = _get_smtp_config()
+    if smtp["host"] and smtp["user"] and smtp["password"]:
+        try:
+            _send_via_smtp(smtp, to_email, subject, html_content)
+            logging.info(f"Subscription expiry Email reminder sent to {to_email} (Days left: {days_left})")
+            return {"success": True, "message": f"Pengingat masa aktif berhasil dikirim ke email {to_email}"}
+        except Exception as e:
+            logging.error(f"Failed to send subscription expiry email to {to_email}: {e}")
+            return {"success": False, "message": f"Gagal mengirim email: {str(e)}"}
+
+    _write_mock_log(smtp["sender"], to_email, subject, "SUBSCRIPTION_EXPIRY", {"days_left": days_left, "end_date": formatted_date})
+    return {"success": True, "message": "[LOG MODE] Pengingat email dicatat di log."}
+
+
+

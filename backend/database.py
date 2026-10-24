@@ -332,6 +332,9 @@ def init_db():
             start_date TEXT,
             end_date TEXT,
             status VARCHAR(50) DEFAULT 'active',
+            reminder_h3_sent_at TEXT,
+            reminder_h1_sent_at TEXT,
+            reminder_expired_sent_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """)
@@ -588,6 +591,9 @@ def init_db():
             start_date TEXT,
             end_date TEXT,
             status TEXT DEFAULT 'active',
+            reminder_h3_sent_at TEXT,
+            reminder_h1_sent_at TEXT,
+            reminder_expired_sent_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """)
@@ -806,6 +812,12 @@ def init_db():
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS category TEXT")
         except Exception as e:
             logging.warning(f"PG articles migration warning: {e}")
+        try:
+            cursor.execute("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS reminder_h3_sent_at TEXT")
+            cursor.execute("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS reminder_h1_sent_at TEXT")
+            cursor.execute("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS reminder_expired_sent_at TEXT")
+        except Exception as e:
+            logging.warning(f"PG subscriptions migration warning: {e}")
     else:
         try:
             cursor.execute("PRAGMA table_info(alerts)")
@@ -836,6 +848,18 @@ def init_db():
                 cursor.execute("ALTER TABLE articles ADD COLUMN category TEXT")
         except Exception as e:
             logging.warning(f"SQLite articles migration warning: {e}")
+
+        try:
+            cursor.execute("PRAGMA table_info(subscriptions)")
+            cols = [c[1] for c in cursor.fetchall()]
+            if 'reminder_h3_sent_at' not in cols:
+                cursor.execute("ALTER TABLE subscriptions ADD COLUMN reminder_h3_sent_at TEXT")
+            if 'reminder_h1_sent_at' not in cols:
+                cursor.execute("ALTER TABLE subscriptions ADD COLUMN reminder_h1_sent_at TEXT")
+            if 'reminder_expired_sent_at' not in cols:
+                cursor.execute("ALTER TABLE subscriptions ADD COLUMN reminder_expired_sent_at TEXT")
+        except Exception as e:
+            logging.warning(f"SQLite subscriptions migration warning: {e}")
         
     # Seed default system settings
     default_settings = {
@@ -945,13 +969,16 @@ def update_user_subscription(user_id, plan_type, status='active', duration_days=
                 plan_type = ?,
                 start_date = ?,
                 end_date = ?,
-                status = ?
+                status = ?,
+                reminder_h3_sent_at = NULL,
+                reminder_h1_sent_at = NULL,
+                reminder_expired_sent_at = NULL
             WHERE user_id = ?
         """, (plan_type, datetime.now().isoformat(), end_date.isoformat(), status, user_id))
     else:
         cursor.execute("""
-            INSERT INTO subscriptions (user_id, plan_type, start_date, end_date, status)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO subscriptions (user_id, plan_type, start_date, end_date, status, reminder_h3_sent_at, reminder_h1_sent_at, reminder_expired_sent_at)
+            VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL)
         """, (user_id, plan_type, datetime.now().isoformat(), end_date.isoformat(), status))
     conn.commit()
     conn.close()
