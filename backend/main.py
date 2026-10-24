@@ -2077,6 +2077,24 @@ def trigger_subscription_reminders_admin(req: dict = None, current_user: dict = 
     stats = check_and_send_subscription_reminders(force=force)
     return {"status": "success", "message": "Pemeriksaan masa aktif berhasil dijalankan.", "data": stats}
 
+@app.put("/api/admin/users/{user_id}/password")
+@app.post("/api/admin/users/{user_id}/password")
+def change_user_password_admin(user_id: int, req: dict, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Akses ditolak.")
+    new_password = req.get("password", "").strip()
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password baru minimal 6 karakter.")
+    
+    target_user = get_user_by_id(user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Pengguna tidak ditemukan.")
+        
+    new_hash = hash_password(new_password)
+    update_user_password(user_id, new_hash)
+    
+    return {"status": "success", "message": f"Password untuk {target_user['email']} berhasil diperbarui."}
+
 @app.delete("/api/admin/users/{user_id}")
 def delete_user_admin(user_id: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
