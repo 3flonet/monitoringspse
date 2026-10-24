@@ -9,6 +9,20 @@ from datetime import datetime, timedelta
 
 DB_PATH = Path(__file__).parent / "spse_saas.db"
 
+# Auto-load .env if DATABASE_URL is not already in environment
+if not os.getenv("DATABASE_URL"):
+    env_file = Path(__file__).parent.parent / ".env"
+    if env_file.exists():
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+        except Exception:
+            pass
+
 # PostgreSQL connection pool setup
 DATABASE_URL = os.getenv("DATABASE_URL")
 _pg_pool = None
