@@ -200,6 +200,11 @@ def clean_str(text):
     if not isinstance(text, str):
         text = str(text)
     text = text.replace('\xa0', ' ')
+    if "<" in text and ">" in text:
+        # Convert HTML badges like <span class='badge...'>Tender Ulang</span> to [Tender Ulang]
+        text = re.sub(r'<span[^>]*class=[\'"][^\'"]*badge[^\'"]*[\'"][^>]*>(.*?)</span>', r' [\1]', text, flags=re.I)
+        # Strip any other HTML tags
+        text = re.sub(r'<[^>]+>', ' ', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 

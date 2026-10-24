@@ -1,9 +1,24 @@
 import logging
 import requests
+import re
 from pathlib import Path
 from datetime import datetime
 
 LOG_FILE = Path(__file__).parent / "mock_whatsapp.log"
+
+def clean_display_text(text: str) -> str:
+    """Format and clean raw text containing HTML badges or tags for clean WhatsApp messages."""
+    if not text:
+        return "-"
+    if not isinstance(text, str):
+        text = str(text)
+    text = text.replace('\xa0', ' ')
+    if "<" in text and ">" in text:
+        # Convert <span class="badge...">Tender Ulang</span> to [Tender Ulang]
+        text = re.sub(r'<span[^>]*class=[\'"][^\'"]*badge[^\'"]*[\'"][^>]*>(.*?)</span>', r' [\1]', text, flags=re.I)
+        # Remove any other HTML tags
+        text = re.sub(r'<[^>]+>', ' ', text)
+    return re.sub(r'\s+', ' ', text).strip() or "-"
 
 def _get_whatsapp_config():
     """Load WhatsApp Fonnte configuration from system_settings database."""
@@ -278,10 +293,10 @@ def send_post_activation_catchup(phone_number: str) -> dict:
             tender_items = []
             for idx, t in enumerate(matched_tenders, 1):
                 nomor = t.get("nomor_pengadaan", "-")
-                nama = t.get("nama_tender", "-")
-                inst = t.get("instansi", "-")
-                pagu = t.get("pagu", "-")
-                tahap = t.get("tahap", "-")
+                nama = clean_display_text(t.get("nama_tender", "-"))
+                inst = clean_display_text(t.get("instansi", "-"))
+                pagu = clean_display_text(t.get("pagu", "-"))
+                tahap = clean_display_text(t.get("tahap", "-"))
                 link = f"{app_url}/#/tender/{nomor}"
                 tender_items.append(
                     f"*{idx}. {nama}*\n"
@@ -432,11 +447,11 @@ def send_whatsapp_alert(to_number: str, keyword: str, tender: dict) -> bool:
         f"{app_logo} *{app_name} — Tender Alert*\n\n"
         f"{selected_greeting} dengan kata kunci: *\"{keyword}\"*\n\n"
         f"• *Nomor Pengadaan:* `{nomor_pengadaan}`\n"
-        f"• *Nama Tender:* {tender['nama_tender']}\n"
-        f"• *Instansi:* {tender.get('instansi', '-')}\n"
-        f"• *Nilai Pagu:* {tender.get('pagu', '-')}\n"
-        f"• *Tahap Saat Ini:* {tender.get('tahap', '-')}\n"
-        f"• *Metode:* {tender.get('metode', '-')}\n\n"
+        f"• *Nama Tender:* {clean_display_text(tender.get('nama_tender', '-'))}\n"
+        f"• *Instansi:* {clean_display_text(tender.get('instansi', '-'))}\n"
+        f"• *Nilai Pagu:* {clean_display_text(tender.get('pagu', '-'))}\n"
+        f"• *Tahap Saat Ini:* {clean_display_text(tender.get('tahap', '-'))}\n"
+        f"• *Metode:* {clean_display_text(tender.get('metode', '-'))}\n\n"
         f"🔍 *Lihat Detail & Pengumuman Resmi:*\n"
         f"{public_tender_url}\n\n"
         f"💡 _Ingin jeda notifikasi? Balas *STOP* untuk mematikan._"
@@ -493,10 +508,10 @@ def send_whatsapp_digest_alert(to_number: str, keyword: str, tenders: list) -> b
     tender_items = []
     for idx, t in enumerate(display_tenders, 1):
         nomor = t.get("nomor_pengadaan", "-")
-        nama = t.get("nama_tender", "-")
-        instansi = t.get("instansi", "-")
-        pagu = t.get("pagu", "-")
-        tahap = t.get("tahap", "-")
+        nama = clean_display_text(t.get("nama_tender", "-"))
+        instansi = clean_display_text(t.get("instansi", "-"))
+        pagu = clean_display_text(t.get("pagu", "-"))
+        tahap = clean_display_text(t.get("tahap", "-"))
         link = f"{app_url}/#/tender/{nomor}"
         tender_items.append(
             f"*{idx}. {nama}*\n"
