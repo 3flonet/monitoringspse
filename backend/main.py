@@ -1871,11 +1871,12 @@ def fonnte_webhook_verify():
 
 
 @app.post("/api/fonnte/webhook")
-async def fonnte_webhook_receiver(request: Request):
+async def fonnte_webhook_receiver(request: Request, background_tasks: BackgroundTasks):
     """
     Webhook handler for incoming WhatsApp messages from Fonnte Gateway.
     When a user chats to the Fonnte number:
-    - Opt-in / verify: Activates wa_verified = True and sends welcome confirmation.
+    - Opt-in / verify: Activates wa_verified = True, sends welcome confirmation,
+      and dispatches post-activation catch-up digest of active tenders.
     - Opt-out / STOP: Deactivates wa_verified = False to prevent spam reports.
     """
     try:
@@ -1901,7 +1902,8 @@ async def fonnte_webhook_receiver(request: Request):
         check_whatsapp_registration,
         verify_whatsapp_number,
         unverify_whatsapp_number,
-        send_whatsapp_direct
+        send_whatsapp_direct,
+        send_post_activation_catchup
     )
     from backend.database import get_setting
 
@@ -1937,6 +1939,8 @@ async def fonnte_webhook_receiver(request: Request):
                 f"💡 _Ketik *STOP* kapan saja jika ingin menjeda atau mematikan notifikasi._"
             )
             send_whatsapp_direct(sender, reply)
+            # Dispatch background task to send catch-up of active matching tenders
+            background_tasks.add_task(send_post_activation_catchup, sender)
             return {"status": "success", "action": "verified", "sender": sender, "updated_alerts": updated}
         else:
             # Nomor sudah aktif sebelumnya, abaikan agar tidak membalas berulang kali

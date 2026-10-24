@@ -195,6 +195,125 @@ def send_whatsapp_direct(to_number: str, message: str) -> bool:
             logging.error(f"Error sending direct WA via Fonnte: {e}")
     return _write_mock_log(to_number, message)
 
+def send_post_activation_catchup(phone_number: str) -> dict:
+    """
+    Send an immediate catch-up alert of currently active tenders when a user's WhatsApp is newly activated.
+    This bridges the gap where alerts matched before WhatsApp verification were skipped on WA channel.
+    Consolidates up to 5 matching active tenders into a clean WhatsApp digest.
+    """
+    from backend.database import get_db_connection, get_setting
+    from backend.crawl_coordinator import is_tender_active
+
+    norm = normalize_phone_number(phone_number)
+    if not norm or len(norm) < 9:
+        return {"success": False, "message": "Nomor WhatsApp tidak valid."}
+
+    suffix = norm[-9:]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # 1. Fetch active alerts belonging to this verified WhatsApp number
+        cursor.execute("""
+            SELECT id, user_id, keyword, instansi, whatsapp
+            FROM alerts
+            WHERE is_active IS TRUE
+              AND wa_active IS TRUE
+              AND wa_verified IS TRUE
+              AND whatsapp IS NOT NULL
+              AND REPLACE(REPLACE(REPLACE(whatsapp, '+', ''), '-', ''), ' ', '') LIKE ?
+        """, (f"%{suffix}",))
+
+        alerts = cursor.fetchall()
+        if not alerts:
+            logging.info(f"[POST-ACTIVATION CATCHUP] No active & verified alerts found for {phone_number} (Suffix: {suffix})")
+            return {"success": False, "message": "Tidak ada pemantauan aktif yang terverifikasi."}
+
+        app_name = get_setting("app_name", "Spy SPSE")
+        app_logo = get_setting("app_logo", "🕵🏼‍♂️")
+        app_url = get_setting("app_url", "https://spyspse.com").rstrip("/")
+
+        total_messages_sent = 0
+
+        for alert in alerts:
+            raw_kw = (alert["keyword"] or "").strip()
+            instansi_filter = (alert["instansi"] or "all").strip().lower()
+            if not raw_kw:
+                continue
+
+            sub_keywords = [k.strip().lower() for k in raw_kw.split(",") if k.strip()]
+            if not sub_keywords:
+                continue
+
+            # 2. Query recent tenders from database
+            cursor.execute("""
+                SELECT nomor_pengadaan, nama_tender, instansi, kategori, pagu, hps, tahap, created_at
+                FROM tenders
+                ORDER BY created_at DESC, id DESC
+                LIMIT 150
+            """)
+            recent_tenders = cursor.fetchall()
+
+            matched_tenders = []
+            for t in recent_tenders:
+                tahap = t.get("tahap", "")
+                if not is_tender_active(tahap):
+                    continue
+
+                kategori = (t.get("kategori") or "").strip().lower()
+                if instansi_filter != "all" and kategori != instansi_filter:
+                    continue
+
+                title = (t.get("nama_tender") or "").lower()
+                if any(kw in title for kw in sub_keywords):
+                    matched_tenders.append(t)
+                    if len(matched_tenders) >= 5:
+                        break
+
+            if not matched_tenders:
+                logging.info(f"[POST-ACTIVATION CATCHUP] No active matching tenders found for keyword '{raw_kw}' (Alert #{alert['id']})")
+                continue
+
+            # Format Catch-up WhatsApp Digest Message
+            tender_items = []
+            for idx, t in enumerate(matched_tenders, 1):
+                nomor = t.get("nomor_pengadaan", "-")
+                nama = t.get("nama_tender", "-")
+                inst = t.get("instansi", "-")
+                pagu = t.get("pagu", "-")
+                tahap = t.get("tahap", "-")
+                link = f"{app_url}/#/tender/{nomor}"
+                tender_items.append(
+                    f"*{idx}. {nama}*\n"
+                    f"   • Instansi: {inst}\n"
+                    f"   • Pagu: {pagu} | Tahap: {tahap}\n"
+                    f"   • Link: {link}"
+                )
+
+            tenders_formatted = "\n\n".join(tender_items)
+            message = (
+                f"{app_logo} *{app_name} — Radar Tender Perdana* 🚀\n\n"
+                f"WhatsApp Anda kini aktif! Ditemukan *{len(matched_tenders)} paket lelang aktif* yang cocok dengan kata kunci pantauan Anda: *\"{raw_kw}\"*\n\n"
+                f"{tenders_formatted}\n\n"
+                f"🔍 *Telusuri Semua Tender:* {app_url}/#/explorer\n\n"
+                f"💡 _Notifikasi lelang baru berikutnya akan otomatis masuk ke WhatsApp ini. Balas *STOP* jika ingin menjeda._"
+            )
+
+            # Wait 2 seconds between messages to respect rate limit
+            time.sleep(2.0)
+            sent = send_whatsapp_direct(norm, message)
+            if sent:
+                total_messages_sent += 1
+                logging.info(f"[POST-ACTIVATION CATCHUP] Successfully sent catch-up digest ({len(matched_tenders)} tenders) to {norm} for alert #{alert['id']}.")
+
+        return {"success": total_messages_sent > 0, "messages_sent": total_messages_sent}
+    except Exception as e:
+        logging.error(f"[POST-ACTIVATION CATCHUP] Error executing catch-up for {phone_number}: {e}", exc_info=True)
+        return {"success": False, "message": str(e)}
+    finally:
+        conn.close()
+
+
 def get_whatsapp_activation_link(user_wa: str = None, admin_wa: str = None) -> str:
     """Generate WhatsApp inbound activation link so user sends first message to bypass anti-spam block."""
     from backend.database import get_setting
