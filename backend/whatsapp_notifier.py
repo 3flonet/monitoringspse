@@ -282,16 +282,17 @@ def send_post_activation_catchup(phone_number: str) -> dict:
                 title = (t.get("nama_tender") or "").lower()
                 if any(kw in title for kw in sub_keywords):
                     matched_tenders.append(t)
-                    if len(matched_tenders) >= 5:
-                        break
 
             if not matched_tenders:
                 logging.info(f"[POST-ACTIVATION CATCHUP] No active matching tenders found for keyword '{raw_kw}' (Alert #{alert['id']})")
                 continue
 
+            total_count = len(matched_tenders)
+            display_tenders = matched_tenders[:5]
+
             # Format Catch-up WhatsApp Digest Message
             tender_items = []
-            for idx, t in enumerate(matched_tenders, 1):
+            for idx, t in enumerate(display_tenders, 1):
                 nomor = t.get("nomor_pengadaan", "-")
                 nama = clean_display_text(t.get("nama_tender", "-"))
                 inst = clean_display_text(t.get("instansi", "-"))
@@ -306,10 +307,15 @@ def send_post_activation_catchup(phone_number: str) -> dict:
                 )
 
             tenders_formatted = "\n\n".join(tender_items)
+            more_info = ""
+            if total_count > 5:
+                more_info = f"\n\n_... dan {total_count - 5} lelang lainnya yang cocok dapat dilihat langsung di portal._"
+
             message = (
                 f"{app_logo} *{app_name} — Radar Tender Perdana* 🚀\n\n"
-                f"WhatsApp Anda kini aktif! Ditemukan *{len(matched_tenders)} paket lelang aktif* yang cocok dengan kata kunci pantauan Anda: *\"{raw_kw}\"*\n\n"
-                f"{tenders_formatted}\n\n"
+                f"WhatsApp Anda kini aktif! Ditemukan *{total_count} paket lelang aktif* yang cocok dengan kata kunci pantauan Anda: *\"{raw_kw}\"*\n\n"
+                f"{tenders_formatted}"
+                f"{more_info}\n\n"
                 f"🔍 *Telusuri Semua Tender:* {app_url}/#/explorer\n\n"
                 f"💡 _Notifikasi lelang baru berikutnya akan otomatis masuk ke WhatsApp ini. Balas *STOP* jika ingin menjeda._"
             )
