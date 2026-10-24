@@ -8666,9 +8666,20 @@ function App() {
             });
             const data = await res.json();
             if (res.ok) {
+                const registeredKw = alertKeyword;
+                const targetLpse = alertInstansi;
                 setAlertKeyword('');
                 fetchAlerts();
                 fetchKeywordTenders();
+                
+                // Tampilkan floating toast konfirmasi sukses
+                setGlobalToast({
+                    title: 'Pemantauan Berhasil Diaktifkan! 🎯',
+                    message: `Radar alert untuk kata kunci "${registeredKw}" pada LPSE ${targetLpse.toUpperCase()} kini aktif memantau 24/7.`,
+                    type: 'success',
+                    icon: '🔔'
+                });
+
                 if (data.is_new_number && data.whatsapp) {
                     setWaActivationModal({
                         alert_id: data.alert_id,
@@ -8680,10 +8691,21 @@ function App() {
                     setIsEditingModalWa(false);
                 }
             } else {
-                alert(data.detail || "Gagal membuat alert.");
+                setGlobalToast({
+                    title: 'Gagal Membuat Alert',
+                    message: data.detail || 'Terjadi kendala pada server saat mendaftarkan pemantauan.',
+                    type: 'error',
+                    icon: '⚠️'
+                });
             }
         } catch (err) {
             console.error("Failed to create alert:", err);
+            setGlobalToast({
+                title: 'Kesalahan Jaringan',
+                message: 'Gagal terhubung ke server. Silakan periksa koneksi Anda dan coba kembali.',
+                type: 'error',
+                icon: '⚠️'
+            });
         } finally {
             setIsSubmittingAlert(false);
         }

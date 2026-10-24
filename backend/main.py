@@ -1649,12 +1649,20 @@ def create_user_alert(req: AlertCreate, background_tasks: BackgroundTasks, curre
             activation_url = get_whatsapp_activation_link(user_wa=target_wa)
 
     now_str = datetime.now().isoformat()
-    cursor.execute("""
-        INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at, is_active, email_active, wa_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 1)
-    """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str, wa_verified, wa_verified_at))
+    is_pg = hasattr(conn, '_pool')
+    if is_pg:
+        cursor.execute("""
+            INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at, is_active, email_active, wa_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, TRUE, TRUE) RETURNING id
+        """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str, wa_verified, wa_verified_at))
+        alert_id = cursor.fetchone()[0]
+    else:
+        cursor.execute("""
+            INSERT INTO alerts (user_id, keyword, email, whatsapp, instansi, created_at, wa_verified, wa_verified_at, is_active, email_active, wa_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 1)
+        """, (current_user["id"], req.keyword.strip(), req.email.strip(), target_wa, req.instansi.strip(), now_str, wa_verified, wa_verified_at))
+        alert_id = cursor.lastrowid
     conn.commit()
-    alert_id = cursor.lastrowid
     conn.close()
 
     # Launch background task: match existing active tenders with 5s delay & trigger live crawl
