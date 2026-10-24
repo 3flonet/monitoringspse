@@ -1094,6 +1094,14 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
 
     React.useEffect(() => {
         try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            });
+        } catch (e) {
+            window.scrollTo(0, 0);
+        }
+        try {
             const hash = window.location.hash || '';
             if (hash.includes('category=')) {
                 const parts = hash.split('?');
@@ -5691,7 +5699,17 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     )}
 
                     <div style={{ textAlign: 'center' }}>
-                        <button onClick={() => { window.location.hash = '#/blog'; }} style={{
+                        <button onClick={() => {
+                            window.location.hash = '#/blog';
+                            try {
+                                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                requestAnimationFrame(() => {
+                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                });
+                            } catch (e) {
+                                window.scrollTo(0, 0);
+                            }
+                        }} style={{
                             background: 'transparent',
                             color: '#fff',
                             border: '1px solid rgba(255,255,255,0.15)',
@@ -7543,6 +7561,14 @@ function App() {
             if (hash.startsWith('#/blog')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
+                try {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    requestAnimationFrame(() => {
+                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    });
+                } catch (e) {
+                    window.scrollTo(0, 0);
+                }
                 if (userToken) {
                     setActiveTab('blog');
                 } else {
@@ -9003,6 +9029,11 @@ function App() {
             window.location.hash = '#/features';
         } else if (target === 'blog') {
             window.location.hash = '#/blog';
+            try {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            } catch (e) {
+                window.scrollTo(0, 0);
+            }
         } else if (target === 'auth') {
             if (!userToken) {
                 setPublicView('auth');
