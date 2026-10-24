@@ -281,12 +281,9 @@ def forgot_password(req: ForgotPasswordReq):
     user = get_user_by_email(clean_email)
     
     if not user:
-        from backend.database import get_setting
-        admin_wa = get_setting("contact_whatsapp", "6282120664105")
-        clean_wa = "".join(filter(str.isdigit, str(admin_wa))) or "6282120664105"
         raise HTTPException(
             status_code=404,
-            detail=f"Alamat email tidak terdaftar di sistem kami. Silakan periksa kembali, daftar akun baru, atau hubungi WhatsApp Admin (wa.me/{clean_wa})."
+            detail="Alamat email tidak terdaftar di sistem kami. Silakan periksa kembali, daftar akun baru, atau hubungi WhatsApp Admin."
         )
         
     # Generate crypto-secure plain token
