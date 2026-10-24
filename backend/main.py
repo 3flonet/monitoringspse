@@ -2261,6 +2261,13 @@ def change_user_password_admin(user_id: int, req: dict, current_user: dict = Dep
 # USER KEYWORD ALERTS
 @app.get("/api/user/tenders/keywords")
 def list_user_keyword_tenders(
+    q: Optional[str] = None,
+    jenis_instansi: Optional[str] = None,
+    kategori: Optional[str] = None,
+    tipe: Optional[str] = None,
+    jenis_pengadaan: Optional[str] = None,
+    tahun: Optional[int] = None,
+    tahap: Optional[str] = None,
     limit: int = 10,
     offset: int = 0,
     only_active: bool = False,
@@ -2280,30 +2287,111 @@ def list_user_keyword_tenders(
         return {"total": 0, "data": []}
         
     # Construct keyword SQL queries supporting comma-separated sub-keywords
-    clauses = []
-    params = []
+    base_clauses = []
+    base_params = []
     for alert in alerts:
-        raw_kw = alert["keyword"].strip().lower()
+        raw_kw = (alert["keyword"] or "").strip().lower()
         sub_keywords = [k.strip() for k in raw_kw.split(',') if k.strip()]
         if not sub_keywords:
             sub_keywords = [raw_kw]
 
-        inst = alert["instansi"].strip().lower()
+        inst = (alert["instansi"] or "all").strip().lower()
         
         kw_sub_clauses = ["LOWER(nama_tender) LIKE ?" for _ in sub_keywords]
         kw_clause = "(" + " OR ".join(kw_sub_clauses) + ")"
         for sub_k in sub_keywords:
-            params.append(f"%{sub_k}%")
+            base_params.append(f"%{sub_k}%")
         
         if inst != "all":
-            clauses.append(f"({kw_clause} AND LOWER(kategori) = ?)")
-            params.append(inst)
+            base_clauses.append(f"({kw_clause} AND LOWER(kategori) = ?)")
+            base_params.append(inst)
         else:
-            clauses.append(kw_clause)
+            base_clauses.append(kw_clause)
             
-    where_sql = "WHERE (" + " OR ".join(clauses) + ")"
+    if not base_clauses:
+        conn.close()
+        return {"total": 0, "data": []}
+
+    base_keyword_sql = "(" + " OR ".join(base_clauses) + ")"
+    filter_clauses = [base_keyword_sql]
+    params = list(base_params)
+
+    # 1. Search Query (q)
+    if q:
+        filter_clauses.append("(nama_tender LIKE ? OR nomor_pengadaan LIKE ? OR instansi LIKE ?)")
+        params.extend([f"%{q}%", f"%{q}%", f"%{q}%"])
+
+    # 2. Jenis Instansi Filter
+    if jenis_instansi:
+        raw_lpse = get_setting("lpse_instances", "[]")
+        try:
+            lpse_list = json.loads(raw_lpse)
+        except Exception:
+            lpse_list = []
+            
+        matching_slugs = [item.get("slug") for item in lpse_list if item.get("jenis") == jenis_instansi and item.get("slug") and item.get("slug") != "nasional"]
+        
+        slug_condition = ""
+        slug_params = []
+        if matching_slugs:
+            placeholders = ",".join(["?"] * len(matching_slugs))
+            slug_condition = f"kategori IN ({placeholders})"
+            slug_params = matching_slugs
+
+        text_patterns = []
+        j_low = jenis_instansi.lower().strip()
+        if j_low == 'kementerian':
+            text_patterns.append("instansi LIKE 'Kementerian%'")
+        elif j_low == 'provinsi':
+            text_patterns.append("(instansi LIKE 'Provinsi%' OR instansi LIKE 'Pemerintah Provinsi%' OR instansi LIKE 'Pemprov%')")
+        elif j_low == 'kota':
+            text_patterns.append("(instansi LIKE 'Kota %' OR instansi LIKE 'Pemerintah Kota%' OR instansi LIKE 'Pemkot%')")
+        elif j_low in ['kabupaten', 'kab']:
+            text_patterns.append("(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')")
+        elif j_low in ['lembaga', 'badan']:
+            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%')")
+
+        combined_conditions = []
+        if slug_condition:
+            combined_conditions.append(slug_condition)
+            params.extend(slug_params)
+        if text_patterns:
+            combined_conditions.append(" OR ".join(text_patterns))
+
+        if combined_conditions:
+            filter_clauses.append("(" + " OR ".join(combined_conditions) + ")")
+        else:
+            filter_clauses.append("1=0")
+
+    # 3. Specific LPSE Kategori
+    if kategori:
+        filter_clauses.append("kategori = ?")
+        params.append(kategori)
+
+    # 4. Tipe (tender / nontender)
+    if tipe:
+        filter_clauses.append("(tipe = ? OR metode LIKE ?)")
+        params.extend([tipe, f"%{tipe}%"])
+
+    # 5. Jenis Pengadaan
+    if jenis_pengadaan:
+        filter_clauses.append("jenis_pengadaan LIKE ?")
+        params.append(f"%{jenis_pengadaan}%")
+
+    # 6. Tahun Anggaran
+    if tahun:
+        filter_clauses.append("tahun = ?")
+        params.append(tahun)
+
+    # 7. Tahap Saat Ini
+    if tahap:
+        filter_clauses.append("tahap LIKE ?")
+        params.append(f"%{tahap}%")
+
     if only_active:
-        where_sql += " AND (LOWER(tahap) NOT LIKE '%selesai%' AND LOWER(tahap) NOT LIKE '%batal%' AND LOWER(tahap) NOT LIKE '%gagal%')"
+        filter_clauses.append("(LOWER(tahap) NOT LIKE '%selesai%' AND LOWER(tahap) NOT LIKE '%batal%' AND LOWER(tahap) NOT LIKE '%gagal%')")
+
+    where_sql = "WHERE " + " AND ".join(filter_clauses)
     
     # Get total count
     cursor.execute(f"SELECT COUNT(*) FROM tenders {where_sql}", params)
@@ -2311,7 +2399,7 @@ def list_user_keyword_tenders(
     
     # Get data
     query = f"""
-        SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, tahun, scraped_at, tanggal_mulai_tender, akhir_penawaran
+        SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, metode, jenis_pengadaan, tahun, scraped_at, tanggal_mulai_tender, akhir_penawaran
         FROM tenders
         {where_sql}
         ORDER BY scraped_at DESC

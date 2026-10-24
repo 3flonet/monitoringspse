@@ -6078,6 +6078,13 @@ function App() {
     const [keywordLimit, setKeywordLimit] = useState(10);
     const [keywordOffset, setKeywordOffset] = useState(0);
     const [isLoadingKeywordTenders, setIsLoadingKeywordTenders] = useState(false);
+    const [keywordSearchQuery, setKeywordSearchQuery] = useState('');
+    const [keywordFilterJenisInstansi, setKeywordFilterJenisInstansi] = useState('');
+    const [keywordFilterKategori, setKeywordFilterKategori] = useState('');
+    const [keywordFilterTipe, setKeywordFilterTipe] = useState('');
+    const [keywordFilterJenis, setKeywordFilterJenis] = useState('');
+    const [keywordFilterTahun, setKeywordFilterTahun] = useState(String(currentYear));
+    const [keywordFilterTahap, setKeywordFilterTahap] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Public Tender Detail States
@@ -8571,7 +8578,7 @@ function App() {
         if (activeTab === 'keyword-tenders') {
             fetchKeywordTenders();
         }
-    }, [activeTab, keywordLimit, keywordOffset]);
+    }, [activeTab, keywordSearchQuery, keywordFilterJenisInstansi, keywordFilterKategori, keywordFilterTipe, keywordFilterJenis, keywordFilterTahun, keywordFilterTahap, keywordLimit, keywordOffset]);
 
     const fetchTenders = async () => {
         setIsLoadingExplorer(true);
@@ -8606,6 +8613,14 @@ function App() {
                 limit: keywordLimit.toString(),
                 offset: keywordOffset.toString()
             });
+            if (keywordSearchQuery) queryParams.append('q', keywordSearchQuery);
+            if (keywordFilterJenisInstansi) queryParams.append('jenis_instansi', keywordFilterJenisInstansi);
+            if (keywordFilterKategori) queryParams.append('kategori', keywordFilterKategori);
+            if (keywordFilterTipe) queryParams.append('tipe', keywordFilterTipe);
+            if (keywordFilterJenis) queryParams.append('jenis_pengadaan', keywordFilterJenis);
+            if (keywordFilterTahun) queryParams.append('tahun', keywordFilterTahun);
+            if (keywordFilterTahap) queryParams.append('tahap', keywordFilterTahap);
+
             const res = await authFetch(`/api/user/tenders/keywords?${queryParams.toString()}`);
             if (res.ok) {
                 const data = await res.json();
@@ -11536,6 +11551,101 @@ function App() {
                         </div>
 
                         <div className="panel" data-tour="keyword-tenders-table">
+                            {/* Search & Filters */}
+                            <div className="filters-bar" style={{ marginBottom: '20px' }}>
+                                <div className="search-input-wrapper">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Cari kata kunci dalam nama atau kualifikasi..."
+                                        value={keywordSearchQuery}
+                                        onChange={(e) => { setKeywordSearchQuery(e.target.value); setKeywordOffset(0); }}
+                                        style={{ width: '100%' }}
+                                    />
+                                </div>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterJenisInstansi}
+                                    onChange={(e) => {
+                                        setKeywordFilterJenisInstansi(e.target.value);
+                                        setKeywordFilterKategori(''); // Reset LPSE selection when Jenis Instansi changes
+                                        setKeywordOffset(0);
+                                    }}
+                                >
+                                    <option value="">-- Semua Jenis Instansi --</option>
+                                    {[...new Set(lpseInstances.map(i => i.jenis).filter(Boolean))].map((jenis, idx) => (
+                                        <option key={idx} value={jenis}>{jenis}</option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterKategori}
+                                    onChange={(e) => { setKeywordFilterKategori(e.target.value); setKeywordOffset(0); }}
+                                >
+                                    <option value="">-- Semua LPSE Kategori --</option>
+                                    {lpseInstances
+                                        .filter(inst => keywordFilterJenisInstansi ? inst.jenis === keywordFilterJenisInstansi : true)
+                                        .map((inst, idx) => (
+                                            <option key={idx} value={inst.slug}>{inst.name}</option>
+                                        ))}
+                                </select>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterTipe}
+                                    onChange={(e) => { setKeywordFilterTipe(e.target.value); setKeywordOffset(0); }}
+                                >
+                                    <option value="">-- Semua Tipe --</option>
+                                    <option value="tender">Tender</option>
+                                    <option value="nontender">Non-Tender</option>
+                                </select>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterJenis}
+                                    onChange={(e) => { setKeywordFilterJenis(e.target.value); setKeywordOffset(0); }}
+                                >
+                                    <option value="">-- Semua Jenis Pengadaan --</option>
+                                    <option value="Pengadaan Barang">Pengadaan Barang</option>
+                                    <option value="Pekerjaan Konstruksi">Pekerjaan Konstruksi</option>
+                                    <option value="Jasa Konsultansi">Jasa Konsultansi (Semua)</option>
+                                    <option value="Jasa Konsultansi Badan Usaha">Jasa Konsultansi Badan Usaha</option>
+                                    <option value="Jasa Konsultansi Perorangan">Jasa Konsultansi Perorangan</option>
+                                    <option value="Jasa Lainnya">Jasa Lainnya</option>
+                                    <option value="Pekerjaan Konstruksi Terintegrasi">Pekerjaan Konstruksi Terintegrasi</option>
+                                </select>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterTahap}
+                                    onChange={(e) => { setKeywordFilterTahap(e.target.value); setKeywordOffset(0); }}
+                                >
+                                    <option value="">-- Semua Tahap --</option>
+                                    <option value="Pengumuman">Pengumuman (Pasca/PraKualifikasi)</option>
+                                    <option value="Download Dokumen">Download Dokumen Pemilihan</option>
+                                    <option value="Pemberian Penjelasan">Pemberian Penjelasan (Aanwijzing)</option>
+                                    <option value="Upload Dokumen Penawaran">Upload Dokumen Penawaran</option>
+                                    <option value="Pembukaan Dokumen">Pembukaan Dokumen Penawaran</option>
+                                    <option value="Evaluasi">Evaluasi (Admin/Teknis/Harga)</option>
+                                    <option value="Penetapan Pemenang">Penetapan / Pengumuman Pemenang</option>
+                                    <option value="Masa Sanggah">Masa Sanggah</option>
+                                    <option value="Surat Penunjukan">Surat Penunjukan (SPPBJ)</option>
+                                    <option value="Penandatanganan Kontrak">Penandatanganan Kontrak</option>
+                                </select>
+
+                                <select
+                                    className="form-control"
+                                    value={keywordFilterTahun}
+                                    onChange={(e) => { setKeywordFilterTahun(e.target.value); setKeywordOffset(0); }}
+                                >
+                                    {dynamicYears.map((yr) => (
+                                        <option key={yr} value={yr}>{yr}</option>
+                                    ))}
+                                </select>
+                            </div>
+
                             {isLoadingKeywordTenders ? (
                                 <div style={{ textAlign: 'center', padding: '60px' }}>
                                     <div className="spinner"></div>
