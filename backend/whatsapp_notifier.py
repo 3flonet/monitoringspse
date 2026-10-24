@@ -247,9 +247,9 @@ def send_post_activation_catchup(phone_number: str) -> dict:
 
             # 2. Query recent tenders from database
             cursor.execute("""
-                SELECT nomor_pengadaan, nama_tender, instansi, kategori, pagu, hps, tahap, created_at
+                SELECT nomor_pengadaan, nama_tender, instansi, kategori, pagu, tahap, scraped_at
                 FROM tenders
-                ORDER BY created_at DESC, id DESC
+                ORDER BY scraped_at DESC
                 LIMIT 150
             """)
             recent_tenders = cursor.fetchall()
