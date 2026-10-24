@@ -230,13 +230,21 @@ class CompanyContactUpdate(BaseModel):
 # AUTH ENDPOINTS
 @app.post("/api/auth/register")
 def register(req: UserRegister):
-    existing = get_user_by_email(req.email)
+    clean_email = str(req.email).strip().lower()
+    existing = get_user_by_email(clean_email)
     if existing:
         raise HTTPException(status_code=400, detail="Email sudah terdaftar.")
     hashed = hash_password(req.password)
     try:
-        user_id = create_user(req.email, hashed, whatsapp=req.whatsapp)
-        return {"status": "success", "message": "Registrasi berhasil.", "user_id": user_id}
+        user_id = create_user(clean_email, hashed, whatsapp=req.whatsapp)
+        token = create_access_token({"sub": str(user_id), "email": clean_email, "role": "user"})
+        return {
+            "status": "success",
+            "message": "Registrasi berhasil.",
+            "user_id": user_id,
+            "access_token": token,
+            "token_type": "bearer"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gagal registrasi: {str(e)}")
 

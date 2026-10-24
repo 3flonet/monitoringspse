@@ -5932,6 +5932,26 @@ function App() {
     const [authMsg, setAuthMsg] = useState(null);
     const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot' | 'reset'
     const [showAuthPassword, setShowAuthPassword] = useState(false);
+    const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
+    const [globalToast, setGlobalToast] = useState(null);
+
+    // Watch for flash toast from registration/auth redirects
+    useEffect(() => {
+        const storedToast = sessionStorage.getItem('auth_flash_toast');
+        if (storedToast) {
+            try {
+                const parsed = JSON.parse(storedToast);
+                setGlobalToast(parsed);
+                sessionStorage.removeItem('auth_flash_toast');
+                const timer = setTimeout(() => {
+                    setGlobalToast(null);
+                }, 6000);
+                return () => clearTimeout(timer);
+            } catch (e) {
+                sessionStorage.removeItem('auth_flash_toast');
+            }
+        }
+    }, [activeTab, userToken]);
 
 
     // Forgot & Reset Password States
@@ -6987,6 +7007,7 @@ function App() {
             setAuthMsg({ type: 'error', text: 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi untuk mendaftar.' });
             return;
         }
+        setIsSubmittingAuth(true);
         const url = isRegistering ? '/api/auth/register' : '/api/auth/login';
         const body = isRegistering
             ? { email: authEmail, password: authPassword, whatsapp: authWhatsapp }
@@ -7000,25 +7021,63 @@ function App() {
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('user_token', data.access_token);
-                setUserToken(data.access_token);
+                if (data.access_token) {
+                    localStorage.setItem('user_token', data.access_token);
+                    setUserToken(data.access_token);
+                }
                 setAuthEmail('');
                 setAuthPassword('');
                 setAuthWhatsapp('');
-                setAuthMsg({ type: 'success', text: isRegistering ? 'Registrasi Berhasil!' : 'Login Berhasil!' });
 
                 const redirectTo = sessionStorage.getItem('login_redirect');
-                if (redirectTo === 'competitors') {
-                    sessionStorage.removeItem('login_redirect');
-                    window.location.hash = '#/competitors';
+                const isToCompetitors = redirectTo === 'competitors';
+
+                if (isRegistering) {
+                    // Flash message langsung di form registrasi
+                    setAuthMsg({
+                        type: 'success',
+                        text: isToCompetitors
+                            ? '🎉 Registrasi Berhasil! Mengalihkan ke menu Profil Kompetitor...'
+                            : '🎉 Registrasi Berhasil! Paket Uji Coba 7 Hari Aktif. Mengalihkan ke dasbor...'
+                    });
+
+                    // Siapkan toast flash message mengambang saat tiba di halaman tujuan
+                    sessionStorage.setItem('auth_flash_toast', JSON.stringify({
+                        title: 'Registrasi Berhasil! 🎉',
+                        message: isToCompetitors
+                            ? 'Selamat datang di Spy SPSE! Akun Uji Coba Gratis 7 Hari Anda aktif. Membuka menu Analisis Kompetitor.'
+                            : 'Selamat datang di Spy SPSE! Akun Uji Coba Gratis 7 Hari Anda telah aktif.',
+                        type: 'success',
+                        icon: '🚀'
+                    }));
+
+                    // Beri jeda 1.2 detik agar pengguna sempat melihat konfirmasi sukses di form
+                    setTimeout(() => {
+                        if (isToCompetitors) {
+                            sessionStorage.removeItem('login_redirect');
+                            window.location.hash = '#/competitors';
+                        } else {
+                            window.location.hash = '#/dashboard';
+                        }
+                        setIsSubmittingAuth(false);
+                    }, 1200);
                 } else {
-                    window.location.hash = '#/dashboard';
+                    setAuthMsg({ type: 'success', text: 'Login Berhasil!' });
+                    if (isToCompetitors) {
+                        sessionStorage.removeItem('login_redirect');
+                        window.location.hash = '#/competitors';
+                    } else {
+                        window.location.hash = '#/dashboard';
+                    }
+                    setIsSubmittingAuth(false);
                 }
             } else {
                 setAuthMsg({ type: 'error', text: data.detail || 'Terjadi kesalahan.' });
+                setIsSubmittingAuth(false);
             }
         } catch (err) {
             setAuthMsg({ type: 'error', text: 'Kesalahan jaringan.' });
+            setIsSubmittingAuth(false);
         }
     };
 
@@ -7595,8 +7654,12 @@ function App() {
             } else if (hash.startsWith('#/competitors')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
-                if (userToken) {
+                const token = userToken || localStorage.getItem('user_token');
+                if (token) {
                     setActiveTab('competitors');
+                } else {
+                    sessionStorage.setItem('login_redirect', 'competitors');
+                    window.location.hash = '#/login';
                 }
             } else if (hash.startsWith('#/instansi')) {
                 setSelectedArticleSlug(null);
@@ -7621,7 +7684,8 @@ function App() {
             } else if (hash.startsWith('#/dashboard')) {
                 setSelectedArticleSlug(null);
                 setSelectedArticleLpseSlug(null);
-                if (userToken) {
+                const token = userToken || localStorage.getItem('user_token');
+                if (token) {
                     setActiveTab('dashboard');
                 } else {
                     window.location.hash = '#/';
@@ -9909,8 +9973,22 @@ function App() {
                                             </div>
                                         )}
 
-                                        <button type="submit" className="btn-primary" style={{ marginTop: '10px', height: '46px', fontSize: '14px', fontWeight: '700' }}>
-                                            {isRegistering ? `Daftar Akun Gratis ${adminSettings?.trial_days || '7'} Hari →` : 'Masuk ke Dasbor →'}
+                                        <button
+                                            type="submit"
+                                            className="btn-primary"
+                                            disabled={isSubmittingAuth}
+                                            style={{
+                                                marginTop: '10px',
+                                                height: '46px',
+                                                fontSize: '14px',
+                                                fontWeight: '700',
+                                                opacity: isSubmittingAuth ? 0.8 : 1,
+                                                cursor: isSubmittingAuth ? 'not-allowed' : 'pointer'
+                                            }}
+                                        >
+                                            {isSubmittingAuth
+                                                ? (isRegistering ? 'Mendaftarkan Akun...' : 'Memproses Masuk...')
+                                                : (isRegistering ? `Daftar Akun Gratis ${adminSettings?.trial_days || '7'} Hari →` : 'Masuk ke Dasbor →')}
                                         </button>
                                     </form>
 
@@ -18459,9 +18537,65 @@ function App() {
 
             {/* Floating Chatbot Widget */}
             <Chatbot adminSettings={adminSettings} />
+
+            {/* Global Toast Alert */}
+            {globalToast && (
+                <div style={{
+                    position: 'fixed',
+                    top: '24px',
+                    right: '24px',
+                    zIndex: 9999999,
+                    background: globalToast.type === 'error'
+                        ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.96), rgba(185, 28, 28, 0.96))'
+                        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.96), rgba(5, 150, 105, 0.96))',
+                    color: '#ffffff',
+                    padding: '16px 20px',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(16, 185, 129, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    maxWidth: '440px',
+                    animation: 'slideInRight 0.3s ease-out',
+                    transition: 'all 0.3s'
+                }}>
+                    <span style={{ fontSize: '24px', flexShrink: 0 }}>{globalToast.icon || '🎉'}</span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '700', fontSize: '14px', letterSpacing: '-0.01em', marginBottom: '2px' }}>
+                            {globalToast.title || 'Informasi'}
+                        </div>
+                        <div style={{ fontSize: '13px', opacity: 0.94, lineHeight: '1.4', fontWeight: '400' }}>
+                            {globalToast.message}
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setGlobalToast(null)}
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            border: 'none',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            borderRadius: '50%',
+                            width: '26px',
+                            height: '26px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            marginLeft: '8px',
+                            flexShrink: 0
+                        }}
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
         </div>
     );
 
 }
 
 export default App;
+
