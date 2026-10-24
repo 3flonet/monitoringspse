@@ -1643,6 +1643,7 @@ def get_all_company_leads_for_export(search="", filter_status="all"):
 def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0):
     conn = get_db_connection()
     cursor = conn.cursor()
+    is_pg = hasattr(conn, '_pool')
     
     where_clauses = []
     params = []
@@ -1652,16 +1653,28 @@ def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0)
         where_clauses.append("(LOWER(a.keyword) LIKE ? OR LOWER(a.email) LIKE ? OR LOWER(COALESCE(a.whatsapp, '')) LIKE ? OR LOWER(a.instansi) LIKE ? OR LOWER(u.email) LIKE ?)")
         params.extend([s, s, s, s, s])
         
-    if status_filter == "active":
-        where_clauses.append("(a.is_active IS NULL OR a.is_active = 1 OR a.is_active = TRUE)")
-    elif status_filter == "inactive":
-        where_clauses.append("(a.is_active = 0 OR a.is_active = FALSE)")
-    elif status_filter == "wa_unverified":
-        where_clauses.append("(a.whatsapp IS NOT NULL AND a.whatsapp != '' AND (a.wa_verified IS NULL OR a.wa_verified = 0 OR a.wa_verified = FALSE))")
-    elif status_filter == "email_disabled":
-        where_clauses.append("(a.email_active = 0 OR a.email_active = FALSE)")
-    elif status_filter == "wa_disabled":
-        where_clauses.append("(a.wa_active = 0 OR a.wa_active = FALSE)")
+    if is_pg:
+        if status_filter == "active":
+            where_clauses.append("(a.is_active IS NULL OR a.is_active IS TRUE)")
+        elif status_filter == "inactive":
+            where_clauses.append("(a.is_active IS FALSE)")
+        elif status_filter == "wa_unverified":
+            where_clauses.append("(a.whatsapp IS NOT NULL AND a.whatsapp != '' AND (a.wa_verified IS NULL OR a.wa_verified IS FALSE))")
+        elif status_filter == "email_disabled":
+            where_clauses.append("(a.email_active IS FALSE)")
+        elif status_filter == "wa_disabled":
+            where_clauses.append("(a.wa_active IS FALSE)")
+    else:
+        if status_filter == "active":
+            where_clauses.append("(a.is_active IS NULL OR a.is_active = 1)")
+        elif status_filter == "inactive":
+            where_clauses.append("(a.is_active = 0)")
+        elif status_filter == "wa_unverified":
+            where_clauses.append("(a.whatsapp IS NOT NULL AND a.whatsapp != '' AND (a.wa_verified IS NULL OR a.wa_verified = 0))")
+        elif status_filter == "email_disabled":
+            where_clauses.append("(a.email_active = 0)")
+        elif status_filter == "wa_disabled":
+            where_clauses.append("(a.wa_active = 0)")
         
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
     
@@ -1676,16 +1689,28 @@ def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0)
     total_count = cursor.fetchone()[0] or 0
     
     # Stats summary
-    cursor.execute("""
-        SELECT 
-            COUNT(*),
-            SUM(CASE WHEN (a.is_active IS NULL OR a.is_active = 1 OR a.is_active = TRUE) THEN 1 ELSE 0 END),
-            SUM(CASE WHEN (a.is_active = 0 OR a.is_active = FALSE) THEN 1 ELSE 0 END),
-            SUM(CASE WHEN (a.email_active IS NULL OR a.email_active = 1 OR a.email_active = TRUE) THEN 1 ELSE 0 END),
-            SUM(CASE WHEN (a.wa_active IS NULL OR a.wa_active = 1 OR a.wa_active = TRUE) THEN 1 ELSE 0 END),
-            SUM(CASE WHEN (a.wa_verified = 1 OR a.wa_verified = TRUE) THEN 1 ELSE 0 END)
-        FROM alerts a
-    """)
+    if is_pg:
+        cursor.execute("""
+            SELECT 
+                COUNT(*),
+                SUM(CASE WHEN (a.is_active IS NULL OR a.is_active IS TRUE) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN a.is_active IS FALSE THEN 1 ELSE 0 END),
+                SUM(CASE WHEN (a.email_active IS NULL OR a.email_active IS TRUE) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN (a.wa_active IS NULL OR a.wa_active IS TRUE) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN a.wa_verified IS TRUE THEN 1 ELSE 0 END)
+            FROM alerts a
+        """)
+    else:
+        cursor.execute("""
+            SELECT 
+                COUNT(*),
+                SUM(CASE WHEN (a.is_active IS NULL OR a.is_active = 1) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN a.is_active = 0 THEN 1 ELSE 0 END),
+                SUM(CASE WHEN (a.email_active IS NULL OR a.email_active = 1) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN (a.wa_active IS NULL OR a.wa_active = 1) THEN 1 ELSE 0 END),
+                SUM(CASE WHEN a.wa_verified = 1 THEN 1 ELSE 0 END)
+            FROM alerts a
+        """)
     stats_row = cursor.fetchone()
     stats = {
         "total_alerts": stats_row[0] or 0,
@@ -1697,12 +1722,16 @@ def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0)
     }
     
     # Fetch paginated rows with sent_count
+    coalesce_active = "COALESCE(a.is_active, TRUE)" if is_pg else "COALESCE(a.is_active, 1)"
+    coalesce_email = "COALESCE(a.email_active, TRUE)" if is_pg else "COALESCE(a.email_active, 1)"
+    coalesce_wa = "COALESCE(a.wa_active, TRUE)" if is_pg else "COALESCE(a.wa_active, 1)"
+
     query = f"""
         SELECT a.id, a.user_id, a.keyword, a.email, a.whatsapp, a.instansi, a.wa_verified, a.wa_verified_at,
                a.created_at, 
-               COALESCE(a.is_active, 1) as is_active, 
-               COALESCE(a.email_active, 1) as email_active, 
-               COALESCE(a.wa_active, 1) as wa_active,
+               {coalesce_active} as is_active, 
+               {coalesce_email} as email_active, 
+               {coalesce_wa} as wa_active,
                u.email as user_email, u.role as user_role,
                s.plan_type, s.status as sub_status, s.end_date as sub_end_date,
                (SELECT COUNT(*) FROM sent_alerts sa WHERE sa.alert_id = a.id) as sent_count
@@ -1726,19 +1755,20 @@ def get_all_alerts_for_admin(search="", status_filter="all", limit=50, offset=0)
 def update_alert_toggle(alert_id: int, is_active=None, email_active=None, wa_active=None, user_id=None):
     conn = get_db_connection()
     cursor = conn.cursor()
+    is_pg = hasattr(conn, '_pool')
     
     updates = []
     params = []
     
     if is_active is not None:
         updates.append("is_active = ?")
-        params.append(1 if is_active else 0)
+        params.append((True if is_active else False) if is_pg else (1 if is_active else 0))
     if email_active is not None:
         updates.append("email_active = ?")
-        params.append(1 if email_active else 0)
+        params.append((True if email_active else False) if is_pg else (1 if email_active else 0))
     if wa_active is not None:
         updates.append("wa_active = ?")
-        params.append(1 if wa_active else 0)
+        params.append((True if wa_active else False) if is_pg else (1 if wa_active else 0))
         
     if not updates:
         conn.close()
