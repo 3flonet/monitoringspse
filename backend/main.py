@@ -220,6 +220,8 @@ class ArticleCreateReq(BaseModel):
     document_url: Optional[str] = None
     document_type: Optional[str] = None
     category: Optional[str] = None
+    image_source_url: Optional[str] = None
+    image_source_name: Optional[str] = None
 
 class CompanyContactUpdate(BaseModel):
     company_name: str
@@ -4199,7 +4201,9 @@ def admin_create_article(req: ArticleCreateReq, current_user: dict = Depends(get
             document_title=req.document_title,
             document_url=req.document_url,
             document_type=req.document_type,
-            category=req.category
+            category=req.category,
+            image_source_url=req.image_source_url,
+            image_source_name=req.image_source_name
         )
         return {"status": "success", "article_id": article_id}
     except Exception as e:
@@ -4229,7 +4233,9 @@ def admin_update_article(id: int, req: ArticleCreateReq, current_user: dict = De
             document_title=req.document_title,
             document_url=req.document_url,
             document_type=req.document_type,
-            category=req.category
+            category=req.category,
+            image_source_url=req.image_source_url,
+            image_source_name=req.image_source_name
         )
         return {"status": "success", "message": "Artikel berhasil diperbarui."}
     except Exception as e:

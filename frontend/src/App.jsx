@@ -8,6 +8,203 @@ import AdminAlertsManager from './components/AdminAlertsManager';
 import ArticleRichEditor from './components/ArticleRichEditor';
 import PublicFeaturesPage from './components/PublicFeaturesPage';
 
+export const parseImageSource = (imageUrl, imageSourceUrl, imageSourceName) => {
+    const rawSource = (imageSourceUrl || '').trim();
+    const rawImage = (imageUrl || '').trim();
+    const customName = (imageSourceName || '').trim();
+
+    if (!rawImage && !rawSource) return null;
+    if (rawImage.startsWith('/static/') && !rawSource) {
+        return {
+            type: 'local',
+            label: 'Dokumentasi Resmi'
+        };
+    }
+
+    let target = rawSource || rawImage;
+    if (!target.startsWith('http://') && !target.startsWith('https://')) {
+        target = 'https://' + target;
+    }
+
+    try {
+        const parsed = new URL(target);
+        let host = parsed.hostname.toLowerCase();
+        if (host.startsWith('www.')) host = host.substring(4);
+
+        const pathSegments = parsed.pathname.split('/').filter(Boolean);
+
+        // 1. Instagram
+        if (host.includes('instagram.com') || host.includes('instagr.am')) {
+            let user = customName;
+            if (!user && pathSegments.length > 0) {
+                const first = pathSegments[0].replace('@', '');
+                if (!['p', 'reel', 'reels', 'tv', 'stories', 'explore', 'direct'].includes(first.toLowerCase())) {
+                    user = '@' + first;
+                }
+            }
+            const displayUrl = user ? `instagram.com/${user.replace('@', '')}` : (pathSegments[0] === 'p' && pathSegments[1] ? `instagram.com/p/${pathSegments[1]}` : 'instagram.com');
+            const linkUrl = user ? `https://instagram.com/${user.replace('@', '')}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'Instagram',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 2. Twitter / X
+        if (host === 'x.com' || host.includes('twitter.com')) {
+            let user = customName;
+            if (!user && pathSegments.length > 0) {
+                const first = pathSegments[0].replace('@', '');
+                if (!['i', 'intent', 'explore', 'hashtag', 'search'].includes(first.toLowerCase())) {
+                    user = '@' + first;
+                }
+            }
+            const displayUrl = user ? `x.com/${user.replace('@', '')}` : 'x.com';
+            const linkUrl = user ? `https://x.com/${user.replace('@', '')}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'X (Twitter)',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 3. TikTok
+        if (host.includes('tiktok.com')) {
+            let user = customName;
+            if (!user && pathSegments.length > 0) {
+                if (pathSegments[0].startsWith('@')) {
+                    user = pathSegments[0];
+                } else if (!['video', 'share', 'tag', 'explore'].includes(pathSegments[0].toLowerCase())) {
+                    user = '@' + pathSegments[0];
+                }
+            }
+            const displayUrl = user ? `tiktok.com/${user}` : 'tiktok.com';
+            const linkUrl = user ? `https://tiktok.com/${user}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'TikTok',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 4. Facebook
+        if (host.includes('facebook.com') || host === 'fb.com') {
+            let user = customName;
+            if (!user && pathSegments.length > 0) {
+                const first = pathSegments[0].replace('@', '');
+                if (!['sharer', 'share', 'dialog', 'plugins', 'watch', 'photo', 'photo.php', 'groups', 'pages'].includes(first.toLowerCase())) {
+                    user = '@' + first;
+                }
+            }
+            const displayUrl = user ? `facebook.com/${user.replace('@', '')}` : 'facebook.com';
+            const linkUrl = user ? `https://facebook.com/${user.replace('@', '')}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'Facebook',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 5. YouTube
+        if (host.includes('youtube.com') || host === 'youtu.be') {
+            let user = customName;
+            if (!user) {
+                const found = pathSegments.find(p => p.startsWith('@'));
+                if (found) user = found;
+            }
+            const displayUrl = user ? `youtube.com/${user}` : 'youtube.com';
+            const linkUrl = user ? `https://youtube.com/${user}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'YouTube',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 6. Threads
+        if (host.includes('threads.net')) {
+            let user = customName;
+            if (!user && pathSegments.length > 0) {
+                user = pathSegments[0].startsWith('@') ? pathSegments[0] : ('@' + pathSegments[0]);
+            }
+            const displayUrl = user ? `threads.net/${user}` : 'threads.net';
+            const linkUrl = user ? `https://threads.net/${user}` : target;
+
+            return {
+                type: 'medsos',
+                platform: 'Threads',
+                username: user,
+                displayUrl: displayUrl,
+                linkUrl: linkUrl
+            };
+        }
+
+        // 7. LinkedIn
+        if (host.includes('linkedin.com')) {
+            let user = customName;
+            if (!user && pathSegments.length > 1 && (pathSegments[0] === 'company' || pathSegments[0] === 'in')) {
+                user = pathSegments[1];
+            }
+            return {
+                type: 'medsos',
+                platform: 'LinkedIn',
+                username: user ? `@${user}` : null,
+                displayUrl: user ? `linkedin.com/in/${user}` : 'linkedin.com',
+                linkUrl: target
+            };
+        }
+
+        // 8. General Website
+        let cleanDomain = host;
+        const cdnPrefixes = ['img.', 'images.', 'asset.', 'assets.', 'static.', 'statik.', 'media.', 'cdn.', 'files.'];
+        for (const p of cdnPrefixes) {
+            if (cleanDomain.startsWith(p)) {
+                cleanDomain = cleanDomain.substring(p.length);
+                break;
+            }
+        }
+
+        if (cleanDomain.includes('gstatic.com') || cleanDomain.includes('googleusercontent.com')) {
+            cleanDomain = 'Google Images';
+        }
+
+        const displayName = customName || cleanDomain;
+        const rootUrl = `${parsed.protocol}//${host}`;
+        const linkUrl = rawSource || rootUrl;
+
+        return {
+            type: 'website',
+            displayName: displayName,
+            domain: cleanDomain,
+            linkUrl: linkUrl
+        };
+
+    } catch (e) {
+        return {
+            type: 'website',
+            displayName: customName || 'Website Sumber',
+            domain: 'Website Sumber',
+            linkUrl: target
+        };
+    }
+};
+
 const PremiumFooter = ({ adminSettings, onNavigate }) => {
     return (
         <footer className="app-footer" style={{
@@ -1762,9 +1959,56 @@ const PublicArticleDetailPage = ({
                                             style={{ width: '100%', height: '100%', maxHeight: '480px', objectFit: 'cover', display: 'block' }}
                                         />
                                     </div>
-                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '10px', textAlign: 'center', fontStyle: 'italic' }}>
-                                        📸 Dokumentasi &amp; Analisis Pengadaan Barang/Jasa Pemerintah • Platform {adminSettings.app_name || 'Spy SPSE'}
-                                    </div>
+                                    {(() => {
+                                        const srcInfo = parseImageSource(selectedArticle.image_url, selectedArticle.image_source_url, selectedArticle.image_source_name);
+                                        if (!srcInfo || srcInfo.type === 'local') {
+                                            return (
+                                                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '10px', textAlign: 'center', fontStyle: 'italic' }}>
+                                                    📸 Dokumentasi &amp; Analisis Pengadaan Barang/Jasa Pemerintah • Platform {adminSettings.app_name || 'Spy SPSE'}
+                                                </div>
+                                            );
+                                        }
+                                        if (srcInfo.type === 'medsos') {
+                                            return (
+                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '10px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                    <span style={{ color: '#64748b' }}>📸 Sumber:</span>
+                                                    <a
+                                                        href={srcInfo.linkUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: '#818cf8', textDecoration: 'none', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                                                    >
+                                                        <span>{srcInfo.platform}</span>
+                                                        {srcInfo.username && <span style={{ color: '#38bdf8' }}>{srcInfo.username}</span>}
+                                                        <span style={{ color: '#94a3b8', fontWeight: '400', fontSize: '11px' }}>({srcInfo.displayUrl})</span>
+                                                        <span style={{ fontSize: '11px' }}>↗</span>
+                                                    </a>
+                                                    <span style={{ color: '#475569' }}>•</span>
+                                                    <span style={{ color: '#64748b' }}>Platform {adminSettings.app_name || 'Spy SPSE'}</span>
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '10px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                                <span style={{ color: '#64748b' }}>📸 Sumber:</span>
+                                                <a
+                                                    href={srcInfo.linkUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ color: '#818cf8', textDecoration: 'none', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                                                >
+                                                    <span>{srcInfo.displayName}</span>
+                                                    <span style={{ fontSize: '11px' }}>↗</span>
+                                                </a>
+                                                <span style={{ color: '#475569' }}>•</span>
+                                                <span style={{ color: '#64748b' }}>Platform {adminSettings.app_name || 'Spy SPSE'}</span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             )}
 
@@ -2362,6 +2606,8 @@ const AdminArticlesManager = ({
             is_pinned: 0,
             is_published: 1,
             image_url: '',
+            image_source_url: '',
+            image_source_name: '',
             youtube_embed: '',
             document_title: '',
             document_url: '',
@@ -2386,6 +2632,8 @@ const AdminArticlesManager = ({
             is_pinned: art.is_pinned || 0,
             is_published: art.is_published || 0,
             image_url: art.image_url || '',
+            image_source_url: art.image_source_url || '',
+            image_source_name: art.image_source_name || '',
             youtube_embed: art.youtube_embed || '',
             document_title: art.document_title || '',
             document_url: art.document_url || '',
@@ -2743,44 +2991,91 @@ const AdminArticlesManager = ({
                                             )}
                                         </div>
                                     ) : (
-                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                            <input
-                                                type="url"
-                                                className="form-control"
-                                                placeholder="https://example.com/images/foto-cover.jpg"
-                                                value={adminArticleForm.image_url || ''}
-                                                onChange={(e) => setAdminArticleForm(prev => ({ ...prev, image_url: e.target.value }))}
-                                                style={{ flex: 1 }}
-                                            />
-                                            {adminArticleForm.image_url && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setAdminArticleForm(prev => ({ ...prev, image_url: '' }))}
-                                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}
-                                                >
-                                                    Hapus
-                                                </button>
-                                            )}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                <input
+                                                    type="url"
+                                                    className="form-control"
+                                                    placeholder="Tautan Gambar: https://example.com/foto-cover.jpg"
+                                                    value={adminArticleForm.image_url || ''}
+                                                    onChange={(e) => setAdminArticleForm(prev => ({ ...prev, image_url: e.target.value }))}
+                                                    style={{ flex: 1 }}
+                                                />
+                                                {adminArticleForm.image_url && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAdminArticleForm(prev => ({ ...prev, image_url: '', image_source_url: '', image_source_name: '' }))}
+                                                        style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                                                <div>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Tautan Sumber Web / Medsos (Opsional, cth: https://instagram.com/lkpp_ri)"
+                                                        value={adminArticleForm.image_source_url || ''}
+                                                        onChange={(e) => setAdminArticleForm(prev => ({ ...prev, image_source_url: e.target.value }))}
+                                                        style={{ fontSize: '12px', padding: '8px 12px' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Nama Akun / Sumber (Opsional, cth: @lkpp_ri atau Humas LKPP)"
+                                                        value={adminArticleForm.image_source_name || ''}
+                                                        onChange={(e) => setAdminArticleForm(prev => ({ ...prev, image_source_name: e.target.value }))}
+                                                        style={{ fontSize: '12px', padding: '8px 12px' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <small style={{ color: '#94a3b8', fontSize: '11px', lineHeight: '1.4' }}>
+                                                💡 Jika tautan dari medsos (Instagram, X/Twitter, TikTok, FB, dll), sistem otomatis menampilkan tautan medsos beserta usernamenya. Jika dari website, sistem menampilkan domain website sumber tanpa slug file gambar.
+                                            </small>
                                         </div>
                                     )}
 
                                     {/* Preview Thumbnail */}
                                     {adminArticleForm.image_url && (
-                                        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <div style={{ borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', border: '1px solid rgba(255,255,255,0.1)', background: '#090e1a', flexShrink: 0 }}>
-                                                <img
-                                                    src={adminArticleForm.image_url}
-                                                    alt="Cover Preview"
-                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                                />
-                                            </div>
-                                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                                                <span style={{ color: '#34d399', fontWeight: '600' }}>✓ Cover terpasang</span>
-                                                <div style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px', color: '#64748b' }}>
-                                                    {adminArticleForm.image_url}
+                                        <div style={{ marginTop: '12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{ borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', border: '1px solid rgba(255,255,255,0.1)', background: '#090e1a', flexShrink: 0 }}>
+                                                    <img
+                                                        src={adminArticleForm.image_url}
+                                                        alt="Cover Preview"
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                    />
+                                                </div>
+                                                <div style={{ fontSize: '12px', color: '#94a3b8', flex: 1, minWidth: 0 }}>
+                                                    <span style={{ color: '#34d399', fontWeight: '600' }}>✓ Cover terpasang</span>
+                                                    <div style={{ maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px', color: '#64748b' }}>
+                                                        {adminArticleForm.image_url}
+                                                    </div>
                                                 </div>
                                             </div>
+                                            {(() => {
+                                                const srcInfo = parseImageSource(adminArticleForm.image_url, adminArticleForm.image_source_url, adminArticleForm.image_source_name);
+                                                if (!srcInfo || srcInfo.type === 'local') return null;
+                                                return (
+                                                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(99, 102, 241, 0.08)', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '12px', color: '#cbd5e1' }}>
+                                                        <span style={{ color: '#818cf8', fontWeight: '600' }}>Keterangan di Artikel: </span>
+                                                        {srcInfo.type === 'medsos' ? (
+                                                            <span>
+                                                                📸 Sumber: <strong>{srcInfo.platform}</strong> {srcInfo.username && <span style={{ color: '#38bdf8', fontWeight: '600' }}>{srcInfo.username}</span>} <span style={{ color: '#94a3b8' }}>({srcInfo.displayUrl})</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span>
+                                                                📸 Sumber: <strong style={{ color: '#38bdf8' }}>{srcInfo.displayName}</strong>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     )}
                                 </div>
@@ -6073,6 +6368,8 @@ function App() {
         is_pinned: 0,
         is_published: 1,
         image_url: '',
+        image_source_url: '',
+        image_source_name: '',
         youtube_embed: '',
         document_title: '',
         document_url: '',
@@ -7501,6 +7798,8 @@ function App() {
                     is_pinned: 0,
                     is_published: 1,
                     image_url: '',
+                    image_source_url: '',
+                    image_source_name: '',
                     youtube_embed: '',
                     document_title: '',
                     document_url: '',

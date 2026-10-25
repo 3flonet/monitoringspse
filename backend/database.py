@@ -810,6 +810,8 @@ def init_db():
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_url TEXT")
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS document_type TEXT")
             cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS category TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS image_source_url TEXT")
+            cursor.execute("ALTER TABLE articles ADD COLUMN IF NOT EXISTS image_source_name TEXT")
         except Exception as e:
             logging.warning(f"PG articles migration warning: {e}")
         try:
@@ -846,6 +848,10 @@ def init_db():
                 cursor.execute("ALTER TABLE articles ADD COLUMN document_type TEXT")
             if 'category' not in cols:
                 cursor.execute("ALTER TABLE articles ADD COLUMN category TEXT")
+            if 'image_source_url' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN image_source_url TEXT")
+            if 'image_source_name' not in cols:
+                cursor.execute("ALTER TABLE articles ADD COLUMN image_source_name TEXT")
         except Exception as e:
             logging.warning(f"SQLite articles migration warning: {e}")
 
@@ -1267,7 +1273,7 @@ def get_all_vouchers():
     return [dict(r) for r in rows]
 
 # Article Helpers
-def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None):
+def create_article(title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None, image_source_url=None, image_source_name=None):
     conn = get_db_connection()
     cursor = conn.cursor()
     now_str = datetime.now().isoformat()
@@ -1278,8 +1284,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
                 is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type, category,
+                image_source_url, image_source_name,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1295,6 +1302,8 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             document_url,
             clean_str(document_type) if document_type else None,
             clean_str(category) if category else None,
+            image_source_url,
+            clean_str(image_source_name) if image_source_name else None,
             now_str,
             now_str
         ))
@@ -1304,8 +1313,9 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             INSERT INTO articles (
                 title, slug, content, meta_title, meta_description, meta_keywords,
                 is_pinned, is_published, image_url, youtube_embed, document_title, document_url, document_type, category,
+                image_source_url, image_source_name,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             clean_str(title),
             clean_str(slug).lower(),
@@ -1321,6 +1331,8 @@ def create_article(title, slug, content, meta_title=None, meta_description=None,
             document_url,
             clean_str(document_type) if document_type else None,
             clean_str(category) if category else None,
+            image_source_url,
+            clean_str(image_source_name) if image_source_name else None,
             now_str,
             now_str
         ))
@@ -1365,7 +1377,7 @@ def get_article_categories():
             cats.append(str(val).strip())
     return cats
 
-def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None):
+def update_article(article_id, title, slug, content, meta_title=None, meta_description=None, meta_keywords=None, is_pinned=0, is_published=1, image_url=None, youtube_embed=None, document_title=None, document_url=None, document_type=None, category=None, image_source_url=None, image_source_name=None):
     if article_id is not None:
         article_id = int(article_id)
     conn = get_db_connection()
@@ -1387,6 +1399,8 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
             document_url = ?,
             document_type = ?,
             category = ?,
+            image_source_url = ?,
+            image_source_name = ?,
             updated_at = ?
         WHERE id = ?
     """, (
@@ -1404,6 +1418,8 @@ def update_article(article_id, title, slug, content, meta_title=None, meta_descr
         document_url,
         clean_str(document_type) if document_type else None,
         clean_str(category) if category else None,
+        image_source_url,
+        clean_str(image_source_name) if image_source_name else None,
         now_str,
         article_id
     ))
