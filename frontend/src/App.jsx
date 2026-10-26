@@ -1343,7 +1343,7 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+            background: '#070a13',
             color: '#f3f4f6',
             fontFamily: "'Inter', sans-serif",
             display: 'flex',
@@ -1657,7 +1657,7 @@ const PublicArticleDetailPage = ({
         return (
             <div style={{
                 minHeight: '100vh',
-                background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+                background: '#070a13',
                 color: '#f3f4f6',
                 fontFamily: "'Inter', sans-serif",
                 display: 'flex',
@@ -1745,7 +1745,7 @@ const PublicArticleDetailPage = ({
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent), #070a13',
+            background: '#070a13',
             color: '#f3f4f6',
             fontFamily: "'Inter', sans-serif",
             display: 'flex',
@@ -4722,13 +4722,10 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                 {/* Hero Section */}
                 <div className="landing-hero" style={{
                     textAlign: 'center',
-                    background: 'radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 65%)',
+                    background: '#070a13',
                     position: 'relative',
                     overflow: 'hidden'
                 }}>
-                    {/* Decorative background blobs */}
-                    <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.08), transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-                    <div style={{ position: 'absolute', bottom: '5%', right: '5%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(168,85,247,0.08), transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
                     {/* Logo */}
                     <div style={{ fontSize: '64px', marginBottom: '20px' }}>{adminSettings.app_logo || '🕵🏼‍♂️'}</div>
@@ -9403,7 +9400,7 @@ function App() {
         return (
             <div style={{
                 minHeight: '100vh',
-                background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+                background: '#070a13',
                 color: '#f3f4f6',
                 fontFamily: "'Inter', sans-serif",
                 display: 'flex',
@@ -9869,7 +9866,7 @@ function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                background: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent), #070a13',
+                background: '#070a13',
                 fontFamily: "'Inter', sans-serif"
             }}>
                 {/* Header */}
