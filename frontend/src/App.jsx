@@ -7,6 +7,7 @@ import UserDocumentation from './components/UserDocumentation';
 import AdminAlertsManager from './components/AdminAlertsManager';
 import ArticleRichEditor from './components/ArticleRichEditor';
 import PublicFeaturesPage from './components/PublicFeaturesPage';
+import IndonesianRadarMap from './components/IndonesianRadarMap';
 
 export const parseImageSource = (imageUrl, imageSourceUrl, imageSourceName) => {
     const rawSource = (imageSourceUrl || '').trim();
@@ -4927,6 +4928,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     overflow: 'hidden'
                 }}>
 
+                    {/* Ambient High-Tech Indonesian Radar Map Background */}
+                    <IndonesianRadarMap />
+
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+
                     {/* Logo */}
                     <div style={{ fontSize: '64px', marginBottom: '20px' }}>{adminSettings.app_logo || '🕵🏼‍♂️'}</div>
 
@@ -5319,6 +5325,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         <span>✅ Notifikasi WhatsApp & Email instan</span>
                         <span>✅ Data dari LPSE seluruh Indonesia</span>
                     </div>
+                    </div> {/* End relative zIndex: 10 wrapper */}
                 </div>
 
                 {/* Stats Section */}
