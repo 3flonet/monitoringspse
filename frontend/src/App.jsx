@@ -4920,24 +4920,44 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
             {/* ===== HOME PAGE ===== */}
             {landingPage === 'home' && <>
 
-                {/* Hero Section */}
+                {/* Hero Section (Opsi B: Split 2-Kolom Layout) */}
                 <div className="landing-hero" style={{
-                    textAlign: 'center',
                     background: '#070a13',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    padding: '60px 24px 50px'
                 }}>
+                    {/* Subtle ambient cyber background grid */}
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundImage: `
+                            radial-gradient(circle at 75% 30%, rgba(255, 42, 95, 0.08) 0%, transparent 60%),
+                            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)
+                        `,
+                        backgroundSize: '100% 100%, 48px 48px, 48px 48px',
+                        pointerEvents: 'none'
+                    }} />
 
-                    {/* Ambient High-Tech Indonesian Radar Map Background */}
-                    <IndonesianRadarMap />
-
-                    <div style={{ position: 'relative', zIndex: 10 }}>
+                    <div style={{
+                        maxWidth: '1380px',
+                        margin: '0 auto',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                        gap: '42px',
+                        alignItems: 'center',
+                        position: 'relative',
+                        zIndex: 10
+                    }}>
+                        {/* LEFT COLUMN: Teks, Search Bar, CTA & Social Proof */}
+                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
 
                     {/* Logo */}
                     <div style={{ fontSize: '64px', marginBottom: '20px' }}>{adminSettings.app_logo || '🕵🏼‍♂️'}</div>
 
                     {/* Badge label */}
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '6px 16px', marginBottom: '28px', fontSize: '13px', color: '#818cf8', fontWeight: '600' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '6px 16px', marginBottom: '18px', fontSize: '13px', color: '#818cf8', fontWeight: '600' }}>
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }}></span>
                         Platform #1 Pemantauan Tender SPSE Indonesia
                     </div>
@@ -4952,22 +4972,23 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         background: 'linear-gradient(135deg, #e0e7ff, #a5b4fc, #c084fc)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        maxWidth: '800px',
-                        margin: '0 auto 24px'
+                        maxWidth: '680px',
+                        margin: '0 0 18px'
                     }}>
                         {adminSettings.app_name || 'Spy SPSE'} — Satu Platform untuk Semua Peluang Tender Indonesia
                     </h1>
 
                     {/* Subheadline — dynamic tagline or persuasive default */}
-                    <p style={{ fontSize: '18px', color: '#cbd5e1', maxWidth: '680px', margin: '0 auto 20px', lineHeight: '1.75' }}>
+                    <p style={{ fontSize: '16.5px', color: '#cbd5e1', maxWidth: '620px', margin: '0 0 24px', lineHeight: '1.7' }}>
                         {adminSettings.app_tagline || 'Jangan biarkan kompetitor Anda yang lebih dulu tahu. Deteksi peluang proyek LPSE seluruh Indonesia secara otomatis — notifikasi langsung ke WhatsApp & Email Anda, 24 jam sehari.'}
                     </p>
 
                     {/* INTERACTIVE HERO QUICK SEARCH BAR */}
                     <div ref={heroSearchContainerRef} style={{
-                        maxWidth: '740px',
-                        margin: '0 auto 34px',
-                        padding: '0 16px',
+                        width: '100%',
+                        maxWidth: '640px',
+                        margin: '0 0 24px',
+                        padding: 0,
                         position: 'relative',
                         zIndex: 40
                     }}>
@@ -5229,13 +5250,15 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                     {/* Value proposition highlight */}
                     <div style={{
-                        display: 'inline-block',
+                        display: 'block',
                         background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08))',
                         border: '1px solid rgba(16,185,129,0.3)',
                         borderRadius: '16px',
-                        padding: '16px 28px',
-                        marginBottom: '36px',
-                        maxWidth: '680px'
+                        padding: '16px 24px',
+                        marginBottom: '26px',
+                        width: '100%',
+                        maxWidth: '640px',
+                        boxSizing: 'border-box'
                     }}>
                         <p style={{ margin: 0, fontSize: '15px', color: '#6ee7b7', lineHeight: '1.7', fontWeight: '500' }}>
                             💡 <strong style={{ color: '#34d399' }}>Hanya dengan investasi mulai Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — buka akses ke ribuan peluang proyek senilai <strong style={{ color: '#34d399' }}>miliaran rupiah</strong> dari seluruh K/L/Pemda Indonesia.
@@ -5244,7 +5267,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {/* CTA Buttons */}
-                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
+                    <div style={{ display: 'flex', gap: '14px', justifyContent: 'flex-start', flexWrap: 'wrap', marginBottom: '22px' }}>
                         <button
                             onClick={onGetStarted}
                             style={{
@@ -5320,12 +5343,18 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {/* Social proof micro row */}
-                    <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', flexWrap: 'wrap', fontSize: '13px', color: '#6b7280' }}>
-                        <span>✅ Uji coba gratis 7 hari tanpa kartu kredit</span>
-                        <span>✅ Notifikasi WhatsApp & Email instan</span>
-                        <span>✅ Data dari LPSE seluruh Indonesia</span>
-                    </div>
-                    </div> {/* End relative zIndex: 10 wrapper */}
+                            <div style={{ display: 'flex', gap: '20px', justifyContent: 'flex-start', flexWrap: 'wrap', fontSize: '12.5px', color: '#64748b' }}>
+                                <span>✅ Uji coba gratis 7 hari</span>
+                                <span>✅ Notifikasi WA & Email</span>
+                                <span>✅ Data dari 581 LPSE</span>
+                            </div>
+                        </div> {/* End LEFT COLUMN */}
+
+                        {/* RIGHT COLUMN: High-Tech Cyber Radar Map Showcase */}
+                        <div style={{ width: '100%', position: 'relative' }}>
+                            <IndonesianRadarMap />
+                        </div>
+                    </div> {/* End Grid */}
                 </div>
 
                 {/* Stats Section */}
