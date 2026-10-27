@@ -6035,12 +6035,12 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         {/* Tab Content 1: Peta Dominasi Satker */}
                         {activeIntelTab === 'kandang' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                                {/* FILTER & SEARCH BAR UNTUK INSTANSI / LPSE */}
+                                {/* FILTER & SEARCH BAR UNTUK INSTANSI / LPSE (Layout: Search Atas, Dropdown Bawah) */}
                                 <div className="demo-filter-container">
-                                    <div className="demo-filter-grid">
-                                        {/* 1. Input Pencarian Nama Instansi */}
-                                        <div style={{ flex: '1 1 240px', minWidth: '200px', position: 'relative' }}>
-                                            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '14px' }}>
+                                    {/* Baris 1: Kolom Pencarian Full-Width di Atas */}
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', width: '100%' }}>
+                                        <div style={{ flex: 1, position: 'relative' }}>
+                                            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#818cf8', fontSize: '15px' }}>
                                                 🔍
                                             </span>
                                             <input
@@ -6054,22 +6054,53 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                         if (trimmed) handleSelectSpecificInstansi(trimmed);
                                                     }
                                                 }}
-                                                placeholder="Cari kata kunci instansi (cth: Bandung, PUPR)..."
+                                                placeholder="Cari nama instansi / LPSE langsung (cth: DKI Jakarta, PUPR, Bandung, Kesehatan, Perhubungan)..."
                                                 style={{
                                                     width: '100%',
                                                     background: '#090d1a',
                                                     border: '1px solid rgba(255,255,255,0.12)',
                                                     borderRadius: '10px',
-                                                    padding: '9px 12px 9px 34px',
+                                                    padding: '11px 14px 11px 40px',
                                                     color: '#ffffff',
-                                                    fontSize: '13px',
+                                                    fontSize: '13.5px',
                                                     outline: 'none',
-                                                    boxSizing: 'border-box'
+                                                    boxSizing: 'border-box',
+                                                    transition: 'all 0.2s'
                                                 }}
+                                                onFocus={(e) => { e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.2)'; }}
+                                                onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.boxShadow = 'none'; }}
                                             />
                                         </div>
+                                        {dominanceSearch.trim() && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSelectSpecificInstansi(dominanceSearch.trim())}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                                    color: '#ffffff',
+                                                    border: 'none',
+                                                    borderRadius: '10px',
+                                                    padding: '0 20px',
+                                                    fontSize: '13.5px',
+                                                    fontWeight: '700',
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+                                                }}
+                                            >
+                                                Cari
+                                            </button>
+                                        )}
+                                    </div>
 
-                                        {/* 2. Dropdown Filter: Jenis Instansi */}
+                                    {/* Baris 2: Dropdown Kategori & Dropdown Instansi/LPSE Berdampingan */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                                        gap: '10px',
+                                        marginBottom: '6px'
+                                    }}>
+                                        {/* Dropdown 1: Kategori Instansi */}
                                         <select
                                             className="demo-select-styled"
                                             value={dominanceFilterJenis}
@@ -6077,19 +6108,20 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                 setDominanceFilterJenis(e.target.value);
                                             }}
                                             style={{
-                                                flex: '0 1 195px',
-                                                minWidth: '175px'
+                                                width: '100%',
+                                                padding: '10px 34px 10px 14px',
+                                                fontSize: '13px'
                                             }}
                                         >
                                             <option value="">Semua Kategori Instansi</option>
-                                            <option value="Kementerian">Kementerian</option>
-                                            <option value="Lembaga">Lembaga</option>
-                                            <option value="Provinsi">Pemerintah Provinsi</option>
-                                            <option value="Kabupaten">Pemerintah Kabupaten</option>
-                                            <option value="Kota">Pemerintah Kota</option>
+                                            <option value="Kementerian">🏛️ Kementerian</option>
+                                            <option value="Lembaga">🏢 Lembaga / Non-Kementerian</option>
+                                            <option value="Provinsi">📍 Pemerintah Provinsi</option>
+                                            <option value="Kabupaten">📍 Pemerintah Kabupaten</option>
+                                            <option value="Kota">📍 Pemerintah Kota</option>
                                         </select>
 
-                                        {/* 3. Dropdown Filter: Instansi / LPSE */}
+                                        {/* Dropdown 2: Instansi / LPSE Spesifik */}
                                         {(() => {
                                             const filteredInst = dominanceInstansiList.filter(item => {
                                                 const matchJenis = dominanceFilterJenis ? item.jenis === dominanceFilterJenis : true;
@@ -6106,14 +6138,17 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                         if (val) handleSelectSpecificInstansi(val);
                                                     }}
                                                     style={{
-                                                        flex: '1 1 260px',
-                                                        minWidth: '220px'
+                                                        width: '100%',
+                                                        padding: '10px 34px 10px 14px',
+                                                        fontSize: '13px',
+                                                        color: '#818cf8',
+                                                        fontWeight: '700'
                                                     }}
                                                 >
                                                     <option value="" style={{ color: '#94a3b8' }}>
-                                                        -- Pilih Instansi / LPSE ({filteredInst.length} Pilihan) --
+                                                        -- Pilih Instansi / LPSE ({filteredInst.length} Pilihan Tersedia) --
                                                     </option>
-                                                    {filteredInst.slice(0, 100).map((inst, idx) => (
+                                                    {filteredInst.slice(0, 150).map((inst, idx) => (
                                                         <option key={`inst-opt-${idx}`} value={inst.name} style={{ color: '#ffffff', background: '#090d1a' }}>
                                                             {inst.name} ({inst.count} Tender)
                                                         </option>
@@ -6121,27 +6156,6 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                 </select>
                                             );
                                         })()}
-
-                                        {/* Tombol Cari Manual bila ketik di input */}
-                                        {dominanceSearch.trim() && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleSelectSpecificInstansi(dominanceSearch.trim())}
-                                                style={{
-                                                    background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                                                    color: '#ffffff',
-                                                    border: 'none',
-                                                    borderRadius: '10px',
-                                                    padding: '9px 16px',
-                                                    fontSize: '13px',
-                                                    fontWeight: '700',
-                                                    cursor: 'pointer',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                Cari
-                                            </button>
-                                        )}
                                     </div>
 
                                     {/* Quick Pills Rekomendasi Instansi Populer */}
