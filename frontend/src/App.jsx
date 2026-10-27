@@ -6077,11 +6077,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                 setDominanceFilterJenis(e.target.value);
                                             }}
                                             style={{
-                                                flex: '0 1 180px',
-                                                minWidth: '160px'
+                                                flex: '0 1 195px',
+                                                minWidth: '175px'
                                             }}
                                         >
-                                            <option value="">-- Semua Jenis Instansi --</option>
+                                            <option value="">Semua Kategori Instansi</option>
                                             <option value="Kementerian">Kementerian</option>
                                             <option value="Lembaga">Lembaga</option>
                                             <option value="Provinsi">Pemerintah Provinsi</option>
