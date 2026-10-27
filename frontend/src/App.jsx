@@ -1581,6 +1581,467 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
                 )}
             </main>
 
+            {/* ===== PUBLIC COMPANY PREVIEW MODAL (GATED TEASER FOR TIER 1) ===== */}
+            {previewModalOpen && (
+                <div
+                    onClick={(e) => { if (e.target === e.currentTarget) setPreviewModalOpen(false); }}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(5, 8, 18, 0.85)',
+                        backdropFilter: 'blur(10px)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px',
+                        overflowY: 'auto'
+                    }}
+                >
+                    <div style={{
+                        background: '#0c101d',
+                        border: '1px solid rgba(99, 102, 241, 0.35)',
+                        borderRadius: '20px',
+                        width: '100%',
+                        maxWidth: '840px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 25px 65px rgba(0,0,0,0.85), 0 0 35px rgba(99,102,241,0.2)',
+                        padding: '28px',
+                        position: 'relative',
+                        color: '#f8fafc'
+                    }}>
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={() => setPreviewModalOpen(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '20px',
+                                right: '20px',
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '10px',
+                                color: '#94a3b8',
+                                width: '36px',
+                                height: '36px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                        >
+                            ✕
+                        </button>
+
+                        {/* Loading State */}
+                        {previewLoading && (
+                            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                                <div style={{ fontSize: '36px', marginBottom: '14px' }}>⏳</div>
+                                <h3 style={{ fontSize: '18px', color: '#e2e8f0', margin: '0 0 8px', fontFamily: 'Outfit, sans-serif' }}>
+                                    Mengumpulkan Intelijen &amp; Rekam Jejak Kompetitor...
+                                </h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                                    Menganalisis riwayat lelang, penetapan pemenang, dan evaluasi Pokja untuk &ldquo;{previewQuery}&rdquo;.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {!previewLoading && previewError && (
+                            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                                <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
+                                <h3 style={{ color: '#ef4444', fontSize: '18px', margin: '0 0 8px' }}>Gagal Memuat Profil</h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>{previewError}</p>
+                                <button
+                                    onClick={() => handleSelectCompany(previewQuery)}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '10px 20px',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Profile Content */}
+                        {!previewLoading && !previewError && previewData && (
+                            <div>
+                                {/* Header */}
+                                <div style={{ marginBottom: '22px', paddingRight: '40px' }}>
+                                    <div style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        background: 'rgba(99,102,241,0.12)',
+                                        border: '1px solid rgba(99,102,241,0.3)',
+                                        borderRadius: '20px',
+                                        padding: '4px 12px',
+                                        fontSize: '11.5px',
+                                        color: '#818cf8',
+                                        fontWeight: '700',
+                                        marginBottom: '10px'
+                                    }}>
+                                        <span>🔒</span>
+                                        <span>PREVIEW INTELIJEN KOMPETITOR (AKSES PUBLIK)</span>
+                                    </div>
+                                    <h2 style={{
+                                        fontSize: '24px',
+                                        fontWeight: '800',
+                                        margin: '0 0 8px',
+                                        fontFamily: "'Outfit', sans-serif",
+                                        color: '#ffffff',
+                                        lineHeight: '1.3'
+                                    }}>
+                                        {previewData.name || previewQuery}
+                                    </h2>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#94a3b8' }}>
+                                        <div>🪪 NPWP: <strong style={{ color: '#e2e8f0' }}>{previewData.npwp || '-'}</strong></div>
+                                        <div>📍 Alamat: <strong style={{ color: '#cbd5e1' }}>{previewData.address || '-'}</strong></div>
+                                    </div>
+                                </div>
+
+                                {/* Metric Cards Grid */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                    gap: '12px',
+                                    marginBottom: '22px'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Lelang Diikuti</div>
+                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                            {previewData.total_tenders || 0}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Paket SPSE</div>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Menang</div>
+                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#34d399', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                            {previewData.total_wins || 0}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Proyek Dimenangkan</div>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Nilai Kontrak</div>
+                                        <div style={{ fontSize: '20px', fontWeight: '800', color: '#fbbf24', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
+                                            Rp {formatStatsPagu(previewData.total_contract_value || 0)}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Akumulasi Kemenangan</div>
+                                    </div>
+
+                                    {/* GATED WIN RATE CARD */}
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.04))',
+                                        border: '1.5px dashed rgba(239, 68, 68, 0.5)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#f87171', textTransform: 'uppercase', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                            <span>🔒</span> WIN SUCCESS RATE
+                                        </div>
+                                        <div style={{
+                                            fontSize: '22px',
+                                            fontWeight: '900',
+                                            color: '#ef4444',
+                                            marginTop: '4px',
+                                            filter: 'blur(4px)',
+                                            userSelect: 'none'
+                                        }}>
+                                            24% Menang
+                                        </div>
+                                        <div style={{
+                                            fontSize: '10.5px',
+                                            color: '#fca5a5',
+                                            fontWeight: '700',
+                                            marginTop: '2px'
+                                        }}>
+                                            [Terkunci - Khusus Member]
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Compelling CTA Teaser Banner */}
+                                <div style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(168, 85, 247, 0.14))',
+                                    border: '1px solid rgba(99, 102, 241, 0.4)',
+                                    borderRadius: '14px',
+                                    padding: '18px 22px',
+                                    marginBottom: '22px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    flexWrap: 'wrap',
+                                    gap: '16px'
+                                }}>
+                                    <div style={{ flex: '1 1 360px' }}>
+                                        <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>🎯</span> Mau Tahu Taktik Menang &amp; Titik Lemah {previewData.name}?
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                                            Daftar akun gratis sekarang untuk membuka Win Rate akurat, riwayat gugur di Pokja lelang, serta pola diskon penawaran harga mereka.
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '11px',
+                                            padding: '12px 22px',
+                                            fontSize: '13.5px',
+                                            fontWeight: '800',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 6px 20px rgba(99, 102, 241, 0.5)',
+                                            transition: 'all 0.2s ease',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                    >
+                                        🚀 Coba Gratis 7 Hari
+                                    </button>
+                                </div>
+
+                                {/* Preview Riwayat Menang (Top 3 Sampel) */}
+                                <div style={{
+                                    background: 'rgba(255,255,255,0.02)',
+                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    borderRadius: '14px',
+                                    padding: '18px',
+                                    marginBottom: '22px'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                                        <div>
+                                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#fff' }}>
+                                                🏆 Sampel Riwayat Paket Dimenangkan (Maksimal 3 Paket)
+                                            </h4>
+                                            <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                                                Menampilkan 3 paket awal dari total {previewData.total_wins || 0} kemenangan lelang yang tercatat.
+                                            </p>
+                                        </div>
+                                        <span style={{ fontSize: '11.5px', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '3px 8px', borderRadius: '6px', fontWeight: '600' }}>
+                                            Preview Publik
+                                        </span>
+                                    </div>
+
+                                    {(!previewData.recent_tenders || previewData.recent_tenders.length === 0) ? (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                            Belum ada riwayat kemenangan lelang terindeks untuk entitas ini.
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            {previewData.recent_tenders.slice(0, 3).map((t, idx) => (
+                                                <div
+                                                    key={`prev-tend-${idx}`}
+                                                    style={{
+                                                        background: 'rgba(15, 23, 42, 0.6)',
+                                                        border: '1px solid rgba(255,255,255,0.05)',
+                                                        borderRadius: '10px',
+                                                        padding: '12px 14px',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                        gap: '10px'
+                                                    }}
+                                                >
+                                                    <div style={{ minWidth: 0, flex: '1 1 300px' }}>
+                                                        <div style={{ color: '#f1f5f9', fontSize: '13.5px', fontWeight: '600', lineHeight: '1.4' }}>
+                                                            {t.nama_tender}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                                            🏛️ {t.instansi || '-'}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Nilai Kontrak/Pagu</div>
+                                                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#34d399', fontFamily: 'Outfit, sans-serif' }}>
+                                                            Rp {formatStatsPagu(t.harga_kontrak || t.pagu_val || 0)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Gated Bottom Overlay for remaining tenders */}
+                                    <div style={{
+                                        marginTop: '14px',
+                                        padding: '14px',
+                                        background: 'rgba(15, 23, 42, 0.8)',
+                                        border: '1px dashed rgba(99, 102, 241, 0.4)',
+                                        borderRadius: '10px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                            <span>🔒</span>
+                                            <span>
+                                                {previewData.total_wins > 3 
+                                                    ? `+ ${previewData.total_wins - 3} Paket Kemenangan Lainnya & Arsip Sejak 2011 Terkunci`
+                                                    : 'Arsip Riwayat Tender Lengkap, Evaluasi Pokja, & Titik Lemah Terkunci'}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 10px' }}>
+                                            Buka akses ke dokumen evaluasi Pokja, nilai penawaran terkoreksi, dan harga kompetitor.
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                            style={{
+                                                background: 'rgba(99, 102, 241, 0.15)',
+                                                border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                color: '#818cf8',
+                                                borderRadius: '8px',
+                                                padding: '7px 16px',
+                                                fontSize: '12.5px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Buka Seluruh Riwayat dengan Akun Gratis →
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 3 Locked Feature Preview Cards */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                                    gap: '12px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#f87171' }}>
+                                            <span>🔒</span> Matriks Titik Lemah Pokja
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Penyebab tersering gugur tender: aspek Personil SKK/SKA, SBU, atau Metode Teknis.
+                                        </p>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#fbbf24' }}>
+                                            <span>🔒</span> Pola Penawaran vs HPS
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Persentase penurunan harga dari HPS saat memenangkan proyek untuk taktik bidding Anda.
+                                        </p>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#38bdf8' }}>
+                                            <span>🔒</span> Jaringan Mitra &amp; KSO
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Konsorsium mitra dan rekam jejak persaingan head-to-head terhadap badan usaha lainnya.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Modal Actions */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    paddingTop: '16px',
+                                    borderTop: '1px solid rgba(255,255,255,0.08)',
+                                    flexWrap: 'wrap'
+                                }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewModalOpen(false)}
+                                        style={{
+                                            background: 'transparent',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            color: '#94a3b8',
+                                            borderRadius: '10px',
+                                            padding: '10px 20px',
+                                            fontSize: '13px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Tutup Preview
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            padding: '10px 24px',
+                                            fontSize: '13.5px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)'
+                                        }}
+                                    >
+                                        Daftar Uji Coba Gratis 7 Hari ➔
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <PremiumFooter adminSettings={adminSettings} onNavigate={onNavigate} />
             <Chatbot adminSettings={adminSettings} />
         </div>
@@ -4201,6 +4662,132 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
     const [contactSent, setContactSent] = React.useState(false);
     const [activeIntelTab, setActiveIntelTab] = React.useState('kandang');
 
+    // ===== HERO QUICK SEARCH & PUBLIC PREVIEW STATES =====
+    const [heroTab, setHeroTab] = React.useState('company'); // 'company' | 'tender'
+    const [heroQuery, setHeroQuery] = React.useState('');
+    const [heroSuggestions, setHeroSuggestions] = React.useState([]);
+    const [isSearchingHero, setIsSearchingHero] = React.useState(false);
+    const [showDropdown, setShowDropdown] = React.useState(false);
+    const heroSearchContainerRef = React.useRef(null);
+
+    const [previewModalOpen, setPreviewModalOpen] = React.useState(false);
+    const [previewLoading, setPreviewLoading] = React.useState(false);
+    const [previewData, setPreviewData] = React.useState(null);
+    const [previewError, setPreviewError] = React.useState(null);
+    const [previewQuery, setPreviewQuery] = React.useState('');
+
+    // Debounced search for Hero Search Bar
+    React.useEffect(() => {
+        const trimmed = heroQuery.trim();
+        if (trimmed.length < 2) {
+            setHeroSuggestions([]);
+            setIsSearchingHero(false);
+            return;
+        }
+
+        setIsSearchingHero(true);
+        const timer = setTimeout(async () => {
+            try {
+                if (heroTab === 'company') {
+                    const res = await fetch(`/api/competitors/search?q=${encodeURIComponent(trimmed)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setHeroSuggestions(Array.isArray(data) ? data.slice(0, 6) : []);
+                        setShowDropdown(true);
+                    }
+                } else {
+                    const res = await fetch(`/api/tenders?search=${encodeURIComponent(trimmed)}&limit=5`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const list = data?.data || (Array.isArray(data) ? data : []);
+                        setHeroSuggestions(list.slice(0, 5));
+                        setShowDropdown(true);
+                    }
+                }
+            } catch (e) {
+                console.error('Error in hero quick search:', e);
+                setHeroSuggestions([]);
+            } finally {
+                setIsSearchingHero(false);
+            }
+        }, 280);
+
+        return () => clearTimeout(timer);
+    }, [heroQuery, heroTab]);
+
+    // Close suggestions dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (heroSearchContainerRef.current && !heroSearchContainerRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Lock body scroll when Preview Modal is open
+    React.useEffect(() => {
+        if (previewModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [previewModalOpen]);
+
+    const handleSelectCompany = async (companyName) => {
+        setShowDropdown(false);
+        setPreviewQuery(companyName);
+        setPreviewModalOpen(true);
+        setPreviewLoading(true);
+        setPreviewError(null);
+        setPreviewData(null);
+        try {
+            const res = await fetch(`/api/competitors/profile?name=${encodeURIComponent(companyName)}`);
+            if (!res.ok) throw new Error('Gagal memuat profil kompetitor');
+            const data = await res.json();
+            setPreviewData(data);
+        } catch (err) {
+            console.error(err);
+            setPreviewError('Gagal memuat intelijen perusahaan. Silakan coba kembali.');
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
+
+    const handleSelectTender = (tender) => {
+        setShowDropdown(false);
+        const nomor = tender.nomor_pengadaan || tender.kode_tender;
+        if (nomor) {
+            window.location.hash = `#/tender/${nomor}`;
+        } else {
+            onGoTenders();
+        }
+    };
+
+    const handleHeroSubmit = (e) => {
+        if (e) e.preventDefault();
+        const trimmed = heroQuery.trim();
+        if (!trimmed) return;
+        if (heroTab === 'company') {
+            if (heroSuggestions.length > 0 && typeof heroSuggestions[0] === 'string') {
+                handleSelectCompany(heroSuggestions[0]);
+            } else {
+                handleSelectCompany(trimmed);
+            }
+        } else {
+            if (heroSuggestions.length > 0 && (heroSuggestions[0]?.nomor_pengadaan || heroSuggestions[0]?.kode_tender)) {
+                handleSelectTender(heroSuggestions[0]);
+            } else {
+                window.location.hash = '#/explorer';
+                onGoTenders();
+            }
+        }
+    };
+
     const [latestArticles, setLatestArticles] = React.useState([]);
     const [isLoadingArticles, setIsLoadingArticles] = React.useState(false);
 
@@ -4756,6 +5343,270 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     <p style={{ fontSize: '18px', color: '#cbd5e1', maxWidth: '680px', margin: '0 auto 20px', lineHeight: '1.75' }}>
                         {adminSettings.app_tagline || 'Jangan biarkan kompetitor Anda yang lebih dulu tahu. Deteksi peluang proyek LPSE seluruh Indonesia secara otomatis — notifikasi langsung ke WhatsApp & Email Anda, 24 jam sehari.'}
                     </p>
+
+                    {/* INTERACTIVE HERO QUICK SEARCH BAR */}
+                    <div ref={heroSearchContainerRef} style={{
+                        maxWidth: '740px',
+                        margin: '0 auto 34px',
+                        padding: '0 16px',
+                        position: 'relative',
+                        zIndex: 40
+                    }}>
+                        {/* Pill Tabs Switcher */}
+                        <div style={{ display: 'inline-flex', background: 'rgba(15, 23, 42, 0.75)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '12px' }}>
+                            <button
+                                type="button"
+                                onClick={() => { setHeroTab('company'); setHeroSuggestions([]); setShowDropdown(false); }}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '7px',
+                                    padding: '8px 18px',
+                                    borderRadius: '9px',
+                                    fontSize: '13.5px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    border: 'none',
+                                    background: heroTab === 'company' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent',
+                                    color: heroTab === 'company' ? '#ffffff' : '#94a3b8',
+                                    boxShadow: heroTab === 'company' ? '0 4px 14px rgba(79, 70, 229, 0.4)' : 'none'
+                                }}
+                            >
+                                <span style={{ fontSize: '15px' }}>🏢</span>
+                                <span>Perusahaan</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setHeroTab('tender'); setHeroSuggestions([]); setShowDropdown(false); }}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '7px',
+                                    padding: '8px 18px',
+                                    borderRadius: '9px',
+                                    fontSize: '13.5px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    border: 'none',
+                                    background: heroTab === 'tender' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent',
+                                    color: heroTab === 'tender' ? '#ffffff' : '#94a3b8',
+                                    boxShadow: heroTab === 'tender' ? '0 4px 14px rgba(79, 70, 229, 0.4)' : 'none'
+                                }}
+                            >
+                                <span style={{ fontSize: '15px' }}>📄</span>
+                                <span>Paket Pengadaan</span>
+                            </button>
+                        </div>
+
+                        {/* Search Input Box */}
+                        <form onSubmit={handleHeroSubmit} style={{ position: 'relative' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                background: 'rgba(15, 23, 42, 0.92)',
+                                backdropFilter: 'blur(16px)',
+                                border: '1.5px solid rgba(99, 102, 241, 0.45)',
+                                borderRadius: '16px',
+                                padding: '6px 8px 6px 18px',
+                                boxShadow: '0 12px 35px -8px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.2)',
+                                transition: 'all 0.2s ease'
+                            }}>
+                                <span style={{ fontSize: '18px', color: '#818cf8', marginRight: '10px', display: 'flex', alignItems: 'center' }}>
+                                    🔍
+                                </span>
+                                <input
+                                    type="text"
+                                    value={heroQuery}
+                                    onChange={(e) => {
+                                        setHeroQuery(e.target.value);
+                                        setShowDropdown(true);
+                                    }}
+                                    onFocus={() => { if (heroSuggestions.length > 0) setShowDropdown(true); }}
+                                    placeholder={heroTab === 'company'
+                                        ? 'Ketik nama perusahaan (cth: Wijaya Karya, Adhi, Hutama)...'
+                                        : 'Cari paket tender (cth: Pembangunan Jalan, Pengawasan, RSUD)...'}
+                                    style={{
+                                        flex: 1,
+                                        background: 'transparent',
+                                        border: 'none',
+                                        outline: 'none',
+                                        color: '#ffffff',
+                                        fontSize: '15px',
+                                        fontFamily: 'inherit',
+                                        padding: '10px 0'
+                                    }}
+                                />
+
+                                {heroQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setHeroQuery(''); setHeroSuggestions([]); setShowDropdown(false); }}
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#94a3b8',
+                                            cursor: 'pointer',
+                                            padding: '6px 10px',
+                                            fontSize: '16px',
+                                            display: 'flex',
+                                            alignItems: 'center'
+                                        }}
+                                        title="Hapus pencarian"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        padding: '11px 26px',
+                                        fontSize: '14.5px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(99,102,241,0.55)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(79,70,229,0.4)'; }}
+                                >
+                                    {isSearchingHero ? 'Mencari...' : 'Cari'}
+                                </button>
+                            </div>
+
+                            {/* Floating Autocomplete Dropdown */}
+                            {showDropdown && heroQuery.trim().length >= 2 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + 8px)',
+                                    left: 0,
+                                    right: 0,
+                                    background: '#0d1322',
+                                    border: '1px solid rgba(99, 102, 241, 0.4)',
+                                    borderRadius: '14px',
+                                    boxShadow: '0 20px 45px rgba(0,0,0,0.85), 0 0 20px rgba(99,102,241,0.15)',
+                                    overflow: 'hidden',
+                                    zIndex: 100,
+                                    textAlign: 'left'
+                                }}>
+                                    <div style={{
+                                        padding: '9px 16px',
+                                        fontSize: '11px',
+                                        color: '#94a3b8',
+                                        fontWeight: '700',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.08em',
+                                        background: 'rgba(255,255,255,0.02)',
+                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <span>{heroTab === 'company' ? 'Hasil Profil Perusahaan' : 'Hasil Pencarian Tender'}</span>
+                                        <span style={{ fontSize: '10.5px', color: '#6366f1' }}>{heroTab === 'company' ? 'Pilih untuk Preview Intelijen' : 'Klik untuk Detail'}</span>
+                                    </div>
+
+                                    {isSearchingHero && heroSuggestions.length === 0 && (
+                                        <div style={{ padding: '20px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                            Memindai database intelijen...
+                                        </div>
+                                    )}
+
+                                    {!isSearchingHero && heroSuggestions.length === 0 && (
+                                        <div style={{ padding: '20px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                            Tidak ditemukan {heroTab === 'company' ? 'perusahaan' : 'paket lelang'} dengan kata kunci &ldquo;<strong style={{ color: '#fff' }}>{heroQuery}</strong>&rdquo;.
+                                            <div style={{ marginTop: '6px', fontSize: '12px', color: '#818cf8' }}>
+                                                Tekan tombol <strong>Cari</strong> untuk penelusuran lebih lanjut.
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {heroTab === 'company' && heroSuggestions.map((item, idx) => (
+                                        <div
+                                            key={`sug-comp-${idx}`}
+                                            onClick={() => handleSelectCompany(item)}
+                                            style={{
+                                                padding: '12px 18px',
+                                                borderBottom: idx < heroSuggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                gap: '12px',
+                                                transition: 'background 0.15s ease'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                                <span style={{ fontSize: '16px', opacity: 0.85, flexShrink: 0 }}>🏢</span>
+                                                <span style={{ color: '#f1f5f9', fontSize: '14px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {item}
+                                                </span>
+                                            </div>
+                                            <span style={{
+                                                color: '#818cf8',
+                                                fontSize: '12px',
+                                                fontWeight: '700',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                flexShrink: 0,
+                                                background: 'rgba(99,102,241,0.1)',
+                                                padding: '4px 10px',
+                                                borderRadius: '6px',
+                                                border: '1px solid rgba(99,102,241,0.2)'
+                                            }}>
+                                                Preview Intelijen →
+                                            </span>
+                                        </div>
+                                    ))}
+
+                                    {heroTab === 'tender' && heroSuggestions.map((t, idx) => (
+                                        <div
+                                            key={`sug-tend-${idx}`}
+                                            onClick={() => handleSelectTender(t)}
+                                            style={{
+                                                padding: '12px 18px',
+                                                borderBottom: idx < heroSuggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                gap: '14px',
+                                                transition: 'background 0.15s ease'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <div style={{ minWidth: 0, flex: 1 }}>
+                                                <div style={{ color: '#f8fafc', fontSize: '13.5px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {t.nama_tender}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '12px', fontSize: '11.5px', color: '#94a3b8', marginTop: '4px', flexWrap: 'wrap' }}>
+                                                    <span>🏛️ {t.instansi || '-'}</span>
+                                                    <span style={{ color: '#fbbf24', fontWeight: '600' }}>💰 Pagu: {t.pagu || '-'}</span>
+                                                </div>
+                                            </div>
+                                            <span style={{ color: '#818cf8', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>
+                                                Detail →
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </form>
+                    </div>
 
                     {/* Value proposition highlight */}
                     <div style={{
