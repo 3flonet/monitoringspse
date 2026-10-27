@@ -4951,39 +4951,63 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         zIndex: 10
                     }}>
                         {/* LEFT COLUMN: Teks, Search Bar, CTA & Social Proof */}
-                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', maxWidth: '640px' }}>
 
-                    {/* Logo */}
-                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>{adminSettings.app_logo || '🕵🏼‍♂️'}</div>
+                            {/* Unified High-Tech Pill Badge with Brand Logo */}
+                            <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(15, 23, 42, 0.75))',
+                                border: '1px solid rgba(99, 102, 241, 0.35)',
+                                borderRadius: '30px',
+                                padding: '6px 14px',
+                                marginBottom: '16px',
+                                fontSize: '12.5px',
+                                color: '#c7d2fe',
+                                fontWeight: '600',
+                                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.12)'
+                            }}>
+                                <span style={{ fontSize: '15px' }}>{adminSettings.app_logo || '🕵️‍♂️'}</span>
+                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                                <span style={{ color: '#fff', fontWeight: '700' }}>{adminSettings.app_name || 'Spy SPSE'}</span>
+                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                                <span>Platform Intelijen Tender #1 Indonesia</span>
+                            </div>
 
-                    {/* Badge label */}
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '6px 16px', marginBottom: '18px', fontSize: '13px', color: '#818cf8', fontWeight: '600' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }}></span>
-                        Platform #1 Pemantauan Tender SPSE Indonesia
-                    </div>
+                            {/* Main headline with refined SaaS typography */}
+                            <h1 style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontSize: 'clamp(28px, 3.2vw, 42px)',
+                                fontWeight: '800',
+                                lineHeight: '1.22',
+                                color: '#fff',
+                                letterSpacing: '-0.02em',
+                                margin: '0 0 14px',
+                                maxWidth: '620px'
+                            }}>
+                                Satu Platform untuk Semua{' '}
+                                <span style={{
+                                    background: 'linear-gradient(135deg, #818cf8, #c084fc, #f43f5e)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent'
+                                }}>
+                                    Peluang Tender Indonesia
+                                </span>
+                            </h1>
 
-                    {/* Main headline */}
-                    <h1 style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: 'clamp(32px, 5vw, 54px)',
-                        fontWeight: '800',
-                        marginBottom: '24px',
-                        lineHeight: '1.2',
-                        background: 'linear-gradient(135deg, #e0e7ff, #a5b4fc, #c084fc)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        maxWidth: '680px',
-                        margin: '0 0 18px'
-                    }}>
-                        {adminSettings.app_name || 'Spy SPSE'} — Satu Platform untuk Semua Peluang Tender Indonesia
-                    </h1>
+                            {/* Subheadline — sharp & persuasive */}
+                            <p style={{
+                                fontSize: '15px',
+                                color: '#94a3b8',
+                                maxWidth: '600px',
+                                margin: '0 0 20px',
+                                lineHeight: '1.65'
+                            }}>
+                                {adminSettings.app_tagline || 'Deteksi dini lelang LPSE seluruh Indonesia secara otomatis, bedah rekam jejak kompetitor, dan dapatkan notifikasi instan 24 jam ke WhatsApp & Email Anda.'}
+                            </p>
 
-                    {/* Subheadline — dynamic tagline or persuasive default */}
-                    <p style={{ fontSize: '16.5px', color: '#cbd5e1', maxWidth: '620px', margin: '0 0 24px', lineHeight: '1.7' }}>
-                        {adminSettings.app_tagline || 'Jangan biarkan kompetitor Anda yang lebih dulu tahu. Deteksi peluang proyek LPSE seluruh Indonesia secara otomatis — notifikasi langsung ke WhatsApp & Email Anda, 24 jam sehari.'}
-                    </p>
-
-                    {/* INTERACTIVE HERO QUICK SEARCH BAR */}
+                            {/* INTERACTIVE HERO QUICK SEARCH BAR */}
                     <div ref={heroSearchContainerRef} style={{
                         width: '100%',
                         maxWidth: '640px',
@@ -5248,105 +5272,129 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         </form>
                     </div>
 
-                    {/* Value proposition highlight */}
-                    <div style={{
-                        display: 'block',
-                        background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08))',
-                        border: '1px solid rgba(16,185,129,0.3)',
-                        borderRadius: '16px',
-                        padding: '16px 24px',
-                        marginBottom: '26px',
-                        width: '100%',
-                        maxWidth: '640px',
-                        boxSizing: 'border-box'
-                    }}>
-                        <p style={{ margin: 0, fontSize: '15px', color: '#6ee7b7', lineHeight: '1.7', fontWeight: '500' }}>
-                            💡 <strong style={{ color: '#34d399' }}>Hanya dengan investasi mulai Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bulan</strong> — buka akses ke ribuan peluang proyek senilai <strong style={{ color: '#34d399' }}>miliaran rupiah</strong> dari seluruh K/L/Pemda Indonesia.
-                            {' '}<em style={{ color: '#9ca3af' }}>Satu kemenangan tender sudah balik modal ratusan kali lipat.</em>
-                        </p>
-                    </div>
-
-                    {/* CTA Buttons */}
-                    <div style={{ display: 'flex', gap: '14px', justifyContent: 'flex-start', flexWrap: 'wrap', marginBottom: '22px' }}>
-                        <button
-                            onClick={onGetStarted}
-                            style={{
-                                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                                color: '#fff',
-                                border: 'none',
-                                padding: '16px 36px',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.5)',
-                                transition: 'all 0.2s',
+                    {/* Compact High-ROI Value Micro-Banner */}
+                            <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 15px 30px -5px rgba(99,102,241,0.6)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(99,102,241,0.5)'; }}
-                        >
-                            🚀 Mulai Gratis Sekarang
-                        </button>
-                        <button
-                            onClick={() => {
-                                window.location.hash = '#/features';
-                                try {
-                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                                    requestAnimationFrame(() => {
-                                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                                    });
-                                } catch (e) {
-                                    window.scrollTo(0, 0);
-                                }
-                                onNavigate('features');
-                            }}
-                            style={{
-                                background: 'rgba(245, 158, 11, 0.1)',
-                                color: '#fbbf24',
-                                border: '1px solid rgba(245, 158, 11, 0.4)',
-                                padding: '16px 28px',
-                                fontSize: '16px',
-                                fontWeight: '700',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }}
-                        >
-                            ⚡ Pelajari Semua Fitur
-                        </button>
-                        <button
-                            onClick={() => document.getElementById('landing-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                            style={{
-                                background: 'transparent',
-                                color: '#a5b4fc',
-                                border: '1px solid rgba(165,180,252,0.35)',
-                                padding: '16px 28px',
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.1)'; e.currentTarget.style.borderColor = 'rgba(165,180,252,0.6)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(165,180,252,0.35)'; }}
-                        >
-                            Lihat Paket Harga →
-                        </button>
-                    </div>
+                                gap: '10px',
+                                background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,78,59,0.2))',
+                                border: '1px solid rgba(16,185,129,0.25)',
+                                borderRadius: '10px',
+                                padding: '10px 14px',
+                                marginBottom: '18px',
+                                width: '100%',
+                                boxSizing: 'border-box'
+                            }}>
+                                <span style={{ fontSize: '15px', flexShrink: 0 }}>💡</span>
+                                <div style={{ fontSize: '12.5px', color: '#a7f3d0', lineHeight: '1.45' }}>
+                                    <strong style={{ color: '#34d399' }}>Mulai Rp {parseInt(adminSettings.premium_price || 150000).toLocaleString('id-ID')}/bln</strong> — Akses ke ribuan proyek miliaran rupiah dari seluruh LPSE. <em>Satu menang tender langsung balik modal ratusan kali lipat.</em>
+                                </div>
+                            </div>
 
-                    {/* Social proof micro row */}
-                            <div style={{ display: 'flex', gap: '20px', justifyContent: 'flex-start', flexWrap: 'wrap', fontSize: '12.5px', color: '#64748b' }}>
-                                <span>✅ Uji coba gratis 7 hari</span>
-                                <span>✅ Notifikasi WA & Email</span>
-                                <span>✅ Data dari 581 LPSE</span>
+                            {/* CTA Action Buttons Group (Refined & Fits in 1 Row) */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '10px',
+                                justifyContent: 'flex-start',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                marginBottom: '18px',
+                                width: '100%'
+                            }}>
+                                <button
+                                    onClick={onGetStarted}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '13px 22px',
+                                        fontSize: '14.5px',
+                                        fontWeight: '700',
+                                        borderRadius: '10px',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)',
+                                        transition: 'all 0.2s',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '7px'
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(99, 102, 241, 0.55)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99, 102, 241, 0.35)'; }}
+                                >
+                                    🚀 Mulai Gratis 7 Hari
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        window.location.hash = '#/features';
+                                        try {
+                                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                            requestAnimationFrame(() => {
+                                                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                            });
+                                        } catch (e) {
+                                            window.scrollTo(0, 0);
+                                        }
+                                        onNavigate('features');
+                                    }}
+                                    style={{
+                                        background: 'rgba(245, 158, 11, 0.1)',
+                                        color: '#fbbf24',
+                                        border: '1px solid rgba(245, 158, 11, 0.4)',
+                                        padding: '13px 18px',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        borderRadius: '10px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }}
+                                >
+                                    ⚡ Pelajari Fitur
+                                </button>
+                                <button
+                                    onClick={() => document.getElementById('landing-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.04)',
+                                        color: '#cbd5e1',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        padding: '13px 18px',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        borderRadius: '10px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'inline-flex',
+                                        alignItems: 'center'
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; e.currentTarget.style.borderColor = 'rgba(165,180,252,0.5)'; e.currentTarget.style.color = '#fff'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)'; e.currentTarget.style.color = '#cbd5e1'; }}
+                                >
+                                    Paket Harga →
+                                </button>
+                            </div>
+
+                            {/* Trust Proof Micro Badges */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '16px',
+                                justifyContent: 'flex-start',
+                                flexWrap: 'wrap',
+                                fontSize: '12px',
+                                color: '#94a3b8'
+                            }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> Tanpa kartu kredit
+                                </span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> Notifikasi WhatsApp & Email
+                                </span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>✓</span> 581 LPSE Se-Indonesia
+                                </span>
                             </div>
                         </div> {/* End LEFT COLUMN */}
 
