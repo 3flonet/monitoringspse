@@ -4208,6 +4208,25 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
     const [dominanceFilterJenis, setDominanceFilterJenis] = React.useState('');
     const [dominanceSelectedInstansi, setDominanceSelectedInstansi] = React.useState('');
     const [isSearchingCustomInstansi, setIsSearchingCustomInstansi] = React.useState(false);
+    const [leaderboardData, setLeaderboardData] = React.useState([]);
+    const [leaderboardMode, setLeaderboardMode] = React.useState('wins'); // 'wins' | 'value'
+    const [isLoadingLeaderboard, setIsLoadingLeaderboard] = React.useState(true);
+
+    React.useEffect(() => {
+        setIsLoadingLeaderboard(true);
+        fetch(`/api/public/leaderboard?by=${leaderboardMode}`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setLeaderboardData(data);
+                }
+                setIsLoadingLeaderboard(false);
+            })
+            .catch(err => {
+                console.error('Error fetching leaderboard:', err);
+                setIsLoadingLeaderboard(false);
+            });
+    }, [leaderboardMode]);
 
     React.useEffect(() => {
         fetch('/api/public/market-dominance')
@@ -6494,6 +6513,420 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* ===== LEADERBOARD TOP KONTRAKTOR & REKOR KEMENANGAN 2026 ===== */}
+                <div style={{ maxWidth: '1200px', margin: '0 auto 70px', padding: '0 20px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            borderRadius: '20px',
+                            padding: '4px 14px',
+                            fontSize: '12px',
+                            color: '#fbbf24',
+                            fontWeight: '700',
+                            marginBottom: '10px'
+                        }}>
+                            <span>🏆</span>
+                            <span>LEADERBOARD NASIONAL PENGADAAN SPSE</span>
+                        </div>
+                        <h2 style={{
+                            fontSize: 'clamp(26px, 4vw, 36px)',
+                            fontWeight: '800',
+                            fontFamily: "'Outfit', sans-serif",
+                            color: '#ffffff',
+                            margin: '0 0 10px',
+                            lineHeight: '1.25'
+                        }}>
+                            Top Kontraktor &amp; Rekor Kemenangan Tender
+                        </h2>
+                        <p style={{ color: '#94a3b8', fontSize: '15px', maxWidth: '680px', margin: '0 auto 24px', lineHeight: '1.6' }}>
+                            Peringkat badan usaha terkuat dengan akumulasi kemenangan dan nilai kontrak terbesar di seluruh LPSE K/L/Pemda se-Indonesia.
+                        </p>
+
+                        {/* Mode Switcher Toggle */}
+                        <div style={{ display: 'inline-flex', background: 'rgba(15, 23, 42, 0.85)', padding: '5px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                            <button
+                                type="button"
+                                onClick={() => setLeaderboardMode('wins')}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '7px',
+                                    padding: '9px 20px',
+                                    borderRadius: '9px',
+                                    fontSize: '13px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    border: 'none',
+                                    background: leaderboardMode === 'wins' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'transparent',
+                                    color: leaderboardMode === 'wins' ? '#ffffff' : '#94a3b8',
+                                    boxShadow: leaderboardMode === 'wins' ? '0 4px 14px rgba(245, 158, 11, 0.4)' : 'none'
+                                }}
+                            >
+                                <span>🥇</span>
+                                <span>Rekor Kemenangan (Proyek)</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setLeaderboardMode('value')}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '7px',
+                                    padding: '9px 20px',
+                                    borderRadius: '9px',
+                                    fontSize: '13px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    border: 'none',
+                                    background: leaderboardMode === 'value' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+                                    color: leaderboardMode === 'value' ? '#ffffff' : '#94a3b8',
+                                    boxShadow: leaderboardMode === 'value' ? '0 4px 14px rgba(16, 185, 129, 0.4)' : 'none'
+                                }}
+                            >
+                                <span>💰</span>
+                                <span>Nilai Kontrak Terbesar (Rp)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {isLoadingLeaderboard ? (
+                        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '10px', animation: 'spin 1.5s linear infinite' }}>⏳</div>
+                            Menghitung kalkulasi peringkat kontraktor nasional...
+                        </div>
+                    ) : (
+                        <div>
+                            {/* TOP 3 PODIUM CARDS (OPEN TO PUBLIC TIER 1) */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                gap: '20px',
+                                marginBottom: '28px',
+                                alignItems: 'stretch'
+                            }}>
+                                {/* Rank 2: Silver */}
+                                {leaderboardData[1] && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(148, 163, 184, 0.08), rgba(15, 23, 42, 0.9))',
+                                        border: '1.5px solid rgba(148, 163, 184, 0.45)',
+                                        borderRadius: '18px',
+                                        padding: '24px',
+                                        position: 'relative',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between'
+                                    }}>
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <span style={{ fontSize: '24px' }}>🥈</span>
+                                                <span style={{ fontSize: '11px', fontWeight: '800', color: '#cbd5e1', background: 'rgba(203, 213, 225, 0.15)', padding: '3px 9px', borderRadius: '6px' }}>
+                                                    PERINGKAT #2 NASIONAL
+                                                </span>
+                                            </div>
+                                            <h3
+                                                onClick={() => handleSelectCompany(leaderboardData[1].name)}
+                                                style={{
+                                                    margin: '0 0 14px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '800',
+                                                    color: '#ffffff',
+                                                    fontFamily: 'Outfit, sans-serif',
+                                                    cursor: 'pointer'
+                                                }}
+                                                title="Klik untuk membuka profil intelijen"
+                                            >
+                                                {leaderboardData[1].name}
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Total Menang:</span>
+                                                    <strong style={{ color: '#34d399' }}>{leaderboardData[1].total_wins} Proyek</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Akumulasi Nilai:</span>
+                                                    <strong style={{ color: '#fbbf24' }}>Rp {formatStatsPagu(leaderboardData[1].total_nilai)}</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Sebaran Instansi:</span>
+                                                    <strong style={{ color: '#e2e8f0' }}>{leaderboardData[1].total_instansi} K/L/Pemda</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSelectCompany(leaderboardData[1].name)}
+                                            style={{
+                                                width: '100%',
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                color: '#cbd5e1',
+                                                borderRadius: '10px',
+                                                padding: '9px',
+                                                fontSize: '12.5px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Preview Intelijen →
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Rank 1: Gold (Champion) */}
+                                {leaderboardData[0] && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(15, 23, 42, 0.95))',
+                                        border: '2px solid rgba(245, 158, 11, 0.65)',
+                                        borderRadius: '20px',
+                                        padding: '28px 24px',
+                                        position: 'relative',
+                                        boxShadow: '0 15px 40px -10px rgba(245, 158, 11, 0.25)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        transform: 'scale(1.02)'
+                                    }}>
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <span style={{ fontSize: '28px' }}>👑</span>
+                                                    <span style={{ fontSize: '24px' }}>🥇</span>
+                                                </div>
+                                                <span style={{ fontSize: '12px', fontWeight: '800', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.2)', padding: '4px 12px', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+                                                    JUARA #1 NASIONAL
+                                                </span>
+                                            </div>
+                                            <h3
+                                                onClick={() => handleSelectCompany(leaderboardData[0].name)}
+                                                style={{
+                                                    margin: '0 0 14px',
+                                                    fontSize: '21px',
+                                                    fontWeight: '900',
+                                                    color: '#ffffff',
+                                                    fontFamily: 'Outfit, sans-serif',
+                                                    cursor: 'pointer'
+                                                }}
+                                                title="Klik untuk membuka profil intelijen"
+                                            >
+                                                {leaderboardData[0].name}
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Total Menang:</span>
+                                                    <strong style={{ color: '#34d399', fontSize: '16px' }}>{leaderboardData[0].total_wins} Proyek</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Akumulasi Nilai:</span>
+                                                    <strong style={{ color: '#fbbf24', fontSize: '16px' }}>Rp {formatStatsPagu(leaderboardData[0].total_nilai)}</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Sebaran Instansi:</span>
+                                                    <strong style={{ color: '#e2e8f0' }}>{leaderboardData[0].total_instansi} K/L/Pemda</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSelectCompany(leaderboardData[0].name)}
+                                            style={{
+                                                width: '100%',
+                                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                                border: 'none',
+                                                color: '#ffffff',
+                                                borderRadius: '10px',
+                                                padding: '11px',
+                                                fontSize: '13px',
+                                                fontWeight: '800',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)'
+                                            }}
+                                        >
+                                            🔍 Buka Profil Intelijen Juara ➔
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Rank 3: Bronze */}
+                                {leaderboardData[2] && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(15, 23, 42, 0.9))',
+                                        border: '1.5px solid rgba(217, 119, 6, 0.45)',
+                                        borderRadius: '18px',
+                                        padding: '24px',
+                                        position: 'relative',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between'
+                                    }}>
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                <span style={{ fontSize: '24px' }}>🥉</span>
+                                                <span style={{ fontSize: '11px', fontWeight: '800', color: '#f59e0b', background: 'rgba(217, 119, 6, 0.15)', padding: '3px 9px', borderRadius: '6px' }}>
+                                                    PERINGKAT #3 NASIONAL
+                                                </span>
+                                            </div>
+                                            <h3
+                                                onClick={() => handleSelectCompany(leaderboardData[2].name)}
+                                                style={{
+                                                    margin: '0 0 14px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '800',
+                                                    color: '#ffffff',
+                                                    fontFamily: 'Outfit, sans-serif',
+                                                    cursor: 'pointer'
+                                                }}
+                                                title="Klik untuk membuka profil intelijen"
+                                            >
+                                                {leaderboardData[2].name}
+                                            </h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Total Menang:</span>
+                                                    <strong style={{ color: '#34d399' }}>{leaderboardData[2].total_wins} Proyek</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Akumulasi Nilai:</span>
+                                                    <strong style={{ color: '#fbbf24' }}>Rp {formatStatsPagu(leaderboardData[2].total_nilai)}</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Sebaran Instansi:</span>
+                                                    <strong style={{ color: '#e2e8f0' }}>{leaderboardData[2].total_instansi} K/L/Pemda</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSelectCompany(leaderboardData[2].name)}
+                                            style={{
+                                                width: '100%',
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                color: '#cbd5e1',
+                                                borderRadius: '10px',
+                                                padding: '9px',
+                                                fontSize: '12.5px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Preview Intelijen →
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* GATED TABLE FOR RANKS #4 TO #15 */}
+                            <div style={{
+                                background: '#0a0e1c',
+                                border: '1px solid rgba(99, 102, 241, 0.25)',
+                                borderRadius: '18px',
+                                overflow: 'hidden',
+                                position: 'relative',
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+                            }}>
+                                <div style={{
+                                    padding: '16px 22px',
+                                    background: 'rgba(15, 23, 42, 0.9)',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    gap: '10px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '16px' }}>📊</span>
+                                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#fff' }}>
+                                            Peringkat Lanjutan (#4 s/d #15 Kontraktor Nasional)
+                                        </h4>
+                                    </div>
+                                    <span style={{ fontSize: '11.5px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '4px 10px', borderRadius: '6px', fontWeight: '700' }}>
+                                        🔒 Khusus Member Terdaftar
+                                    </span>
+                                </div>
+
+                                {/* Table Rows */}
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {leaderboardData.slice(3, 10).map((row, rIdx) => (
+                                        <div
+                                            key={`lb-row-${rIdx}`}
+                                            style={{
+                                                padding: '14px 22px',
+                                                borderBottom: rIdx < 6 ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                fontSize: '13.5px',
+                                                background: rIdx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'transparent',
+                                                filter: 'blur(2px)',
+                                                userSelect: 'none'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 300px' }}>
+                                                <span style={{ color: '#94a3b8', fontWeight: '800', fontSize: '13px', width: '32px' }}>
+                                                    #{row.rank}
+                                                </span>
+                                                <span style={{ color: '#e2e8f0', fontWeight: '600' }}>
+                                                    {row.name}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                                                <span style={{ color: '#34d399', fontWeight: '700' }}>
+                                                    {row.total_wins} Menang
+                                                </span>
+                                                <span style={{ color: '#fbbf24', fontWeight: '700', minWidth: '120px', textAlign: 'right' }}>
+                                                    Rp {formatStatsPagu(row.total_nilai)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Gated Overlay Card */}
+                                <div style={{
+                                    padding: '24px',
+                                    background: 'linear-gradient(180deg, rgba(10, 14, 28, 0.75), rgba(10, 14, 28, 0.98))',
+                                    borderTop: '1px solid rgba(99, 102, 241, 0.3)',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                        <span>🔒</span> Peringkat #4 s/d #50 Kontraktor Terkunci untuk Member
+                                    </div>
+                                    <p style={{ margin: '0 auto 16px', maxWidth: '620px', fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                                        Ingin mengetahui posisi kompetitor Anda di level nasional, sebaran K/L/Pemda langganan mereka, dan rekam jejak banting harga? Buka akses penuh dengan akun uji coba gratis.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={onGetStarted}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '11px',
+                                            padding: '12px 28px',
+                                            fontSize: '14px',
+                                            fontWeight: '800',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.5)',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                    >
+                                        🚀 Daftar Akun Gratis 7 Hari (Buka Seluruh Leaderboard)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Testimonials Section */}

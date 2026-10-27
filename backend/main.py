@@ -4092,6 +4092,64 @@ def get_public_market_dominance(instansi: Optional[str] = Query(None)):
         conn.close()
 
 # ========================================================
+# LEADERBOARD KONTRAKTOR (TOP WINS & VALUE) PUBLIC ENDPOINT
+# ========================================================
+
+_leaderboard_cache = {}
+_leaderboard_cache_time = {}
+
+@app.get("/api/public/leaderboard")
+def get_public_leaderboard(by: str = Query("wins")):
+    global _leaderboard_cache, _leaderboard_cache_time
+    now = time.time()
+    by_clean = "value" if by == "value" else "wins"
+    
+    if by_clean in _leaderboard_cache and (now - _leaderboard_cache_time.get(by_clean, 0) < 3600):
+        return _leaderboard_cache[by_clean]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        order_clause = "total_wins DESC, total_nilai DESC" if by_clean == "wins" else "total_nilai DESC, total_wins DESC"
+        cur.execute(f"""
+            SELECT 
+                w.nama_pemenang,
+                COUNT(*) as total_wins,
+                SUM(COALESCE(w.harga_kontrak, t.pagu_val, 0)) as total_nilai,
+                COUNT(DISTINCT t.instansi) as total_instansi
+            FROM tender_winners w
+            JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+            WHERE w.nama_pemenang IS NOT NULL AND w.nama_pemenang != ''
+            GROUP BY w.nama_pemenang
+            ORDER BY {order_clause}
+            LIMIT 15
+        """)
+        rows = cur.fetchall()
+
+        result = []
+        for rank_idx, r in enumerate(rows, 1):
+            name = r["nama_pemenang"]
+            is_top3 = rank_idx <= 3
+            result.append({
+                "rank": rank_idx,
+                "name": name if is_top3 else mask_company_name(name),
+                "raw_name": name if is_top3 else None,
+                "is_locked": not is_top3,
+                "total_wins": r["total_wins"],
+                "total_nilai": r["total_nilai"],
+                "total_instansi": r["total_instansi"]
+            })
+
+        _leaderboard_cache[by_clean] = result
+        _leaderboard_cache_time[by_clean] = now
+        return result
+    except Exception as e:
+        logging.error(f"Error fetching leaderboard: {e}")
+        return []
+    finally:
+        conn.close()
+
+# ========================================================
 # SEO, SITEMAP & AI SEARCH (GEO) ENDPOINTS
 # ========================================================
 
