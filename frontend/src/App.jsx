@@ -6568,7 +6568,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                 </div>
 
                 {/* ===== LEADERBOARD TOP KONTRAKTOR & REKOR KEMENANGAN 2026 ===== */}
-                <div style={{ maxWidth: '1200px', margin: '0 auto 70px', padding: '0 20px' }}>
+                <div className="landing-leaderboard-section">
                     <div style={{ textAlign: 'center', marginBottom: '36px' }}>
                         <div style={{
                             display: 'inline-flex',
@@ -6601,7 +6601,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         </p>
 
                         {/* Mode Switcher Toggle */}
-                        <div style={{ display: 'inline-flex', background: 'rgba(15, 23, 42, 0.85)', padding: '5px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                        <div style={{ display: 'inline-flex', background: 'rgba(15, 23, 42, 0.85)', padding: '5px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: '100%', flexWrap: 'wrap', justifyContent: 'center', gap: '4px' }}>
                             <button
                                 type="button"
                                 onClick={() => setLeaderboardMode('wins')}
@@ -6726,13 +6726,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     ) : (
                         <div>
                             {/* TOP 3 PODIUM CARDS (OPEN TO PUBLIC TIER 1) */}
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                                gap: '20px',
-                                marginBottom: '28px',
-                                alignItems: 'stretch'
-                            }}>
+                            <div className="leaderboard-podium-grid">
                                 {/* Rank 2: Silver */}
                                 {leaderboardData[1] && (
                                     <div style={{
@@ -6803,17 +6797,16 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                                 {/* Rank 1: Gold (Champion) */}
                                 {leaderboardData[0] && (
-                                    <div style={{
+                                    <div className="leaderboard-rank-1-card" style={{
                                         background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(15, 23, 42, 0.95))',
                                         border: '2px solid rgba(245, 158, 11, 0.65)',
                                         borderRadius: '20px',
-                                        padding: '28px 24px',
+                                        padding: '24px',
                                         position: 'relative',
                                         boxShadow: '0 15px 40px -10px rgba(245, 158, 11, 0.25)',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        justifyContent: 'space-between',
-                                        transform: 'scale(1.02)'
+                                        justifyContent: 'space-between'
                                     }}>
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -6945,31 +6938,15 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             </div>
 
                             {/* GATED TABLE FOR RANKS #4 TO #15 */}
-                            <div style={{
-                                background: '#0a0e1c',
-                                border: '1px solid rgba(99, 102, 241, 0.25)',
-                                borderRadius: '18px',
-                                overflow: 'hidden',
-                                position: 'relative',
-                                boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
-                            }}>
-                                <div style={{
-                                    padding: '16px 22px',
-                                    background: 'rgba(15, 23, 42, 0.9)',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    flexWrap: 'wrap',
-                                    gap: '10px'
-                                }}>
+                            <div className="leaderboard-gated-table">
+                                <div className="leaderboard-gated-header">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ fontSize: '16px' }}>📊</span>
                                         <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#fff' }}>
                                             Peringkat Lanjutan (#4 s/d #15 Kontraktor Nasional)
                                         </h4>
                                     </div>
-                                    <span style={{ fontSize: '11.5px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '4px 10px', borderRadius: '6px', fontWeight: '700' }}>
+                                    <span style={{ fontSize: '11px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '4px 10px', borderRadius: '6px', fontWeight: '700', whiteSpace: 'nowrap' }}>
                                         🔒 Khusus Member Terdaftar
                                     </span>
                                 </div>
@@ -6979,31 +6956,27 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                     {leaderboardData.slice(3, 10).map((row, rIdx) => (
                                         <div
                                             key={`lb-row-${rIdx}`}
+                                            className="leaderboard-gated-row"
                                             style={{
-                                                padding: '14px 22px',
                                                 borderBottom: rIdx < 6 ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                fontSize: '13.5px',
                                                 background: rIdx % 2 === 0 ? 'rgba(255, 255, 255, 0.01)' : 'transparent',
                                                 filter: 'blur(2px)',
                                                 userSelect: 'none'
                                             }}
                                         >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 300px' }}>
-                                                <span style={{ color: '#94a3b8', fontWeight: '800', fontSize: '13px', width: '32px' }}>
+                                            <div className="leaderboard-row-left">
+                                                <span className="leaderboard-row-rank">
                                                     #{row.rank}
                                                 </span>
-                                                <span style={{ color: '#e2e8f0', fontWeight: '600' }}>
+                                                <span className="leaderboard-row-name">
                                                     {row.name}
                                                 </span>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                                                <span style={{ color: '#34d399', fontWeight: '700' }}>
+                                            <div className="leaderboard-row-right">
+                                                <span className="leaderboard-row-wins">
                                                     {row.total_wins} Menang
                                                 </span>
-                                                <span style={{ color: '#fbbf24', fontWeight: '700', minWidth: '120px', textAlign: 'right' }}>
+                                                <span className="leaderboard-row-value">
                                                     Rp {formatStatsPagu(row.total_nilai)}
                                                 </span>
                                             </div>
@@ -7012,16 +6985,11 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                 </div>
 
                                 {/* Gated Overlay Card */}
-                                <div style={{
-                                    padding: '24px',
-                                    background: 'linear-gradient(180deg, rgba(10, 14, 28, 0.75), rgba(10, 14, 28, 0.98))',
-                                    borderTop: '1px solid rgba(99, 102, 241, 0.3)',
-                                    textAlign: 'center'
-                                }}>
-                                    <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                <div className="leaderboard-gated-footer">
+                                    <div style={{ fontSize: '14.5px', fontWeight: '800', color: '#ffffff', marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                         <span>🔒</span> Peringkat #4 s/d #50 Kontraktor Terkunci untuk Member
                                     </div>
-                                    <p style={{ margin: '0 auto 16px', maxWidth: '620px', fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                                    <p style={{ margin: '0 auto 16px', maxWidth: '620px', fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.6' }}>
                                         Ingin mengetahui posisi kompetitor Anda di level nasional, sebaran K/L/Pemda langganan mereka, dan rekam jejak banting harga? Buka akses penuh dengan akun uji coba gratis.
                                     </p>
                                     <button
@@ -7032,12 +7000,15 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                             color: '#ffffff',
                                             border: 'none',
                                             borderRadius: '11px',
-                                            padding: '12px 28px',
-                                            fontSize: '14px',
+                                            padding: '11px 24px',
+                                            fontSize: '13px',
                                             fontWeight: '800',
                                             cursor: 'pointer',
                                             boxShadow: '0 8px 24px rgba(99, 102, 241, 0.5)',
-                                            transition: 'all 0.2s ease'
+                                            transition: 'all 0.2s ease',
+                                            maxWidth: '100%',
+                                            whiteSpace: 'normal',
+                                            lineHeight: '1.3'
                                         }}
                                         onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
