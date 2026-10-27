@@ -1717,11 +1717,26 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ============================================================ */
+/* ============================================================ */
 /* DEMO LIVE FITUR INTELIJEN - Mobile Responsive Styles        */
 /* ============================================================ */
+.landing-problem-solution-section {
+  padding: 70px 24px;
+  max-width: 1160px;
+  margin: 0 auto 50px auto;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(11, 15, 25, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
 .demo-intel-card {
   padding: 36px;
   border-radius: 24px;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .demo-intel-header {
@@ -1747,6 +1762,7 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 .demo-intel-tabs-container::-webkit-scrollbar {
@@ -1774,6 +1790,8 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 14px;
   padding: 14px 16px;
   margin-bottom: 16px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .demo-filter-grid {
@@ -1781,6 +1799,44 @@ h1, h2, h3, h4, h5, h6 {
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* Styled Dropdowns with Custom Neon Arrow & Borders */
+.demo-select-styled {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: #090d1a !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23818cf8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 14px !important;
+  padding: 9px 34px 9px 12px !important;
+  border: 1px solid rgba(99, 102, 241, 0.35) !important;
+  border-radius: 10px !important;
+  color: #e0e7ff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.demo-select-styled:hover {
+  border-color: rgba(99, 102, 241, 0.7) !important;
+  background-color: #0d1424 !important;
+}
+
+.demo-select-styled:focus {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+.demo-select-styled option {
+  background-color: #090d1a !important;
+  color: #ffffff !important;
+  padding: 10px !important;
 }
 
 .demo-quick-pills-bar {
@@ -1793,6 +1849,8 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .demo-quick-pills-bar::-webkit-scrollbar {
@@ -1809,33 +1867,79 @@ h1, h2, h3, h4, h5, h6 {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   margin-bottom: 18px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .demo-instansi-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 14px 18px;
   background: rgba(15, 23, 42, 0.6);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 18px;
   flex-wrap: wrap;
   gap: 10px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Head-to-Head Duel Styles */
+.h2h-matchup-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.h2h-competitor-card {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.h2h-comp-a {
+  text-align: left;
+}
+
+.h2h-comp-b {
+  text-align: right;
+}
+
+.h2h-vs-badge {
+  text-align: center;
+  background: rgba(239, 68, 68, 0.2);
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 @media (max-width: 640px) {
+  .landing-problem-solution-section {
+    padding: 36px 10px !important;
+    border-radius: 18px !important;
+    margin-bottom: 30px !important;
+  }
   .demo-intel-card {
-    padding: 16px 12px !important;
-    border-radius: 16px !important;
+    padding: 14px 10px !important;
+    border-radius: 14px !important;
   }
   .demo-intel-header {
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 14px;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
   }
   .demo-intel-header h3 {
-    font-size: 18px !important;
+    font-size: 17px !important;
     line-height: 1.3 !important;
   }
   .demo-intel-tabs-container {
@@ -1847,7 +1951,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 12px !important;
   }
   .demo-filter-container {
-    padding: 12px !important;
+    padding: 10px !important;
     border-radius: 12px !important;
   }
   .demo-filter-grid {
@@ -1870,9 +1974,35 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 8px !important;
-    padding: 12px 14px !important;
+    padding: 10px 12px !important;
   }
   .demo-instansi-header-bar h4 {
-    font-size: 17px !important;
+    font-size: 16px !important;
+  }
+
+  /* Head-to-Head Mobile Alignment: RATA TENGAH */
+  .h2h-matchup-container {
+    flex-direction: column !important;
+    padding: 16px 12px !important;
+    gap: 14px !important;
+    align-items: center !important;
+  }
+  .h2h-competitor-card {
+    text-align: center !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .h2h-comp-a {
+    text-align: center !important;
+  }
+  .h2h-comp-b {
+    text-align: center !important;
+  }
+  .h2h-vs-badge {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 12px !important;
   }
 }

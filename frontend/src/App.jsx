@@ -5661,15 +5661,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                 </div>
 
                 {/* Problem & Solution Comparison Section */}
-                <div style={{
-                    padding: '70px 24px',
-                    maxWidth: '1160px',
-                    margin: '0 auto 50px auto',
-                    background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(11, 15, 25, 0.8) 100%)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '28px',
-                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)'
-                }}>
+                <div className="landing-problem-solution-section">
                     <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                         <div style={{
                             display: 'inline-flex',
@@ -6079,21 +6071,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                                         {/* 2. Dropdown Filter: Jenis Instansi */}
                                         <select
+                                            className="demo-select-styled"
                                             value={dominanceFilterJenis}
                                             onChange={(e) => {
                                                 setDominanceFilterJenis(e.target.value);
                                             }}
                                             style={{
                                                 flex: '0 1 180px',
-                                                minWidth: '160px',
-                                                background: '#090d1a',
-                                                border: '1px solid rgba(255,255,255,0.12)',
-                                                borderRadius: '10px',
-                                                padding: '9px 12px',
-                                                color: '#ffffff',
-                                                fontSize: '13px',
-                                                outline: 'none',
-                                                cursor: 'pointer'
+                                                minWidth: '160px'
                                             }}
                                         >
                                             <option value="">-- Semua Jenis Instansi --</option>
@@ -6114,6 +6099,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                                             return (
                                                 <select
+                                                    className="demo-select-styled"
                                                     value={dominanceSelectedInstansi}
                                                     onChange={(e) => {
                                                         const val = e.target.value;
@@ -6121,16 +6107,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                     }}
                                                     style={{
                                                         flex: '1 1 260px',
-                                                        minWidth: '220px',
-                                                        background: '#090d1a',
-                                                        border: '1px solid rgba(99, 102, 241, 0.4)',
-                                                        borderRadius: '10px',
-                                                        padding: '9px 12px',
-                                                        color: '#818cf8',
-                                                        fontWeight: '600',
-                                                        fontSize: '13px',
-                                                        outline: 'none',
-                                                        cursor: 'pointer'
+                                                        minWidth: '220px'
                                                     }}
                                                 >
                                                     <option value="" style={{ color: '#94a3b8' }}>
@@ -6293,7 +6270,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                         padding: '22px',
                                                         position: 'relative'
                                                     }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                                             <span style={{
                                                                 fontSize: '11.5px',
                                                                 fontWeight: '800',
@@ -6333,11 +6310,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                                     onClick={() => handleSelectCompany(cur.champion.name)}
                                                                     style={{
                                                                         margin: '0 0 14px',
-                                                                        fontSize: '20px',
+                                                                        fontSize: 'clamp(16px, 4vw, 20px)',
                                                                         fontWeight: '800',
                                                                         color: '#ffffff',
                                                                         fontFamily: 'Outfit, sans-serif',
-                                                                        cursor: 'pointer'
+                                                                        cursor: 'pointer',
+                                                                        lineHeight: '1.3',
+                                                                        wordBreak: 'break-word',
+                                                                        overflowWrap: 'anywhere'
                                                                     }}
                                                                     title="Klik untuk melihat profil intelijen perusahaan ini"
                                                                 >
@@ -6511,21 +6491,21 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
 
                         {activeIntelTab === 'h2h' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px 24px', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-                                    <div style={{ textAlign: 'left' }}>
-                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR A (SIMULASI)</div>
-                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#60a5fa' }}>PT Kontraktor Sampel A</div>
-                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#60a5fa', marginTop: '4px' }}>8 Kemenangan</div>
+                                <div className="h2h-matchup-container">
+                                    <div className="h2h-competitor-card h2h-comp-a">
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR A</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#60a5fa' }}>PT WIJAYA KARYA (Persero) Tbk</div>
+                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#60a5fa', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>8 Kemenangan</div>
                                     </div>
-                                    <div style={{ textAlign: 'center', background: 'rgba(239, 68, 68, 0.2)', padding: '10px 18px', borderRadius: '14px', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                                    <div className="h2h-vs-badge">
                                         <div style={{ fontSize: '11px', color: '#fca5a5', fontWeight: '800' }}>14 KALI LELANG BERSAMA</div>
-                                        <div style={{ fontSize: '20px', fontWeight: '900', color: '#fff' }}>VS</div>
+                                        <div style={{ fontSize: '20px', fontWeight: '900', color: '#fff', margin: '2px 0' }}>VS</div>
                                         <div style={{ fontSize: '11px', color: '#cbd5e1' }}>Gap Harga: -2.8%</div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR B (SIMULASI)</div>
-                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#f87171' }}>CV Rekanan Sampel B</div>
-                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#f87171', marginTop: '4px' }}>6 Kemenangan</div>
+                                    <div className="h2h-competitor-card h2h-comp-b">
+                                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: '700' }}>KONTRAKTOR B</div>
+                                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#f87171' }}>PT ADHI KARYA (Persero) Tbk</div>
+                                        <div style={{ fontSize: '28px', fontWeight: '900', color: '#f87171', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>6 Kemenangan</div>
                                     </div>
                                 </div>
 
