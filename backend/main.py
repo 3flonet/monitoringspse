@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 import shutil
@@ -1066,12 +1067,33 @@ def get_analytics():
     top_tenders = [dict(r) for r in cursor.fetchall()]
     
     # Top 5 LPSE instances by total pagu
-    cursor.execute("SELECT instansi, SUM(pagu_val) as total_pagu, COUNT(*) as count FROM tenders GROUP BY instansi ORDER BY total_pagu DESC LIMIT 5")
+    cursor.execute("SELECT instansi, SUM(pagu_val) as pagu, SUM(pagu_val) as total_pagu, COUNT(*) as count FROM tenders GROUP BY instansi ORDER BY pagu DESC LIMIT 5")
     top_instansi = [dict(r) for r in cursor.fetchall()]
     
-    # Tenders count by kategori (slug)
-    cursor.execute("SELECT kategori, COUNT(*) as count, SUM(pagu_val) as pagu FROM tenders GROUP BY kategori")
-    kategori_stats = [{"category": r["kategori"], "count": r["count"], "pagu": r["pagu"] or 0.0} for r in cursor.fetchall()]
+    # Tenders count by actual procurement category (jenis_pengadaan)
+    cursor.execute("""
+        SELECT 
+            COALESCE(NULLIF(TRIM(jenis_pengadaan), ''), 'Lainnya') as jenis, 
+            COUNT(*) as count, 
+            SUM(pagu_val) as pagu 
+        FROM tenders 
+        GROUP BY 1
+    """)
+    raw_kategori_rows = cursor.fetchall()
+    kategori_map = {}
+    for r in raw_kategori_rows:
+        raw_jenis = r["jenis"] if isinstance(r, dict) else r[0]
+        count_val = r["count"] if isinstance(r, dict) else r[1]
+        pagu_val = r["pagu"] if isinstance(r, dict) else r[2]
+        clean_jenis = re.sub(r'\s*-\s*TA\s*\d+.*$', '', str(raw_jenis or 'Lainnya'), flags=re.IGNORECASE).strip()
+        if not clean_jenis:
+            clean_jenis = 'Lainnya'
+        if clean_jenis not in kategori_map:
+            kategori_map[clean_jenis] = {'category': clean_jenis, 'count': 0, 'pagu': 0.0}
+        kategori_map[clean_jenis]['count'] += int(count_val or 0)
+        kategori_map[clean_jenis]['pagu'] += float(pagu_val or 0.0)
+
+    kategori_stats = sorted(kategori_map.values(), key=lambda x: x['count'], reverse=True)[:8]
     
     conn.close()
     return {

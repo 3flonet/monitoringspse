@@ -11214,15 +11214,16 @@ function App() {
                                             <div>
                                                 <div className="chart-container">
                                                     {analytics.top_instansi.map((item, idx) => {
-                                                        const maxPagu = Math.max(...analytics.top_instansi.map(x => x.pagu)) || 1;
-                                                        const barHeight = `${Math.max(10, (item.pagu / maxPagu) * 100)}%`;
+                                                        const currentPagu = item.pagu || item.total_pagu || 0;
+                                                        const maxPagu = Math.max(...analytics.top_instansi.map(x => x.pagu || x.total_pagu || 0)) || 1;
+                                                        const barHeight = `${Math.max(10, (currentPagu / maxPagu) * 100)}%`;
 
                                                         return (
                                                             <div className="chart-bar-wrapper" key={idx}>
                                                                 <div className="chart-bar" style={{ height: barHeight }}>
                                                                     <span className="chart-bar-tooltip">
                                                                         {item.instansi}<br />
-                                                                        <strong>{formatPaguVal(item.pagu)}</strong> ({item.count} paket)
+                                                                        <strong>{formatPaguVal(currentPagu)}</strong> ({item.count} paket)
                                                                     </span>
                                                                 </div>
                                                                 <span className="chart-label" title={item.instansi}>
@@ -11246,17 +11247,17 @@ function App() {
                                     {/* Sidebar Recent Activity / Stats */}
                                     <div className="panel">
                                         <div className="panel-header">
-                                            <h3 className="panel-title">Distribusi Kategori</h3>
+                                            <h3 className="panel-title">Distribusi Kategori Pengadaan</h3>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
                                             {analytics?.kategori_stats && analytics.kategori_stats.length > 0 ? (
                                                 analytics.kategori_stats.map((item, idx) => (
-                                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px' }}>
-                                                        <div>
-                                                            <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{item.category}</strong>
-                                                            <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{item.count} Paket pengadaan</div>
+                                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                                                        <div style={{ paddingRight: '12px' }}>
+                                                            <strong style={{ color: '#fff' }}>{item.category}</strong>
+                                                            <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{Number(item.count).toLocaleString('id-ID')} Paket pengadaan</div>
                                                         </div>
-                                                        <span style={{ color: '#34d399', fontWeight: '600' }}>{formatPaguVal(item.pagu)}</span>
+                                                        <span style={{ color: '#34d399', fontWeight: '600', whiteSpace: 'nowrap' }}>{formatPaguVal(item.pagu)}</span>
                                                     </div>
                                                 ))
                                             ) : (
