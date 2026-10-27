@@ -4200,6 +4200,24 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
     const [contactForm, setContactForm] = React.useState({ name: '', email: '', phone: '', message: '' });
     const [contactSent, setContactSent] = React.useState(false);
     const [activeIntelTab, setActiveIntelTab] = React.useState('kandang');
+    const [marketDominance, setMarketDominance] = React.useState([]);
+    const [isLoadingDominance, setIsLoadingDominance] = React.useState(true);
+    const [selectedDominanceIdx, setSelectedDominanceIdx] = React.useState(0);
+
+    React.useEffect(() => {
+        fetch('/api/public/market-dominance')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    setMarketDominance(data);
+                }
+                setIsLoadingDominance(false);
+            })
+            .catch(err => {
+                console.error('Error fetching market dominance:', err);
+                setIsLoadingDominance(false);
+            });
+    }, []);
 
     // ===== HERO QUICK SEARCH & PUBLIC PREVIEW STATES =====
     const [heroTab, setHeroTab] = React.useState('company'); // 'company' | 'tender'
@@ -5859,10 +5877,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                         fontSize: '13px',
                                         fontWeight: '700',
                                         cursor: 'pointer',
-                                        transition: 'all 0.2s'
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
                                     }}
                                 >
-                                    🏛️ Peta Dominasi Satker
+                                    <span>👑</span>
+                                    <span>Penguasa Instansi</span>
                                 </button>
                                 <button
                                     onClick={() => setActiveIntelTab('h2h')}
@@ -5902,32 +5924,290 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         {/* Tab Content 1: Peta Dominasi Satker */}
                         {activeIntelTab === 'kandang' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-                                    <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '14px', padding: '18px' }}>
-                                        <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: '700', textTransform: 'uppercase' }}>Basis Satker Utama (Dominasi Tertinggi)</div>
-                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', marginTop: '6px' }}>Dinas Pekerjaan Umum & Penataan Ruang</div>
-                                        <div style={{ fontSize: '13px', color: '#fde68a', marginTop: '4px', fontWeight: '600' }}>7 dari 16 Tender Dimenangkan (43.8% Dominasi Portofolio)</div>
+                                {/* Instansi Pill Switcher */}
+                                {isLoadingDominance ? (
+                                    <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                        Memindai peta penguasa instansi di seluruh Indonesia...
                                     </div>
-                                    <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '14px', padding: '18px' }}>
-                                        <div style={{ fontSize: '11px', color: '#818cf8', fontWeight: '700', textTransform: 'uppercase' }}>Total Nilai Kontrak Dimenangkan</div>
-                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#6366f1', marginTop: '4px' }}>Rp 38.450.000.000</div>
-                                        <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>Tersebar di 4 Satuan Kerja / Dinas</div>
+                                ) : marketDominance.length === 0 ? (
+                                    <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                        Data penguasa instansi sedang diperbarui.
                                     </div>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '14px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
+                                            {marketDominance.map((item, idx) => (
+                                                <button
+                                                    key={`dom-inst-${idx}`}
+                                                    type="button"
+                                                    onClick={() => setSelectedDominanceIdx(idx)}
+                                                    style={{
+                                                        padding: '8px 14px',
+                                                        borderRadius: '10px',
+                                                        fontSize: '12.5px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer',
+                                                        whiteSpace: 'nowrap',
+                                                        transition: 'all 0.2s ease',
+                                                        border: selectedDominanceIdx === idx ? '1px solid rgba(245, 158, 11, 0.6)' : '1px solid rgba(255,255,255,0.08)',
+                                                        background: selectedDominanceIdx === idx ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(15, 23, 42, 0.9))' : 'rgba(15, 23, 42, 0.5)',
+                                                        color: selectedDominanceIdx === idx ? '#fbbf24' : '#94a3b8',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px'
+                                                    }}
+                                                >
+                                                    <span>🏛️</span>
+                                                    <span>{item.instansi}</span>
+                                                </button>
+                                            ))}
+                                        </div>
 
-                                <div style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                        <span style={{ fontSize: '18px' }}>💡</span>
-                                        <h4 style={{ margin: 0, fontSize: '14px', color: '#fbbf24', fontWeight: '800' }}>Analisis Teritori &amp; Strategi Penetrasi Wilayah Lawan</h4>
-                                    </div>
-                                    <p style={{ margin: 0, fontSize: '13.5px', color: '#d1d5db', lineHeight: '1.6' }}>
-                                        Badan usaha ini memiliki konsentrasi kemenangan sangat tinggi pada <strong style={{ color: '#fff' }}>Dinas Pekerjaan Umum &amp; Penataan Ruang</strong> yang menjadi basis wilayah utamanya (menyumbang <strong style={{ color: '#fbbf24' }}>43.8%</strong> dari seluruh portofolionya). Menghadapi kompetitor ini di satker tersebut membutuhkan keunggulan teknis mutlak dan penawaran yang sangat presisi, mengingat mereka memiliki rekam jejak historis dan pengalaman pengerjaan yang sangat dominan di instansi ini.
-                                    </p>
-                                </div>
+                                        {(() => {
+                                            const cur = marketDominance[selectedDominanceIdx] || marketDominance[0];
+                                            if (!cur) return null;
+                                            return (
+                                                <div>
+                                                    {/* Instansi Header Bar */}
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                        gap: '10px',
+                                                        padding: '12px 18px',
+                                                        background: 'rgba(15, 23, 42, 0.6)',
+                                                        borderRadius: '12px',
+                                                        border: '1px solid rgba(255,255,255,0.06)',
+                                                        marginBottom: '18px'
+                                                    }}>
+                                                        <div>
+                                                            <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Instansi Terpilih</div>
+                                                            <h4 style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: '800', color: '#ffffff', fontFamily: 'Outfit, sans-serif' }}>
+                                                                {cur.instansi}
+                                                            </h4>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                                Total Terpantau: <strong style={{ color: '#fff' }}>{cur.total_tenders?.toLocaleString('id-ID')} Tender</strong>
+                                                            </span>
+                                                            <span style={{ fontSize: '11px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '3px 8px', borderRadius: '6px', fontWeight: '700' }}>
+                                                                👑 Dominasi Terdeteksi
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Main Grid: Champion on Left, Locked Runner-ups on Right */}
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px', marginBottom: '18px' }}>
+                                                        {/* Left: Champion Card */}
+                                                        <div style={{
+                                                            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.85))',
+                                                            border: '1.5px solid rgba(245, 158, 11, 0.4)',
+                                                            borderRadius: '16px',
+                                                            padding: '22px',
+                                                            position: 'relative'
+                                                        }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                                <span style={{
+                                                                    fontSize: '11.5px',
+                                                                    fontWeight: '800',
+                                                                    color: '#fbbf24',
+                                                                    background: 'rgba(245, 158, 11, 0.15)',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '6px',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '5px'
+                                                                }}>
+                                                                    <span>👑</span> JUARA PENGUASA INSTANSI (#1)
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleSelectCompany(cur.champion.name)}
+                                                                    style={{
+                                                                        background: 'rgba(99, 102, 241, 0.15)',
+                                                                        border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                                        color: '#818cf8',
+                                                                        fontSize: '11.5px',
+                                                                        fontWeight: '700',
+                                                                        padding: '4px 10px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Preview Intelijen →
+                                                                </button>
+                                                            </div>
+
+                                                            <h3
+                                                                onClick={() => handleSelectCompany(cur.champion.name)}
+                                                                style={{
+                                                                    margin: '0 0 14px',
+                                                                    fontSize: '20px',
+                                                                    fontWeight: '800',
+                                                                    color: '#ffffff',
+                                                                    fontFamily: 'Outfit, sans-serif',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                                title="Klik untuk melihat profil intelijen perusahaan ini"
+                                                            >
+                                                                {cur.champion.name}
+                                                            </h3>
+
+                                                            {/* Champion Metrics */}
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                                                                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Rekor Menang</div>
+                                                                    <div style={{ fontSize: '22px', fontWeight: '800', color: '#34d399', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>
+                                                                        {cur.champion.win_count} Proyek
+                                                                    </div>
+                                                                    <div style={{ fontSize: '11px', color: '#64748b' }}>Di instansi ini</div>
+                                                                </div>
+                                                                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Nilai Kontrak</div>
+                                                                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#fbbf24', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                                                        Rp {formatStatsPagu(cur.champion.total_nilai)}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '11px', color: '#64748b' }}>Akumulasi</div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Sample Projects Won by Champion in this Instansi */}
+                                                            {cur.champion.sample_tenders && cur.champion.sample_tenders.length > 0 && (
+                                                                <div>
+                                                                    <div style={{ fontSize: '12px', fontWeight: '700', color: '#cbd5e1', marginBottom: '8px' }}>
+                                                                        Riwayat Proyek Terbesar di {cur.instansi}:
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                                        {cur.champion.sample_tenders.map((t, tIdx) => (
+                                                                            <div
+                                                                                key={`ch-tend-${tIdx}`}
+                                                                                style={{
+                                                                                    background: 'rgba(15, 23, 42, 0.7)',
+                                                                                    padding: '8px 12px',
+                                                                                    borderRadius: '8px',
+                                                                                    border: '1px solid rgba(255,255,255,0.04)',
+                                                                                    fontSize: '12px',
+                                                                                    display: 'flex',
+                                                                                    justifyContent: 'space-between',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '8px'
+                                                                                }}
+                                                                            >
+                                                                                <span style={{ color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+                                                                                    {t.nama_tender}
+                                                                                </span>
+                                                                                <span style={{ color: '#34d399', fontWeight: '700', flexShrink: 0 }}>
+                                                                                    Rp {formatStatsPagu(t.harga_kontrak)}
+                                                                                </span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Right: Gated Runner-Ups Section */}
+                                                        <div style={{
+                                                            background: 'rgba(15, 23, 42, 0.75)',
+                                                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                                                            borderRadius: '16px',
+                                                            padding: '22px',
+                                                            position: 'relative',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'space-between'
+                                                        }}>
+                                                            <div>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                                    <span style={{
+                                                                        fontSize: '11.5px',
+                                                                        fontWeight: '800',
+                                                                        color: '#f87171',
+                                                                        background: 'rgba(239, 68, 68, 0.12)',
+                                                                        padding: '4px 10px',
+                                                                        borderRadius: '6px',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '5px'
+                                                                    }}>
+                                                                        <span>🔒</span> 5 KONTRAKTOR PENANTANG (TERKUNCI)
+                                                                    </span>
+                                                                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>Tier 1: Tamu</span>
+                                                                </div>
+
+                                                                {/* Masked Runner-Up List */}
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                                    {cur.runner_ups && cur.runner_ups.map((ru, ruIdx) => (
+                                                                        <div
+                                                                            key={`ru-row-${ruIdx}`}
+                                                                            style={{
+                                                                                background: 'rgba(255,255,255,0.02)',
+                                                                                padding: '9px 12px',
+                                                                                borderRadius: '8px',
+                                                                                border: '1px dashed rgba(255,255,255,0.08)',
+                                                                                display: 'flex',
+                                                                                justifyContent: 'space-between',
+                                                                                alignItems: 'center',
+                                                                                fontSize: '12.5px'
+                                                                            }}
+                                                                        >
+                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                                <span style={{ color: '#94a3b8', fontWeight: '700', fontSize: '11px', width: '20px' }}>#{ru.rank}</span>
+                                                                                <span style={{ color: '#e2e8f0', letterSpacing: '0.04em', filter: 'blur(2px)', userSelect: 'none' }}>
+                                                                                    {ru.masked_name}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '11.5px', flexShrink: 0 }}>
+                                                                                {ru.win_count} Menang
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Gated Overlay CTA Box */}
+                                                            <div style={{
+                                                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
+                                                                border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                                borderRadius: '12px',
+                                                                padding: '14px 16px',
+                                                                textAlign: 'center'
+                                                            }}>
+                                                                <div style={{ fontSize: '13px', fontWeight: '800', color: '#ffffff', marginBottom: '4px' }}>
+                                                                    Mau Tahu Strategi Menembus Pasar {cur.instansi}?
+                                                                </div>
+                                                                <p style={{ margin: '0 0 10px', fontSize: '11.5px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                                                                    Buka seluruh nama kontraktor penantang, pola banting harga, dan titik celah Pokja dengan akun uji coba gratis.
+                                                                </p>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={onGetStarted}
+                                                                    style={{
+                                                                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                                                        color: '#ffffff',
+                                                                        border: 'none',
+                                                                        borderRadius: '9px',
+                                                                        padding: '9px 18px',
+                                                                        fontSize: '12.5px',
+                                                                        fontWeight: '700',
+                                                                        cursor: 'pointer',
+                                                                        boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)'
+                                                                    }}
+                                                                >
+                                                                    🚀 Coba Gratis 7 Hari (Buka Penuh)
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </>
+                                )}
                             </div>
                         )}
 
-                        {/* Tab Content 2: Head-to-Head Arena */}
                         {activeIntelTab === 'h2h' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px 24px', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>

@@ -3846,6 +3846,135 @@ def get_latest_winners():
     return [dict(r) for r in rows]
 
 # ========================================================
+# MARKET DOMINANCE (PENGUASA INSTANSI) PUBLIC ENDPOINT
+# ========================================================
+
+_market_dominance_cache = None
+_market_dominance_cache_time = 0
+
+def mask_company_name(name: str) -> str:
+    if not name:
+        return "Perusahaan Terkunci"
+    name = name.strip()
+    prefix = ""
+    m = re.match(r'^(PT\.?|CV\.?|KSO\.?|KOPERASI)\s+', name, re.IGNORECASE)
+    if m:
+        prefix = m.group(0)
+        core = name[len(prefix):]
+    else:
+        core = name
+    if len(core) <= 4:
+        return f"{prefix}{core[0]}***"
+    visible_len = min(4, max(2, len(core) // 3))
+    return f"{prefix}{core[:visible_len]}{'*' * 10}"
+
+@app.get("/api/public/market-dominance")
+def get_public_market_dominance():
+    global _market_dominance_cache, _market_dominance_cache_time
+    now = time.time()
+    if _market_dominance_cache and (now - _market_dominance_cache_time < 3600):
+        return _market_dominance_cache
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            WITH RankedWinners AS (
+                SELECT 
+                    t.instansi,
+                    w.nama_pemenang,
+                    COUNT(*) as win_count,
+                    SUM(COALESCE(w.harga_kontrak, t.pagu_val, 0)) as total_nilai,
+                    ROW_NUMBER() OVER(PARTITION BY t.instansi ORDER BY COUNT(*) DESC, SUM(COALESCE(w.harga_kontrak, t.pagu_val, 0)) DESC) as rn
+                FROM tender_winners w
+                JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+                WHERE t.instansi IS NOT NULL AND t.instansi != '' AND w.nama_pemenang IS NOT NULL AND w.nama_pemenang != ''
+                GROUP BY t.instansi, w.nama_pemenang
+            ),
+            InstansiStats AS (
+                SELECT 
+                    instansi, 
+                    COUNT(DISTINCT nomor_pengadaan) as total_tenders
+                FROM tenders
+                WHERE instansi IS NOT NULL AND instansi != ''
+                GROUP BY instansi
+            )
+            SELECT 
+                r.instansi,
+                s.total_tenders,
+                r.nama_pemenang as champion_name,
+                r.win_count as champion_wins,
+                r.total_nilai as champion_value
+            FROM RankedWinners r
+            JOIN InstansiStats s ON r.instansi = s.instansi
+            WHERE r.rn = 1 AND r.win_count >= 5
+            ORDER BY r.win_count DESC, r.total_nilai DESC
+            LIMIT 8
+        """)
+        top_instansi = [dict(r) for r in cur.fetchall()]
+
+        results = []
+        for item in top_instansi:
+            inst = item["instansi"]
+            champ = item["champion_name"]
+
+            # Sample 2 won tenders of champion
+            cur.execute("""
+                SELECT w.nomor_pengadaan, t.nama_tender, COALESCE(w.harga_kontrak, t.pagu_val, 0) as harga_kontrak, t.pagu
+                FROM tender_winners w
+                JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+                WHERE t.instansi = ? AND w.nama_pemenang = ?
+                ORDER BY COALESCE(w.harga_kontrak, t.pagu_val, 0) DESC
+                LIMIT 2
+            """, (inst, champ))
+            sample_tenders = [dict(r) for r in cur.fetchall()]
+
+            # Runner ups (masked for Tier 1 public teaser)
+            cur.execute("""
+                SELECT w.nama_pemenang, COUNT(*) as win_count
+                FROM tender_winners w
+                JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+                WHERE t.instansi = ? AND w.nama_pemenang != ? AND w.nama_pemenang != ''
+                GROUP BY w.nama_pemenang
+                ORDER BY win_count DESC
+                LIMIT 5
+            """, (inst, champ))
+            runner_rows = cur.fetchall()
+
+            runner_ups = []
+            for rank_idx, r in enumerate(runner_rows, start=2):
+                raw_name = r["nama_pemenang"]
+                masked = mask_company_name(raw_name)
+                runner_ups.append({
+                    "rank": rank_idx,
+                    "masked_name": masked,
+                    "win_count": r["win_count"]
+                })
+
+            results.append({
+                "instansi": inst,
+                "total_tenders": item["total_tenders"],
+                "champion": {
+                    "name": champ,
+                    "win_count": item["champion_wins"],
+                    "total_nilai": item["champion_value"],
+                    "sample_tenders": sample_tenders
+                },
+                "runner_ups_count": len(runner_rows),
+                "runner_ups": runner_ups
+            })
+
+        _market_dominance_cache = results
+        _market_dominance_cache_time = now
+        return results
+    except Exception as e:
+        logging.error(f"Error fetching market dominance: {e}")
+        return []
+    finally:
+        conn.close()
+
+# ========================================================
 # SEO, SITEMAP & AI SEARCH (GEO) ENDPOINTS
 # ========================================================
 
