@@ -6725,10 +6725,10 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                                         <div>
                                             <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#fff' }}>
-                                                🏆 Sampel Riwayat Paket Dimenangkan (Maksimal 3 Paket)
+                                                🏆 Riwayat Paket Dimenangkan (Akses Publik: 3 Paket Teratas)
                                             </h4>
                                             <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                                                Menampilkan 3 paket awal dari total {previewData.total_wins || 0} kemenangan lelang yang tercatat.
+                                                Menampilkan 3 paket awal dari total {previewData.total_wins || 0} proyek yang berhasil dimenangkan di LPSE.
                                             </p>
                                         </div>
                                         <span style={{ fontSize: '11.5px', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '3px 8px', borderRadius: '6px', fontWeight: '600' }}>
