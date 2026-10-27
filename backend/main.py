@@ -3851,6 +3851,8 @@ def get_latest_winners():
 
 _market_dominance_cache = None
 _market_dominance_cache_time = 0
+_instansi_list_cache = None
+_instansi_list_cache_time = 0
 
 def mask_company_name(name: str) -> str:
     if not name:
@@ -3868,17 +3870,136 @@ def mask_company_name(name: str) -> str:
     visible_len = min(4, max(2, len(core) // 3))
     return f"{prefix}{core[:visible_len]}{'*' * 10}"
 
-@app.get("/api/public/market-dominance")
-def get_public_market_dominance():
-    global _market_dominance_cache, _market_dominance_cache_time
-    now = time.time()
-    if _market_dominance_cache and (now - _market_dominance_cache_time < 3600):
-        return _market_dominance_cache
+def classify_jenis_instansi(name: str) -> str:
+    lower = name.lower()
+    if lower.startswith("kementerian") or "kemen" in lower:
+        return "Kementerian"
+    elif lower.startswith("provinsi") or lower.startswith("pemerintah provinsi") or "pemprov" in lower:
+        return "Provinsi"
+    elif lower.startswith("kota") or lower.startswith("pemerintah kota") or "pemkot" in lower:
+        return "Kota"
+    elif lower.startswith("kab") or lower.startswith("kabupaten") or lower.startswith("pemerintah kabupaten") or "pemkab" in lower:
+        return "Kabupaten"
+    else:
+        return "Lembaga"
 
+@app.get("/api/public/market-dominance/instansi-list")
+def get_public_market_dominance_instansi_list():
+    global _instansi_list_cache, _instansi_list_cache_time
+    now = time.time()
+    if _instansi_list_cache and (now - _instansi_list_cache_time < 3600):
+        return _instansi_list_cache
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT instansi, COUNT(*) as count 
+            FROM tenders 
+            WHERE instansi IS NOT NULL AND instansi != ''
+            GROUP BY instansi 
+            HAVING COUNT(*) >= 3
+            ORDER BY count DESC
+        """)
+        rows = cur.fetchall()
+        result = []
+        for r in rows:
+            name = r["instansi"]
+            result.append({
+                "name": name,
+                "jenis": classify_jenis_instansi(name),
+                "count": r["count"]
+            })
+        _instansi_list_cache = result
+        _instansi_list_cache_time = now
+        return result
+    except Exception as e:
+        logging.error(f"Error fetching instansi list: {e}")
+        return []
+    finally:
+        conn.close()
+
+@app.get("/api/public/market-dominance")
+def get_public_market_dominance(instansi: Optional[str] = Query(None)):
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
+        # If specific instansi requested
+        if instansi:
+            inst_name = instansi.strip()
+            cur.execute("SELECT COUNT(DISTINCT nomor_pengadaan) FROM tenders WHERE instansi = ?", (inst_name,))
+            row = cur.fetchone()
+            total_tenders = row[0] if row else 0
+            if total_tenders == 0:
+                cur.execute("SELECT DISTINCT instansi FROM tenders WHERE instansi LIKE ? ORDER BY LENGTH(instansi) ASC LIMIT 1", (f"%{inst_name}%",))
+                match_row = cur.fetchone()
+                if match_row:
+                    inst_name = match_row[0]
+                    cur.execute("SELECT COUNT(DISTINCT nomor_pengadaan) FROM tenders WHERE instansi = ?", (inst_name,))
+                    total_tenders = cur.fetchone()[0] or 0
+
+            cur.execute("""
+                SELECT 
+                    w.nama_pemenang,
+                    COUNT(*) as win_count,
+                    SUM(COALESCE(w.harga_kontrak, t.pagu_val, 0)) as total_nilai
+                FROM tender_winners w
+                JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+                WHERE t.instansi = ? AND w.nama_pemenang IS NOT NULL AND w.nama_pemenang != ''
+                GROUP BY w.nama_pemenang
+                ORDER BY win_count DESC, total_nilai DESC
+                LIMIT 6
+            """, (inst_name,))
+            winners = [dict(r) for r in cur.fetchall()]
+
+            if not winners:
+                return [{
+                    "instansi": inst_name,
+                    "total_tenders": total_tenders,
+                    "champion": None,
+                    "runner_ups_count": 0,
+                    "runner_ups": []
+                }]
+
+            champ = winners[0]
+            cur.execute("""
+                SELECT w.nomor_pengadaan, t.nama_tender, COALESCE(w.harga_kontrak, t.pagu_val, 0) as harga_kontrak, t.pagu
+                FROM tender_winners w
+                JOIN tenders t ON w.nomor_pengadaan = t.nomor_pengadaan
+                WHERE t.instansi = ? AND w.nama_pemenang = ?
+                ORDER BY COALESCE(w.harga_kontrak, t.pagu_val, 0) DESC
+                LIMIT 2
+            """, (inst_name, champ["nama_pemenang"]))
+            sample_tenders = [dict(r) for r in cur.fetchall()]
+
+            runner_ups = []
+            for rank_idx, r in enumerate(winners[1:], start=2):
+                runner_ups.append({
+                    "rank": rank_idx,
+                    "masked_name": mask_company_name(r["nama_pemenang"]),
+                    "win_count": r["win_count"]
+                })
+
+            return [{
+                "instansi": inst_name,
+                "total_tenders": total_tenders,
+                "champion": {
+                    "name": champ["nama_pemenang"],
+                    "win_count": champ["win_count"],
+                    "total_nilai": champ["total_nilai"],
+                    "sample_tenders": sample_tenders
+                },
+                "runner_ups_count": len(runner_ups),
+                "runner_ups": runner_ups
+            }]
+
+        # Default: Top 8 popular instansi (cached)
+        global _market_dominance_cache, _market_dominance_cache_time
+        now = time.time()
+        if _market_dominance_cache and (now - _market_dominance_cache_time < 3600):
+            return _market_dominance_cache
+
         cur.execute("""
             WITH RankedWinners AS (
                 SELECT 
@@ -3919,7 +4040,6 @@ def get_public_market_dominance():
             inst = item["instansi"]
             champ = item["champion_name"]
 
-            # Sample 2 won tenders of champion
             cur.execute("""
                 SELECT w.nomor_pengadaan, t.nama_tender, COALESCE(w.harga_kontrak, t.pagu_val, 0) as harga_kontrak, t.pagu
                 FROM tender_winners w
@@ -3930,7 +4050,6 @@ def get_public_market_dominance():
             """, (inst, champ))
             sample_tenders = [dict(r) for r in cur.fetchall()]
 
-            # Runner ups (masked for Tier 1 public teaser)
             cur.execute("""
                 SELECT w.nama_pemenang, COUNT(*) as win_count
                 FROM tender_winners w
@@ -3944,11 +4063,9 @@ def get_public_market_dominance():
 
             runner_ups = []
             for rank_idx, r in enumerate(runner_rows, start=2):
-                raw_name = r["nama_pemenang"]
-                masked = mask_company_name(raw_name)
                 runner_ups.append({
                     "rank": rank_idx,
-                    "masked_name": masked,
+                    "masked_name": mask_company_name(r["nama_pemenang"]),
                     "win_count": r["win_count"]
                 })
 
