@@ -5989,74 +5989,53 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {/* Interactive Intelijen Showcase / Demo Box */}
-                    <div style={{
+                    <div className="demo-intel-card" style={{
                         background: 'linear-gradient(145deg, #101528, #0a0d1b)',
                         border: '1px solid rgba(99, 102, 241, 0.3)',
-                        borderRadius: '24px',
-                        padding: '36px',
                         boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                         position: 'relative',
                         overflow: 'hidden'
                     }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '20px' }}>
+                        <div className="demo-intel-header">
                             <div>
                                 <span style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '0.05em', color: '#818cf8', textTransform: 'uppercase' }}>🔥 DEMO LIVE FITUR INTELIJEN</span>
                                 <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: '4px 0 0 0', fontFamily: "'Outfit', sans-serif" }}>
                                     Lihat Bagaimana Spy SPSE Membedah Kekuatan Pesaing Anda
                                 </h3>
                             </div>
-                            <div style={{ display: 'flex', gap: '8px', background: 'rgba(15, 23, 42, 0.8)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div className="demo-intel-tabs-container">
                                 <button
+                                    className="demo-intel-tab-btn"
                                     onClick={() => setActiveIntelTab('kandang')}
                                     style={{
                                         background: activeIntelTab === 'kandang' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'transparent',
-                                        color: activeIntelTab === 'kandang' ? '#fff' : '#9ca3af',
-                                        border: 'none',
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        fontSize: '13px',
-                                        fontWeight: '700',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
+                                        color: activeIntelTab === 'kandang' ? '#fff' : '#9ca3af'
                                     }}
                                 >
                                     <span>👑</span>
                                     <span>Penguasa Instansi</span>
                                 </button>
                                 <button
+                                    className="demo-intel-tab-btn"
                                     onClick={() => setActiveIntelTab('h2h')}
                                     style={{
                                         background: activeIntelTab === 'h2h' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'transparent',
-                                        color: activeIntelTab === 'h2h' ? '#fff' : '#9ca3af',
-                                        border: 'none',
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        fontSize: '13px',
-                                        fontWeight: '700',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
+                                        color: activeIntelTab === 'h2h' ? '#fff' : '#9ca3af'
                                     }}
                                 >
-                                    ⚔️ Head-to-Head
+                                    <span>⚔️</span>
+                                    <span>Head-to-Head</span>
                                 </button>
                                 <button
+                                    className="demo-intel-tab-btn"
                                     onClick={() => setActiveIntelTab('dossier')}
                                     style={{
                                         background: activeIntelTab === 'dossier' ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'transparent',
-                                        color: activeIntelTab === 'dossier' ? '#fff' : '#9ca3af',
-                                        border: 'none',
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        fontSize: '13px',
-                                        fontWeight: '700',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
+                                        color: activeIntelTab === 'dossier' ? '#fff' : '#9ca3af'
                                     }}
                                 >
-                                    📑 Dossier Eksekutif
+                                    <span>📑</span>
+                                    <span>Dossier Eksekutif</span>
                                 </button>
                             </div>
                         </div>
@@ -6065,14 +6044,8 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                         {activeIntelTab === 'kandang' && (
                             <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
                                 {/* FILTER & SEARCH BAR UNTUK INSTANSI / LPSE */}
-                                <div style={{
-                                    background: 'rgba(15, 23, 42, 0.75)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                                    borderRadius: '14px',
-                                    padding: '14px 16px',
-                                    marginBottom: '16px'
-                                }}>
-                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                <div className="demo-filter-container">
+                                    <div className="demo-filter-grid">
                                         {/* 1. Input Pencarian Nama Instansi */}
                                         <div style={{ flex: '1 1 240px', minWidth: '200px', position: 'relative' }}>
                                             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '14px' }}>
@@ -6195,14 +6168,15 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                     </div>
 
                                     {/* Quick Pills Rekomendasi Instansi Populer */}
-                                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                        <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>
+                                    <div className="demo-quick-pills-bar">
+                                        <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                             Pilihan Cepat:
                                         </span>
                                         {marketDominance.slice(0, 8).map((item, idx) => (
                                             <button
                                                 key={`quick-pill-${idx}`}
                                                 type="button"
+                                                className="demo-quick-pill-item"
                                                 onClick={() => {
                                                     setSelectedDominanceIdx(idx);
                                                     setDominanceSelectedInstansi(item.instansi);
@@ -6213,7 +6187,6 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                     fontSize: '11.5px',
                                                     fontWeight: '700',
                                                     cursor: 'pointer',
-                                                    whiteSpace: 'nowrap',
                                                     transition: 'all 0.15s ease',
                                                     border: selectedDominanceIdx === idx ? '1px solid rgba(245, 158, 11, 0.6)' : '1px solid rgba(255,255,255,0.06)',
                                                     background: selectedDominanceIdx === idx ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.03)',
@@ -6293,18 +6266,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                         return (
                                             <div>
                                                 {/* Instansi Header Bar */}
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    flexWrap: 'wrap',
-                                                    gap: '10px',
-                                                    padding: '12px 18px',
-                                                    background: 'rgba(15, 23, 42, 0.6)',
-                                                    borderRadius: '12px',
-                                                    border: '1px solid rgba(255,255,255,0.06)',
-                                                    marginBottom: '18px'
-                                                }}>
+                                                <div className="demo-instansi-header-bar">
                                                     <div>
                                                         <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Instansi Terpilih</div>
                                                         <h4 style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: '800', color: '#ffffff', fontFamily: 'Outfit, sans-serif' }}>
@@ -6322,7 +6284,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                 </div>
 
                                                 {/* Main Grid: Champion on Left, Locked Runner-ups on Right */}
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px', marginBottom: '18px' }}>
+                                                <div className="demo-dominance-main-grid">
                                                     {/* Left: Champion Card */}
                                                     <div style={{
                                                         background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.85))',
