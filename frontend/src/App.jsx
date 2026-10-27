@@ -1581,467 +1581,6 @@ const PublicBlogPage = ({ adminSettings, publicArticles, isLoadingArticles, onNa
                 )}
             </main>
 
-            {/* ===== PUBLIC COMPANY PREVIEW MODAL (GATED TEASER FOR TIER 1) ===== */}
-            {previewModalOpen && (
-                <div
-                    onClick={(e) => { if (e.target === e.currentTarget) setPreviewModalOpen(false); }}
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        background: 'rgba(5, 8, 18, 0.85)',
-                        backdropFilter: 'blur(10px)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '16px',
-                        overflowY: 'auto'
-                    }}
-                >
-                    <div style={{
-                        background: '#0c101d',
-                        border: '1px solid rgba(99, 102, 241, 0.35)',
-                        borderRadius: '20px',
-                        width: '100%',
-                        maxWidth: '840px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                        boxShadow: '0 25px 65px rgba(0,0,0,0.85), 0 0 35px rgba(99,102,241,0.2)',
-                        padding: '28px',
-                        position: 'relative',
-                        color: '#f8fafc'
-                    }}>
-                        {/* Close button */}
-                        <button
-                            type="button"
-                            onClick={() => setPreviewModalOpen(false)}
-                            style={{
-                                position: 'absolute',
-                                top: '20px',
-                                right: '20px',
-                                background: 'rgba(255,255,255,0.06)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '10px',
-                                color: '#94a3b8',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '18px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                        >
-                            ✕
-                        </button>
-
-                        {/* Loading State */}
-                        {previewLoading && (
-                            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                                <div style={{ fontSize: '36px', marginBottom: '14px' }}>⏳</div>
-                                <h3 style={{ fontSize: '18px', color: '#e2e8f0', margin: '0 0 8px', fontFamily: 'Outfit, sans-serif' }}>
-                                    Mengumpulkan Intelijen &amp; Rekam Jejak Kompetitor...
-                                </h3>
-                                <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
-                                    Menganalisis riwayat lelang, penetapan pemenang, dan evaluasi Pokja untuk &ldquo;{previewQuery}&rdquo;.
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Error State */}
-                        {!previewLoading && previewError && (
-                            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                                <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
-                                <h3 style={{ color: '#ef4444', fontSize: '18px', margin: '0 0 8px' }}>Gagal Memuat Profil</h3>
-                                <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>{previewError}</p>
-                                <button
-                                    onClick={() => handleSelectCompany(previewQuery)}
-                                    style={{
-                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '10px',
-                                        padding: '10px 20px',
-                                        fontSize: '13px',
-                                        fontWeight: '700',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Coba Lagi
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Profile Content */}
-                        {!previewLoading && !previewError && previewData && (
-                            <div>
-                                {/* Header */}
-                                <div style={{ marginBottom: '22px', paddingRight: '40px' }}>
-                                    <div style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        background: 'rgba(99,102,241,0.12)',
-                                        border: '1px solid rgba(99,102,241,0.3)',
-                                        borderRadius: '20px',
-                                        padding: '4px 12px',
-                                        fontSize: '11.5px',
-                                        color: '#818cf8',
-                                        fontWeight: '700',
-                                        marginBottom: '10px'
-                                    }}>
-                                        <span>🔒</span>
-                                        <span>PREVIEW INTELIJEN KOMPETITOR (AKSES PUBLIK)</span>
-                                    </div>
-                                    <h2 style={{
-                                        fontSize: '24px',
-                                        fontWeight: '800',
-                                        margin: '0 0 8px',
-                                        fontFamily: "'Outfit', sans-serif",
-                                        color: '#ffffff',
-                                        lineHeight: '1.3'
-                                    }}>
-                                        {previewData.name || previewQuery}
-                                    </h2>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#94a3b8' }}>
-                                        <div>🪪 NPWP: <strong style={{ color: '#e2e8f0' }}>{previewData.npwp || '-'}</strong></div>
-                                        <div>📍 Alamat: <strong style={{ color: '#cbd5e1' }}>{previewData.address || '-'}</strong></div>
-                                    </div>
-                                </div>
-
-                                {/* Metric Cards Grid */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                                    gap: '12px',
-                                    marginBottom: '22px'
-                                }}>
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Lelang Diikuti</div>
-                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
-                                            {previewData.total_tenders || 0}
-                                        </div>
-                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Paket SPSE</div>
-                                    </div>
-
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Menang</div>
-                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#34d399', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
-                                            {previewData.total_wins || 0}
-                                        </div>
-                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Proyek Dimenangkan</div>
-                                    </div>
-
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Nilai Kontrak</div>
-                                        <div style={{ fontSize: '20px', fontWeight: '800', color: '#fbbf24', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
-                                            Rp {formatStatsPagu(previewData.total_contract_value || 0)}
-                                        </div>
-                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Akumulasi Kemenangan</div>
-                                    </div>
-
-                                    {/* GATED WIN RATE CARD */}
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.04))',
-                                        border: '1.5px dashed rgba(239, 68, 68, 0.5)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        textAlign: 'center',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ fontSize: '11px', color: '#f87171', textTransform: 'uppercase', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                            <span>🔒</span> WIN SUCCESS RATE
-                                        </div>
-                                        <div style={{
-                                            fontSize: '22px',
-                                            fontWeight: '900',
-                                            color: '#ef4444',
-                                            marginTop: '4px',
-                                            filter: 'blur(4px)',
-                                            userSelect: 'none'
-                                        }}>
-                                            24% Menang
-                                        </div>
-                                        <div style={{
-                                            fontSize: '10.5px',
-                                            color: '#fca5a5',
-                                            fontWeight: '700',
-                                            marginTop: '2px'
-                                        }}>
-                                            [Terkunci - Khusus Member]
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Compelling CTA Teaser Banner */}
-                                <div style={{
-                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(168, 85, 247, 0.14))',
-                                    border: '1px solid rgba(99, 102, 241, 0.4)',
-                                    borderRadius: '14px',
-                                    padding: '18px 22px',
-                                    marginBottom: '22px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    flexWrap: 'wrap',
-                                    gap: '16px'
-                                }}>
-                                    <div style={{ flex: '1 1 360px' }}>
-                                        <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span>🎯</span> Mau Tahu Taktik Menang &amp; Titik Lemah {previewData.name}?
-                                        </div>
-                                        <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                                            Daftar akun gratis sekarang untuk membuka Win Rate akurat, riwayat gugur di Pokja lelang, serta pola diskon penawaran harga mereka.
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
-                                        style={{
-                                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                                            color: '#fff',
-                                            border: 'none',
-                                            borderRadius: '11px',
-                                            padding: '12px 22px',
-                                            fontSize: '13.5px',
-                                            fontWeight: '800',
-                                            cursor: 'pointer',
-                                            boxShadow: '0 6px 20px rgba(99, 102, 241, 0.5)',
-                                            transition: 'all 0.2s ease',
-                                            whiteSpace: 'nowrap'
-                                        }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-                                    >
-                                        🚀 Coba Gratis 7 Hari
-                                    </button>
-                                </div>
-
-                                {/* Preview Riwayat Menang (Top 3 Sampel) */}
-                                <div style={{
-                                    background: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid rgba(255,255,255,0.06)',
-                                    borderRadius: '14px',
-                                    padding: '18px',
-                                    marginBottom: '22px'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                                        <div>
-                                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#fff' }}>
-                                                🏆 Sampel Riwayat Paket Dimenangkan (Maksimal 3 Paket)
-                                            </h4>
-                                            <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                                                Menampilkan 3 paket awal dari total {previewData.total_wins || 0} kemenangan lelang yang tercatat.
-                                            </p>
-                                        </div>
-                                        <span style={{ fontSize: '11.5px', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '3px 8px', borderRadius: '6px', fontWeight: '600' }}>
-                                            Preview Publik
-                                        </span>
-                                    </div>
-
-                                    {(!previewData.recent_tenders || previewData.recent_tenders.length === 0) ? (
-                                        <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-                                            Belum ada riwayat kemenangan lelang terindeks untuk entitas ini.
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                            {previewData.recent_tenders.slice(0, 3).map((t, idx) => (
-                                                <div
-                                                    key={`prev-tend-${idx}`}
-                                                    style={{
-                                                        background: 'rgba(15, 23, 42, 0.6)',
-                                                        border: '1px solid rgba(255,255,255,0.05)',
-                                                        borderRadius: '10px',
-                                                        padding: '12px 14px',
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        flexWrap: 'wrap',
-                                                        gap: '10px'
-                                                    }}
-                                                >
-                                                    <div style={{ minWidth: 0, flex: '1 1 300px' }}>
-                                                        <div style={{ color: '#f1f5f9', fontSize: '13.5px', fontWeight: '600', lineHeight: '1.4' }}>
-                                                            {t.nama_tender}
-                                                        </div>
-                                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-                                                            🏛️ {t.instansi || '-'}
-                                                        </div>
-                                                    </div>
-                                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Nilai Kontrak/Pagu</div>
-                                                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#34d399', fontFamily: 'Outfit, sans-serif' }}>
-                                                            Rp {formatStatsPagu(t.harga_kontrak || t.pagu_val || 0)}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Gated Bottom Overlay for remaining tenders */}
-                                    <div style={{
-                                        marginTop: '14px',
-                                        padding: '14px',
-                                        background: 'rgba(15, 23, 42, 0.8)',
-                                        border: '1px dashed rgba(99, 102, 241, 0.4)',
-                                        borderRadius: '10px',
-                                        textAlign: 'center'
-                                    }}>
-                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                            <span>🔒</span>
-                                            <span>
-                                                {previewData.total_wins > 3 
-                                                    ? `+ ${previewData.total_wins - 3} Paket Kemenangan Lainnya & Arsip Sejak 2011 Terkunci`
-                                                    : 'Arsip Riwayat Tender Lengkap, Evaluasi Pokja, & Titik Lemah Terkunci'}
-                                            </span>
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 10px' }}>
-                                            Buka akses ke dokumen evaluasi Pokja, nilai penawaran terkoreksi, dan harga kompetitor.
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
-                                            style={{
-                                                background: 'rgba(99, 102, 241, 0.15)',
-                                                border: '1px solid rgba(99, 102, 241, 0.4)',
-                                                color: '#818cf8',
-                                                borderRadius: '8px',
-                                                padding: '7px 16px',
-                                                fontSize: '12.5px',
-                                                fontWeight: '700',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            Buka Seluruh Riwayat dengan Akun Gratis →
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* 3 Locked Feature Preview Cards */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                                    gap: '12px',
-                                    marginBottom: '24px'
-                                }}>
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#f87171' }}>
-                                            <span>🔒</span> Matriks Titik Lemah Pokja
-                                        </div>
-                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
-                                            Penyebab tersering gugur tender: aspek Personil SKK/SKA, SBU, atau Metode Teknis.
-                                        </p>
-                                    </div>
-
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#fbbf24' }}>
-                                            <span>🔒</span> Pola Penawaran vs HPS
-                                        </div>
-                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
-                                            Persentase penurunan harga dari HPS saat memenangkan proyek untuk taktik bidding Anda.
-                                        </p>
-                                    </div>
-
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '12px',
-                                        padding: '14px',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#38bdf8' }}>
-                                            <span>🔒</span> Jaringan Mitra &amp; KSO
-                                        </div>
-                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
-                                            Konsorsium mitra dan rekam jejak persaingan head-to-head terhadap badan usaha lainnya.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Modal Actions */}
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'flex-end',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    paddingTop: '16px',
-                                    borderTop: '1px solid rgba(255,255,255,0.08)',
-                                    flexWrap: 'wrap'
-                                }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPreviewModalOpen(false)}
-                                        style={{
-                                            background: 'transparent',
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            color: '#94a3b8',
-                                            borderRadius: '10px',
-                                            padding: '10px 20px',
-                                            fontSize: '13px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        Tutup Preview
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
-                                        style={{
-                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                                            color: '#ffffff',
-                                            border: 'none',
-                                            borderRadius: '10px',
-                                            padding: '10px 24px',
-                                            fontSize: '13.5px',
-                                            fontWeight: '700',
-                                            cursor: 'pointer',
-                                            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)'
-                                        }}
-                                    >
-                                        Daftar Uji Coba Gratis 7 Hari ➔
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             <PremiumFooter adminSettings={adminSettings} onNavigate={onNavigate} />
             <Chatbot adminSettings={adminSettings} />
         </div>
@@ -6917,6 +6456,467 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                 </div>
 
             </> /* end home page */}
+
+            {/* ===== PUBLIC COMPANY PREVIEW MODAL (GATED TEASER FOR TIER 1) ===== */}
+            {previewModalOpen && (
+                <div
+                    onClick={(e) => { if (e.target === e.currentTarget) setPreviewModalOpen(false); }}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(5, 8, 18, 0.85)',
+                        backdropFilter: 'blur(10px)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px',
+                        overflowY: 'auto'
+                    }}
+                >
+                    <div style={{
+                        background: '#0c101d',
+                        border: '1px solid rgba(99, 102, 241, 0.35)',
+                        borderRadius: '20px',
+                        width: '100%',
+                        maxWidth: '840px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 25px 65px rgba(0,0,0,0.85), 0 0 35px rgba(99,102,241,0.2)',
+                        padding: '28px',
+                        position: 'relative',
+                        color: '#f8fafc'
+                    }}>
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={() => setPreviewModalOpen(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '20px',
+                                right: '20px',
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '10px',
+                                color: '#94a3b8',
+                                width: '36px',
+                                height: '36px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                        >
+                            ✕
+                        </button>
+
+                        {/* Loading State */}
+                        {previewLoading && (
+                            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                                <div style={{ fontSize: '36px', marginBottom: '14px' }}>⏳</div>
+                                <h3 style={{ fontSize: '18px', color: '#e2e8f0', margin: '0 0 8px', fontFamily: 'Outfit, sans-serif' }}>
+                                    Mengumpulkan Intelijen &amp; Rekam Jejak Kompetitor...
+                                </h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                                    Menganalisis riwayat lelang, penetapan pemenang, dan evaluasi Pokja untuk &ldquo;{previewQuery}&rdquo;.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {!previewLoading && previewError && (
+                            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                                <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
+                                <h3 style={{ color: '#ef4444', fontSize: '18px', margin: '0 0 8px' }}>Gagal Memuat Profil</h3>
+                                <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>{previewError}</p>
+                                <button
+                                    onClick={() => handleSelectCompany(previewQuery)}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '10px 20px',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Profile Content */}
+                        {!previewLoading && !previewError && previewData && (
+                            <div>
+                                {/* Header */}
+                                <div style={{ marginBottom: '22px', paddingRight: '40px' }}>
+                                    <div style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        background: 'rgba(99,102,241,0.12)',
+                                        border: '1px solid rgba(99,102,241,0.3)',
+                                        borderRadius: '20px',
+                                        padding: '4px 12px',
+                                        fontSize: '11.5px',
+                                        color: '#818cf8',
+                                        fontWeight: '700',
+                                        marginBottom: '10px'
+                                    }}>
+                                        <span>🔒</span>
+                                        <span>PREVIEW INTELIJEN KOMPETITOR (AKSES PUBLIK)</span>
+                                    </div>
+                                    <h2 style={{
+                                        fontSize: '24px',
+                                        fontWeight: '800',
+                                        margin: '0 0 8px',
+                                        fontFamily: "'Outfit', sans-serif",
+                                        color: '#ffffff',
+                                        lineHeight: '1.3'
+                                    }}>
+                                        {previewData.name || previewQuery}
+                                    </h2>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#94a3b8' }}>
+                                        <div>🪪 NPWP: <strong style={{ color: '#e2e8f0' }}>{previewData.npwp || '-'}</strong></div>
+                                        <div>📍 Alamat: <strong style={{ color: '#cbd5e1' }}>{previewData.address || '-'}</strong></div>
+                                    </div>
+                                </div>
+
+                                {/* Metric Cards Grid */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                    gap: '12px',
+                                    marginBottom: '22px'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Lelang Diikuti</div>
+                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                            {previewData.total_tenders || 0}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Paket SPSE</div>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Menang</div>
+                                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#34d399', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                            {previewData.total_wins || 0}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Proyek Dimenangkan</div>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Total Nilai Kontrak</div>
+                                        <div style={{ fontSize: '20px', fontWeight: '800', color: '#fbbf24', marginTop: '6px', fontFamily: 'Outfit, sans-serif' }}>
+                                            Rp {formatStatsPagu(previewData.total_contract_value || 0)}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Akumulasi Kemenangan</div>
+                                    </div>
+
+                                    {/* GATED WIN RATE CARD */}
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.04))',
+                                        border: '1.5px dashed rgba(239, 68, 68, 0.5)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        textAlign: 'center',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#f87171', textTransform: 'uppercase', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                            <span>🔒</span> WIN SUCCESS RATE
+                                        </div>
+                                        <div style={{
+                                            fontSize: '22px',
+                                            fontWeight: '900',
+                                            color: '#ef4444',
+                                            marginTop: '4px',
+                                            filter: 'blur(4px)',
+                                            userSelect: 'none'
+                                        }}>
+                                            24% Menang
+                                        </div>
+                                        <div style={{
+                                            fontSize: '10.5px',
+                                            color: '#fca5a5',
+                                            fontWeight: '700',
+                                            marginTop: '2px'
+                                        }}>
+                                            [Terkunci - Khusus Member]
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Compelling CTA Teaser Banner */}
+                                <div style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(168, 85, 247, 0.14))',
+                                    border: '1px solid rgba(99, 102, 241, 0.4)',
+                                    borderRadius: '14px',
+                                    padding: '18px 22px',
+                                    marginBottom: '22px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    flexWrap: 'wrap',
+                                    gap: '16px'
+                                }}>
+                                    <div style={{ flex: '1 1 360px' }}>
+                                        <div style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span>🎯</span> Mau Tahu Taktik Menang &amp; Titik Lemah {previewData.name}?
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                                            Daftar akun gratis sekarang untuk membuka Win Rate akurat, riwayat gugur di Pokja lelang, serta pola diskon penawaran harga mereka.
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '11px',
+                                            padding: '12px 22px',
+                                            fontSize: '13.5px',
+                                            fontWeight: '800',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 6px 20px rgba(99, 102, 241, 0.5)',
+                                            transition: 'all 0.2s ease',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                                    >
+                                        🚀 Coba Gratis 7 Hari
+                                    </button>
+                                </div>
+
+                                {/* Preview Riwayat Menang (Top 3 Sampel) */}
+                                <div style={{
+                                    background: 'rgba(255,255,255,0.02)',
+                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    borderRadius: '14px',
+                                    padding: '18px',
+                                    marginBottom: '22px'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                                        <div>
+                                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: '#fff' }}>
+                                                🏆 Sampel Riwayat Paket Dimenangkan (Maksimal 3 Paket)
+                                            </h4>
+                                            <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                                                Menampilkan 3 paket awal dari total {previewData.total_wins || 0} kemenangan lelang yang tercatat.
+                                            </p>
+                                        </div>
+                                        <span style={{ fontSize: '11.5px', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', padding: '3px 8px', borderRadius: '6px', fontWeight: '600' }}>
+                                            Preview Publik
+                                        </span>
+                                    </div>
+
+                                    {(!previewData.recent_tenders || previewData.recent_tenders.length === 0) ? (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                                            Belum ada riwayat kemenangan lelang terindeks untuk entitas ini.
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            {previewData.recent_tenders.slice(0, 3).map((t, idx) => (
+                                                <div
+                                                    key={`prev-tend-${idx}`}
+                                                    style={{
+                                                        background: 'rgba(15, 23, 42, 0.6)',
+                                                        border: '1px solid rgba(255,255,255,0.05)',
+                                                        borderRadius: '10px',
+                                                        padding: '12px 14px',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        flexWrap: 'wrap',
+                                                        gap: '10px'
+                                                    }}
+                                                >
+                                                    <div style={{ minWidth: 0, flex: '1 1 300px' }}>
+                                                        <div style={{ color: '#f1f5f9', fontSize: '13.5px', fontWeight: '600', lineHeight: '1.4' }}>
+                                                            {t.nama_tender}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                                            🏛️ {t.instansi || '-'}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Nilai Kontrak/Pagu</div>
+                                                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#34d399', fontFamily: 'Outfit, sans-serif' }}>
+                                                            Rp {formatStatsPagu(t.harga_kontrak || t.pagu_val || 0)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Gated Bottom Overlay for remaining tenders */}
+                                    <div style={{
+                                        marginTop: '14px',
+                                        padding: '14px',
+                                        background: 'rgba(15, 23, 42, 0.8)',
+                                        border: '1px dashed rgba(99, 102, 241, 0.4)',
+                                        borderRadius: '10px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                            <span>🔒</span>
+                                            <span>
+                                                {previewData.total_wins > 3 
+                                                    ? `+ ${previewData.total_wins - 3} Paket Kemenangan Lainnya & Arsip Sejak 2011 Terkunci`
+                                                    : 'Arsip Riwayat Tender Lengkap, Evaluasi Pokja, & Titik Lemah Terkunci'}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 10px' }}>
+                                            Buka akses ke dokumen evaluasi Pokja, nilai penawaran terkoreksi, dan harga kompetitor.
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                            style={{
+                                                background: 'rgba(99, 102, 241, 0.15)',
+                                                border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                color: '#818cf8',
+                                                borderRadius: '8px',
+                                                padding: '7px 16px',
+                                                fontSize: '12.5px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Buka Seluruh Riwayat dengan Akun Gratis →
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 3 Locked Feature Preview Cards */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                                    gap: '12px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#f87171' }}>
+                                            <span>🔒</span> Matriks Titik Lemah Pokja
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Penyebab tersering gugur tender: aspek Personil SKK/SKA, SBU, atau Metode Teknis.
+                                        </p>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#fbbf24' }}>
+                                            <span>🔒</span> Pola Penawaran vs HPS
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Persentase penurunan harga dari HPS saat memenangkan proyek untuk taktik bidding Anda.
+                                        </p>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.02)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        borderRadius: '12px',
+                                        padding: '14px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#38bdf8' }}>
+                                            <span>🔒</span> Jaringan Mitra &amp; KSO
+                                        </div>
+                                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#94a3b8', lineHeight: '1.5' }}>
+                                            Konsorsium mitra dan rekam jejak persaingan head-to-head terhadap badan usaha lainnya.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Modal Actions */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    paddingTop: '16px',
+                                    borderTop: '1px solid rgba(255,255,255,0.08)',
+                                    flexWrap: 'wrap'
+                                }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewModalOpen(false)}
+                                        style={{
+                                            background: 'transparent',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            color: '#94a3b8',
+                                            borderRadius: '10px',
+                                            padding: '10px 20px',
+                                            fontSize: '13px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Tutup Preview
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPreviewModalOpen(false); onGetStarted(); }}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            padding: '10px 24px',
+                                            fontSize: '13.5px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)'
+                                        }}
+                                    >
+                                        Daftar Uji Coba Gratis 7 Hari ➔
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* ===== PREMIUM FOOTER ===== */}
             <PremiumFooter adminSettings={adminSettings} onNavigate={onNavigate} />
