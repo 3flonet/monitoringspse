@@ -6094,12 +6094,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                     </div>
 
                                     {/* Baris 2: Dropdown Kategori & Dropdown Instansi/LPSE Berdampingan */}
-                                    <div style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                                        gap: '10px',
-                                        marginBottom: '6px'
-                                    }}>
+                                    <div className="demo-filter-dropdowns-row">
                                         {/* Dropdown 1: Kategori Instansi */}
                                         <select
                                             className="demo-select-styled"
@@ -6215,15 +6210,15 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                         </div>
 
                                         {/* Grid 2 Kolom Skeleton */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px', marginBottom: '18px' }}>
+                                        <div className="demo-dominance-main-grid">
                                             {/* Left Card Skeleton */}
-                                            <div style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '22px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                                                    <div className="skeleton-badge" style={{ width: '160px', height: '22px' }} />
-                                                    <div className="skeleton-btn" style={{ width: '100px', height: '26px' }} />
+                                            <div className="demo-champion-card" style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                                                    <div className="skeleton-badge" style={{ width: '150px', height: '22px' }} />
+                                                    <div className="skeleton-btn" style={{ width: '90px', height: '26px' }} />
                                                 </div>
                                                 <div className="skeleton-box" style={{ width: '75%', height: '24px', marginBottom: '18px' }} />
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
                                                     <div className="skeleton-box" style={{ width: '100%', height: '65px', borderRadius: '10px' }} />
                                                     <div className="skeleton-box" style={{ width: '100%', height: '65px', borderRadius: '10px' }} />
                                                 </div>
@@ -6232,9 +6227,9 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                             </div>
 
                                             {/* Right Card Skeleton */}
-                                            <div style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '22px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                                    <div className="skeleton-badge" style={{ width: '180px', height: '22px' }} />
+                                            <div className="demo-challengers-card" style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                                                    <div className="skeleton-badge" style={{ width: '160px', height: '22px' }} />
                                                     <div className="skeleton-box" style={{ width: '60px', height: '14px' }} />
                                                 </div>
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
@@ -6277,41 +6272,20 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                 {/* Main Grid: Champion on Left, Locked Runner-ups on Right */}
                                                 <div className="demo-dominance-main-grid">
                                                     {/* Left: Champion Card */}
-                                                    <div style={{
+                                                    <div className="demo-champion-card" style={{
                                                         background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.85))',
                                                         border: '1.5px solid rgba(245, 158, 11, 0.4)',
-                                                        borderRadius: '16px',
-                                                        padding: '22px',
                                                         position: 'relative'
                                                     }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                                                            <span style={{
-                                                                fontSize: '11.5px',
-                                                                fontWeight: '800',
-                                                                color: '#fbbf24',
-                                                                background: 'rgba(245, 158, 11, 0.15)',
-                                                                padding: '4px 10px',
-                                                                borderRadius: '6px',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '5px'
-                                                            }}>
+                                                        <div className="demo-champion-header">
+                                                            <span className="demo-champion-pill">
                                                                 <span>👑</span> JUARA PENGUASA INSTANSI (#1)
                                                             </span>
                                                             {cur.champion && (
                                                                 <button
                                                                     type="button"
+                                                                    className="demo-champion-btn"
                                                                     onClick={() => handleSelectCompany(cur.champion.name)}
-                                                                    style={{
-                                                                        background: 'rgba(99, 102, 241, 0.15)',
-                                                                        border: '1px solid rgba(99, 102, 241, 0.4)',
-                                                                        color: '#818cf8',
-                                                                        fontSize: '11.5px',
-                                                                        fontWeight: '700',
-                                                                        padding: '4px 10px',
-                                                                        borderRadius: '6px',
-                                                                        cursor: 'pointer'
-                                                                    }}
                                                                 >
                                                                     Preview Intelijen →
                                                                 </button>
@@ -6324,7 +6298,7 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                                     onClick={() => handleSelectCompany(cur.champion.name)}
                                                                     style={{
                                                                         margin: '0 0 14px',
-                                                                        fontSize: 'clamp(16px, 4vw, 20px)',
+                                                                        fontSize: 'clamp(15px, 3.8vw, 19px)',
                                                                         fontWeight: '800',
                                                                         color: '#ffffff',
                                                                         fontFamily: 'Outfit, sans-serif',
@@ -6339,27 +6313,27 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                                 </h3>
 
                                                                 {/* Champion Metrics */}
-                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
-                                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Rekor Menang</div>
-                                                                        <div style={{ fontSize: '22px', fontWeight: '800', color: '#34d399', marginTop: '2px', fontFamily: 'Outfit, sans-serif' }}>
+                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', minWidth: 0 }}>
+                                                                        <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Rekor Menang</div>
+                                                                        <div style={{ fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: '800', color: '#34d399', marginTop: '2px', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                                             {cur.champion.win_count} Proyek
                                                                         </div>
-                                                                        <div style={{ fontSize: '11px', color: '#64748b' }}>Di instansi ini</div>
+                                                                        <div style={{ fontSize: '10.5px', color: '#64748b' }}>Di instansi ini</div>
                                                                     </div>
-                                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                                                        <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Nilai Kontrak</div>
-                                                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#fbbf24', marginTop: '4px', fontFamily: 'Outfit, sans-serif' }}>
+                                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', minWidth: 0 }}>
+                                                                        <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Nilai Kontrak</div>
+                                                                        <div style={{ fontSize: 'clamp(14px, 3.6vw, 18px)', fontWeight: '800', color: '#fbbf24', marginTop: '4px', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                                             Rp {formatStatsPagu(cur.champion.total_nilai)}
                                                                         </div>
-                                                                        <div style={{ fontSize: '11px', color: '#64748b' }}>Akumulasi</div>
+                                                                        <div style={{ fontSize: '10.5px', color: '#64748b' }}>Akumulasi</div>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* Sample Projects Won by Champion in this Instansi */}
                                                                 {cur.champion.sample_tenders && cur.champion.sample_tenders.length > 0 && (
                                                                     <div>
-                                                                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#cbd5e1', marginBottom: '8px' }}>
+                                                                        <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#cbd5e1', marginBottom: '8px' }}>
                                                                             Riwayat Proyek Terbesar di {cur.instansi}:
                                                                         </div>
                                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -6368,20 +6342,23 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                                                     key={`ch-tend-${tIdx}`}
                                                                                     style={{
                                                                                         background: 'rgba(15, 23, 42, 0.7)',
-                                                                                        padding: '8px 12px',
+                                                                                        padding: '7px 10px',
                                                                                         borderRadius: '8px',
                                                                                         border: '1px solid rgba(255,255,255,0.04)',
-                                                                                        fontSize: '12px',
+                                                                                        fontSize: '11.5px',
                                                                                         display: 'flex',
                                                                                         justifyContent: 'space-between',
                                                                                         alignItems: 'center',
-                                                                                        gap: '8px'
+                                                                                        gap: '8px',
+                                                                                        minWidth: 0,
+                                                                                        width: '100%',
+                                                                                        boxSizing: 'border-box'
                                                                                     }}
                                                                                 >
-                                                                                    <span style={{ color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+                                                                                    <span style={{ color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
                                                                                         {t.nama_tender}
                                                                                     </span>
-                                                                                    <span style={{ color: '#34d399', fontWeight: '700', flexShrink: 0 }}>
+                                                                                    <span style={{ color: '#34d399', fontWeight: '700', flexShrink: 0, whiteSpace: 'nowrap' }}>
                                                                                         Rp {formatStatsPagu(t.harga_kontrak)}
                                                                                     </span>
                                                                                 </div>
@@ -6398,58 +6375,37 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                     </div>
 
                                                     {/* Right: Gated Runner-Ups Section */}
-                                                    <div style={{
+                                                    <div className="demo-challengers-card" style={{
                                                         background: 'rgba(15, 23, 42, 0.75)',
                                                         border: '1px solid rgba(239, 68, 68, 0.25)',
-                                                        borderRadius: '16px',
-                                                        padding: '22px',
                                                         position: 'relative',
                                                         display: 'flex',
                                                         flexDirection: 'column',
                                                         justifyContent: 'space-between'
                                                     }}>
                                                         <div>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                                                                <span style={{
-                                                                    fontSize: '11.5px',
-                                                                    fontWeight: '800',
-                                                                    color: '#f87171',
-                                                                    background: 'rgba(239, 68, 68, 0.12)',
-                                                                    padding: '4px 10px',
-                                                                    borderRadius: '6px',
-                                                                    display: 'inline-flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '5px'
-                                                                }}>
+                                                            <div className="demo-challenger-header">
+                                                                <span className="demo-challenger-pill">
                                                                     <span>🔒</span> 5 KONTRAKTOR PENANTANG (TERKUNCI)
                                                                 </span>
-                                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Tier 1: Tamu</span>
+                                                                <span style={{ fontSize: '11px', color: '#94a3b8', flexShrink: 0, whiteSpace: 'nowrap' }}>Tier 1: Tamu</span>
                                                             </div>
 
                                                             {/* Masked Runner-Up List */}
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', width: '100%', boxSizing: 'border-box' }}>
                                                                 {cur.runner_ups && cur.runner_ups.length > 0 ? (
                                                                     cur.runner_ups.map((ru, ruIdx) => (
                                                                         <div
                                                                             key={`ru-row-${ruIdx}`}
-                                                                            style={{
-                                                                                background: 'rgba(255,255,255,0.02)',
-                                                                                padding: '9px 12px',
-                                                                                borderRadius: '8px',
-                                                                                border: '1px dashed rgba(255,255,255,0.08)',
-                                                                                display: 'flex',
-                                                                                justifyContent: 'space-between',
-                                                                                alignItems: 'center',
-                                                                                fontSize: '12.5px'
-                                                                            }}
+                                                                            className="demo-runner-up-row"
                                                                         >
-                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                                <span style={{ color: '#94a3b8', fontWeight: '700', fontSize: '11px', width: '20px' }}>#{ru.rank}</span>
-                                                                                <span style={{ color: '#e2e8f0', letterSpacing: '0.04em', filter: 'blur(2px)', userSelect: 'none' }}>
+                                                                            <div className="demo-runner-up-name-col">
+                                                                                <span style={{ color: '#94a3b8', fontWeight: '700', fontSize: '11px', width: '18px', flexShrink: 0 }}>#{ru.rank}</span>
+                                                                                <span className="demo-runner-up-name">
                                                                                     {ru.masked_name}
                                                                                 </span>
                                                                             </div>
-                                                                            <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '11.5px', flexShrink: 0 }}>
+                                                                            <span className="demo-runner-up-badge">
                                                                                 {ru.win_count} Menang
                                                                             </span>
                                                                         </div>
@@ -6467,10 +6423,13 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15))',
                                                             border: '1px solid rgba(99, 102, 241, 0.4)',
                                                             borderRadius: '12px',
-                                                            padding: '14px 16px',
-                                                            textAlign: 'center'
+                                                            padding: '14px 12px',
+                                                            textAlign: 'center',
+                                                            boxSizing: 'border-box',
+                                                            width: '100%',
+                                                            maxWidth: '100%'
                                                         }}>
-                                                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#ffffff', marginBottom: '4px' }}>
+                                                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#ffffff', marginBottom: '4px', wordBreak: 'break-word' }}>
                                                                 Mau Tahu Strategi Menembus Pasar {cur.instansi}?
                                                             </div>
                                                             <p style={{ margin: '0 0 10px', fontSize: '11.5px', color: '#cbd5e1', lineHeight: '1.5' }}>
@@ -6484,11 +6443,14 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                                                     color: '#ffffff',
                                                                     border: 'none',
                                                                     borderRadius: '9px',
-                                                                    padding: '9px 18px',
-                                                                    fontSize: '12.5px',
+                                                                    padding: '9px 16px',
+                                                                    fontSize: '12px',
                                                                     fontWeight: '700',
                                                                     cursor: 'pointer',
-                                                                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)'
+                                                                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
+                                                                    maxWidth: '100%',
+                                                                    whiteSpace: 'normal',
+                                                                    lineHeight: '1.3'
                                                                 }}
                                                             >
                                                                 🚀 Coba Gratis 7 Hari (Buka Penuh)

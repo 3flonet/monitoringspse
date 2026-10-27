@@ -1864,11 +1864,136 @@ h1, h2, h3, h4, h5, h6 {
 
 .demo-dominance-main-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 18px;
   margin-bottom: 18px;
   box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
+}
+
+.demo-champion-card,
+.demo-challengers-card {
+  padding: 22px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.demo-filter-dropdowns-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.demo-champion-header,
+.demo-challenger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.demo-champion-pill {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.demo-champion-btn {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #818cf8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.demo-champion-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.demo-challenger-pill {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.demo-runner-up-row {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.demo-runner-up-name-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.demo-runner-up-name {
+  color: #e2e8f0;
+  letter-spacing: 0.04em;
+  filter: blur(2px);
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.demo-runner-up-badge {
+  color: #38bdf8;
+  font-weight: 700;
+  font-size: 11.5px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .demo-instansi-header-bar {
@@ -1923,15 +2048,38 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
+@media (max-width: 900px) {
+  .demo-dominance-main-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+}
+
 @media (max-width: 640px) {
   .landing-problem-solution-section {
-    padding: 36px 10px !important;
-    border-radius: 18px !important;
-    margin-bottom: 30px !important;
+    padding: 24px 8px !important;
+    border-radius: 16px !important;
+    margin-bottom: 24px !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
   }
   .demo-intel-card {
+    padding: 12px 8px !important;
+    border-radius: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .demo-champion-card,
+  .demo-challengers-card {
     padding: 14px 10px !important;
     border-radius: 14px !important;
+  }
+  .demo-filter-dropdowns-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
   }
   .demo-intel-header {
     gap: 10px;
@@ -1967,8 +2115,9 @@ h1, h2, h3, h4, h5, h6 {
     flex: none !important;
   }
   .demo-dominance-main-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 14px !important;
+    width: 100% !important;
   }
   .demo-instansi-header-bar {
     flex-direction: column !important;
