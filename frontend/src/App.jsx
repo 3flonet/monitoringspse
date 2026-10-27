@@ -6385,9 +6385,13 @@ function App() {
 
     // Explorer States
     const [tenders, setTenders] = useState([]);
-    // Dynamic Fiscal Years Generator
+    // Dynamic Fiscal Years Generator (Mundur hingga tahun 2011)
     const currentYear = new Date().getFullYear();
-    const dynamicYears = Array.from({ length: 5 }, (_, i) => String(currentYear + 1 - i));
+    const startYear = 2011;
+    const dynamicYears = Array.from(
+        { length: (currentYear + 1) - startYear + 1 },
+        (_, i) => String((currentYear + 1) - i)
+    );
 
     const [totalTenders, setTotalTenders] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
