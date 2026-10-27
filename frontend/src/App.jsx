@@ -6142,11 +6142,61 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                                     </div>
                                 </div>
 
-                                {/* Loading States */}
+                                {/* Loading States with Consistent Skeleton */}
                                 {(isLoadingDominance || isSearchingCustomInstansi) ? (
-                                    <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-                                        <div style={{ fontSize: '28px', marginBottom: '10px', animation: 'spin 1.5s linear infinite' }}>⏳</div>
-                                        Memindai peta penguasa dan kontraktor pemenang instansi...
+                                    <div>
+                                        {/* Instansi Header Bar Skeleton */}
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '16px 20px',
+                                            background: 'rgba(15, 23, 42, 0.6)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(255,255,255,0.06)',
+                                            marginBottom: '18px'
+                                        }}>
+                                            <div>
+                                                <div className="skeleton-box" style={{ width: '90px', height: '11px', marginBottom: '6px' }} />
+                                                <div className="skeleton-box" style={{ width: '240px', height: '22px' }} />
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <div className="skeleton-box" style={{ width: '130px', height: '16px' }} />
+                                                <div className="skeleton-badge" style={{ width: '120px', height: '22px' }} />
+                                            </div>
+                                        </div>
+
+                                        {/* Grid 2 Kolom Skeleton */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px', marginBottom: '18px' }}>
+                                            {/* Left Card Skeleton */}
+                                            <div style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '22px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                                                    <div className="skeleton-badge" style={{ width: '160px', height: '22px' }} />
+                                                    <div className="skeleton-btn" style={{ width: '100px', height: '26px' }} />
+                                                </div>
+                                                <div className="skeleton-box" style={{ width: '75%', height: '24px', marginBottom: '18px' }} />
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                                                    <div className="skeleton-box" style={{ width: '100%', height: '65px', borderRadius: '10px' }} />
+                                                    <div className="skeleton-box" style={{ width: '100%', height: '65px', borderRadius: '10px' }} />
+                                                </div>
+                                                <div className="skeleton-box" style={{ width: '100%', height: '36px', borderRadius: '8px', marginBottom: '8px' }} />
+                                                <div className="skeleton-box" style={{ width: '100%', height: '36px', borderRadius: '8px' }} />
+                                            </div>
+
+                                            {/* Right Card Skeleton */}
+                                            <div style={{ background: '#0a0e1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '22px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                                    <div className="skeleton-badge" style={{ width: '180px', height: '22px' }} />
+                                                    <div className="skeleton-box" style={{ width: '60px', height: '14px' }} />
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                                                    {Array.from({ length: 5 }).map((_, sIdx) => (
+                                                        <div key={`skel-pi-row-${sIdx}`} className="skeleton-box" style={{ width: '100%', height: '34px', borderRadius: '8px' }} />
+                                                    ))}
+                                                </div>
+                                                <div className="skeleton-box" style={{ width: '100%', height: '70px', borderRadius: '12px' }} />
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : marketDominance.length === 0 ? (
                                     <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
@@ -6598,9 +6648,78 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                     </div>
 
                     {isLoadingLeaderboard ? (
-                        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '10px', animation: 'spin 1.5s linear infinite' }}>⏳</div>
-                            Menghitung kalkulasi peringkat kontraktor nasional...
+                        <div>
+                            {/* Podium Skeleton Cards */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                gap: '20px',
+                                marginBottom: '28px',
+                                alignItems: 'stretch'
+                            }}>
+                                {[1, 0, 2].map((pIdx) => (
+                                    <div
+                                        key={`skel-lb-card-${pIdx}`}
+                                        style={{
+                                            background: '#0a0e1c',
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            borderRadius: '18px',
+                                            padding: '24px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between'
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                <div className="skeleton-box" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                                <div className="skeleton-badge" style={{ width: '130px', height: '22px' }} />
+                                            </div>
+                                            <div className="skeleton-box" style={{ width: '85%', height: '22px', marginBottom: '16px' }} />
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-box" style={{ width: '80px', height: '14px' }} />
+                                                    <div className="skeleton-box" style={{ width: '70px', height: '14px' }} />
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-box" style={{ width: '90px', height: '14px' }} />
+                                                    <div className="skeleton-box" style={{ width: '90px', height: '14px' }} />
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <div className="skeleton-box" style={{ width: '85px', height: '14px' }} />
+                                                    <div className="skeleton-box" style={{ width: '100px', height: '14px' }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="skeleton-btn" style={{ width: '100%', height: '38px', borderRadius: '10px' }} />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Table Skeleton */}
+                            <div style={{
+                                background: '#0a0e1c',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '18px',
+                                padding: '20px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}>
+                                <div className="skeleton-box" style={{ width: '220px', height: '18px', marginBottom: '10px' }} />
+                                {Array.from({ length: 5 }).map((_, rIdx) => (
+                                    <div key={`skel-lb-row-${rIdx}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                            <div className="skeleton-box" style={{ width: '24px', height: '14px' }} />
+                                            <div className="skeleton-box" style={{ width: `${140 + (rIdx * 30) % 120}px`, height: '16px' }} />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '20px' }}>
+                                            <div className="skeleton-box" style={{ width: '70px', height: '14px' }} />
+                                            <div className="skeleton-box" style={{ width: '90px', height: '14px' }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     ) : (
                         <div>
@@ -7413,16 +7532,26 @@ const LandingPage = ({ onGetStarted, onGoTenders, adminSettings, landingPage, se
                             ✕
                         </button>
 
-                        {/* Loading State */}
+                        {/* Loading State with Consistent Skeleton */}
                         {previewLoading && (
-                            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                                <div style={{ fontSize: '36px', marginBottom: '14px' }}>⏳</div>
-                                <h3 style={{ fontSize: '18px', color: '#e2e8f0', margin: '0 0 8px', fontFamily: 'Outfit, sans-serif' }}>
-                                    Mengumpulkan Intelijen &amp; Rekam Jejak Kompetitor...
-                                </h3>
-                                <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
-                                    Menganalisis riwayat lelang, penetapan pemenang, dan evaluasi Pokja untuk &ldquo;{previewQuery}&rdquo;.
-                                </p>
+                            <div>
+                                <div style={{ marginBottom: '22px', paddingRight: '40px' }}>
+                                    <div className="skeleton-badge" style={{ width: '200px', height: '22px', marginBottom: '12px' }} />
+                                    <div className="skeleton-box" style={{ width: '60%', height: '28px', marginBottom: '10px' }} />
+                                    <div className="skeleton-box" style={{ width: '38%', height: '14px', marginBottom: '6px' }} />
+                                    <div className="skeleton-box" style={{ width: '50%', height: '14px' }} />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '22px' }}>
+                                    {Array.from({ length: 4 }).map((_, mIdx) => (
+                                        <div key={`skel-mod-m-${mIdx}`} className="skeleton-box" style={{ width: '100%', height: '80px', borderRadius: '12px' }} />
+                                    ))}
+                                </div>
+                                <div className="skeleton-box" style={{ width: '100%', height: '75px', borderRadius: '14px', marginBottom: '22px' }} />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
+                                    <div className="skeleton-box" style={{ width: '100%', height: '48px', borderRadius: '10px' }} />
+                                    <div className="skeleton-box" style={{ width: '100%', height: '48px', borderRadius: '10px' }} />
+                                    <div className="skeleton-box" style={{ width: '100%', height: '48px', borderRadius: '10px' }} />
+                                </div>
                             </div>
                         )}
 
