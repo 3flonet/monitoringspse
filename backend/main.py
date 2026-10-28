@@ -804,6 +804,61 @@ def clear_admin_crawl_logs(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Gagal membersihkan log penarikan.")
 
 
+def apply_lpse_and_jenis_filter(clauses: list, params: list, jenis_instansi: Optional[str] = None, kategori: Optional[str] = None):
+    j_low = jenis_instansi.lower().strip() if jenis_instansi else None
+
+    TEXT_PATTERNS = {
+        'kementerian': "(instansi LIKE 'Kementerian%' OR instansi LIKE 'Kemen%' OR instansi LIKE '%(Kementerian%')",
+        'provinsi': "(instansi LIKE 'Provinsi%' OR instansi LIKE 'Pemerintah Provinsi%' OR instansi LIKE 'Pemprov%')",
+        'kota': "(instansi LIKE 'Kota %' OR instansi LIKE 'Pemerintah Kota%' OR instansi LIKE 'Pemkot%')",
+        'kabupaten': "(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')",
+        'kab': "(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')",
+        'lembaga': "(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')",
+        'badan': "(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')"
+    }
+
+    # Kasus 1: Kategori spesifik dipilih dan BUKAN nasional
+    if kategori and kategori != 'nasional':
+        clauses.append("kategori = ?")
+        params.append(kategori)
+        return
+
+    # Kasus 2: Kategori 'nasional' dipilih
+    if kategori == 'nasional':
+        if j_low and j_low in TEXT_PATTERNS:
+            clauses.append(f"(kategori = 'nasional' AND {TEXT_PATTERNS[j_low]})")
+        else:
+            clauses.append("kategori = 'nasional'")
+        return
+
+    # Kasus 3: Kategori tidak dipilih (Semua LPSE), tetapi jenis_instansi dipilih
+    if j_low:
+        raw_lpse = get_setting("lpse_instances", "[]")
+        try:
+            lpse_list = json.loads(raw_lpse)
+        except Exception:
+            lpse_list = []
+
+        matching_slugs = [
+            item.get("slug") for item in lpse_list 
+            if item.get("jenis") and item.get("jenis").lower() == j_low and item.get("slug") and item.get("slug") != "nasional"
+        ]
+
+        conds = []
+        if matching_slugs:
+            placeholders = ",".join(["?"] * len(matching_slugs))
+            conds.append(f"kategori IN ({placeholders})")
+            params.extend(matching_slugs)
+
+        if j_low in TEXT_PATTERNS:
+            conds.append(f"(kategori = 'nasional' AND {TEXT_PATTERNS[j_low]})")
+
+        if conds:
+            clauses.append("(" + " OR ".join(conds) + ")")
+        else:
+            clauses.append("1=0")
+
+
 # TENDERS SEARCH & FILTERING
 @app.get("/api/tenders")
 def list_tenders(
@@ -833,49 +888,10 @@ def list_tenders(
     if instansi:
         where_clauses.append("instansi = ?")
         params.append(instansi)
-    if jenis_instansi:
-        raw_lpse = get_setting("lpse_instances", "[]")
-        try:
-            lpse_list = json.loads(raw_lpse)
-        except Exception:
-            lpse_list = []
-            
-        matching_slugs = [inst.get("slug") for inst in lpse_list if inst.get("jenis") == jenis_instansi and inst.get("slug") and inst.get("slug") != "nasional"]
-        
-        slug_condition = ""
-        slug_params = []
-        if matching_slugs:
-            placeholders = ",".join(["?"] * len(matching_slugs))
-            slug_condition = f"kategori IN ({placeholders})"
-            slug_params = matching_slugs
+    
+    # Filter LPSE dan Jenis Instansi
+    apply_lpse_and_jenis_filter(where_clauses, params, jenis_instansi=jenis_instansi, kategori=kategori)
 
-        text_patterns = []
-        j_low = jenis_instansi.lower().strip()
-        if j_low == 'kementerian':
-            text_patterns.append("instansi LIKE 'Kementerian%'")
-        elif j_low == 'provinsi':
-            text_patterns.append("(instansi LIKE 'Provinsi%' OR instansi LIKE 'Pemerintah Provinsi%' OR instansi LIKE 'Pemprov%')")
-        elif j_low == 'kota':
-            text_patterns.append("(instansi LIKE 'Kota %' OR instansi LIKE 'Pemerintah Kota%' OR instansi LIKE 'Pemkot%')")
-        elif j_low in ['kabupaten', 'kab']:
-            text_patterns.append("(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')")
-        elif j_low in ['lembaga', 'badan']:
-            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')")
-
-        combined_conditions = []
-        if slug_condition:
-            combined_conditions.append(slug_condition)
-            params.extend(slug_params)
-        if text_patterns:
-            combined_conditions.append(" OR ".join(text_patterns))
-
-        if combined_conditions:
-            where_clauses.append("(" + " OR ".join(combined_conditions) + ")")
-        else:
-            where_clauses.append("1=0")
-    if kategori:
-        where_clauses.append("kategori = ?")
-        params.append(kategori)
     if tipe:
         where_clauses.append("(tipe = ? OR metode LIKE ?)")
         params.extend([tipe, f"%{tipe}%"])
@@ -2375,54 +2391,10 @@ def list_user_keyword_tenders(
         filter_clauses.append("(nama_tender LIKE ? OR nomor_pengadaan LIKE ? OR instansi LIKE ?)")
         params.extend([f"%{q}%", f"%{q}%", f"%{q}%"])
 
-    # 2. Jenis Instansi Filter
-    if jenis_instansi:
-        raw_lpse = get_setting("lpse_instances", "[]")
-        try:
-            lpse_list = json.loads(raw_lpse)
-        except Exception:
-            lpse_list = []
-            
-        matching_slugs = [item.get("slug") for item in lpse_list if item.get("jenis") == jenis_instansi and item.get("slug") and item.get("slug") != "nasional"]
-        
-        slug_condition = ""
-        slug_params = []
-        if matching_slugs:
-            placeholders = ",".join(["?"] * len(matching_slugs))
-            slug_condition = f"kategori IN ({placeholders})"
-            slug_params = matching_slugs
+    # 2. Filter LPSE dan Jenis Instansi
+    apply_lpse_and_jenis_filter(filter_clauses, params, jenis_instansi=jenis_instansi, kategori=kategori)
 
-        text_patterns = []
-        j_low = jenis_instansi.lower().strip()
-        if j_low == 'kementerian':
-            text_patterns.append("instansi LIKE 'Kementerian%'")
-        elif j_low == 'provinsi':
-            text_patterns.append("(instansi LIKE 'Provinsi%' OR instansi LIKE 'Pemerintah Provinsi%' OR instansi LIKE 'Pemprov%')")
-        elif j_low == 'kota':
-            text_patterns.append("(instansi LIKE 'Kota %' OR instansi LIKE 'Pemerintah Kota%' OR instansi LIKE 'Pemkot%')")
-        elif j_low in ['kabupaten', 'kab']:
-            text_patterns.append("(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')")
-        elif j_low in ['lembaga', 'badan']:
-            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')")
-
-        combined_conditions = []
-        if slug_condition:
-            combined_conditions.append(slug_condition)
-            params.extend(slug_params)
-        if text_patterns:
-            combined_conditions.append(" OR ".join(text_patterns))
-
-        if combined_conditions:
-            filter_clauses.append("(" + " OR ".join(combined_conditions) + ")")
-        else:
-            filter_clauses.append("1=0")
-
-    # 3. Specific LPSE Kategori
-    if kategori:
-        filter_clauses.append("kategori = ?")
-        params.append(kategori)
-
-    # 4. Tipe (tender / nontender)
+    # 3. Tipe (tender / nontender)
     if tipe:
         filter_clauses.append("(tipe = ? OR metode LIKE ?)")
         params.extend([tipe, f"%{tipe}%"])
