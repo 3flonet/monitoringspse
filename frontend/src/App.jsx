@@ -13758,13 +13758,10 @@ function App() {
                                     onChange={(e) => { setFilterKategori(e.target.value); setOffset(0); }}
                                 >
                                     <option value="">
-                                        {explorerFilterJenisInstansi ? `-- Semua LPSE ${explorerFilterJenisInstansi} --` : '-- Semua Instansi LPSE --'}
-                                    </option>
-                                    <option value="nasional">
-                                        {explorerFilterJenisInstansi ? `LPSE Nasional (LKPP - ${explorerFilterJenisInstansi})` : 'LPSE Nasional (LKPP - Multi Instansi)'}
+                                        {explorerFilterJenisInstansi ? `-- Semua LPSE ${explorerFilterJenisInstansi} --` : '-- Semua Server LPSE --'}
                                     </option>
                                     {lpseInstances
-                                        .filter(inst => inst.slug !== 'nasional' && (explorerFilterJenisInstansi ? inst.jenis === explorerFilterJenisInstansi : true))
+                                        .filter(inst => explorerFilterJenisInstansi ? inst.jenis === explorerFilterJenisInstansi : true)
                                         .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                                         .map((inst, idx) => (
                                             <option key={idx} value={inst.slug}>
@@ -13982,13 +13979,10 @@ function App() {
                                     onChange={(e) => { setKeywordFilterKategori(e.target.value); setKeywordOffset(0); }}
                                 >
                                     <option value="">
-                                        {keywordFilterJenisInstansi ? `-- Semua LPSE ${keywordFilterJenisInstansi} --` : '-- Semua Instansi LPSE --'}
-                                    </option>
-                                    <option value="nasional">
-                                        {keywordFilterJenisInstansi ? `LPSE Nasional (LKPP - ${keywordFilterJenisInstansi})` : 'LPSE Nasional (LKPP - Multi Instansi)'}
+                                        {keywordFilterJenisInstansi ? `-- Semua LPSE ${keywordFilterJenisInstansi} --` : '-- Semua Server LPSE --'}
                                     </option>
                                     {lpseInstances
-                                        .filter(inst => inst.slug !== 'nasional' && (keywordFilterJenisInstansi ? inst.jenis === keywordFilterJenisInstansi : true))
+                                        .filter(inst => keywordFilterJenisInstansi ? inst.jenis === keywordFilterJenisInstansi : true)
                                         .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                                         .map((inst, idx) => (
                                             <option key={idx} value={inst.slug}>

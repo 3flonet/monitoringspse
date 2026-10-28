@@ -805,34 +805,15 @@ def clear_admin_crawl_logs(current_user: dict = Depends(get_current_user)):
 
 
 def apply_lpse_and_jenis_filter(clauses: list, params: list, jenis_instansi: Optional[str] = None, kategori: Optional[str] = None):
-    j_low = jenis_instansi.lower().strip() if jenis_instansi else None
-
-    TEXT_PATTERNS = {
-        'kementerian': "(instansi LIKE 'Kementerian%' OR instansi LIKE 'Kemen%' OR instansi LIKE '%(Kementerian%')",
-        'provinsi': "(instansi LIKE 'Provinsi%' OR instansi LIKE 'Pemerintah Provinsi%' OR instansi LIKE 'Pemprov%')",
-        'kota': "(instansi LIKE 'Kota %' OR instansi LIKE 'Pemerintah Kota%' OR instansi LIKE 'Pemkot%')",
-        'kabupaten': "(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')",
-        'kab': "(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')",
-        'lembaga': "(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')",
-        'badan': "(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')"
-    }
-
-    # Kasus 1: Kategori spesifik dipilih dan BUKAN nasional
-    if kategori and kategori != 'nasional':
+    # 1. Jika kategori LPSE spesifik dipilih (misal: 'nasional', 'kemenkeu', 'jakarta', 'mahkamahagung', dll.)
+    if kategori:
         clauses.append("kategori = ?")
         params.append(kategori)
         return
 
-    # Kasus 2: Kategori 'nasional' dipilih
-    if kategori == 'nasional':
-        if j_low and j_low in TEXT_PATTERNS:
-            clauses.append(f"(kategori = 'nasional' AND {TEXT_PATTERNS[j_low]})")
-        else:
-            clauses.append("kategori = 'nasional'")
-        return
-
-    # Kasus 3: Kategori tidak dipilih (Semua LPSE), tetapi jenis_instansi dipilih
-    if j_low:
+    # 2. Jika kategori tidak dipilih (Semua LPSE), tetapi jenis_instansi dipilih
+    # Filter seluruh LPSE yang memiliki jenis tersebut di daftar pengaturan LPSE (lpse_instances)
+    if jenis_instansi:
         raw_lpse = get_setting("lpse_instances", "[]")
         try:
             lpse_list = json.loads(raw_lpse)
@@ -841,20 +822,13 @@ def apply_lpse_and_jenis_filter(clauses: list, params: list, jenis_instansi: Opt
 
         matching_slugs = [
             item.get("slug") for item in lpse_list 
-            if item.get("jenis") and item.get("jenis").lower() == j_low and item.get("slug") and item.get("slug") != "nasional"
+            if item.get("jenis") and item.get("jenis").lower() == jenis_instansi.lower().strip() and item.get("slug")
         ]
 
-        conds = []
         if matching_slugs:
             placeholders = ",".join(["?"] * len(matching_slugs))
-            conds.append(f"kategori IN ({placeholders})")
+            clauses.append(f"kategori IN ({placeholders})")
             params.extend(matching_slugs)
-
-        if j_low in TEXT_PATTERNS:
-            conds.append(f"(kategori = 'nasional' AND {TEXT_PATTERNS[j_low]})")
-
-        if conds:
-            clauses.append("(" + " OR ".join(conds) + ")")
         else:
             clauses.append("1=0")
 
