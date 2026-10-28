@@ -13755,11 +13755,13 @@ function App() {
                                     value={filterKategori}
                                     onChange={(e) => { setFilterKategori(e.target.value); setOffset(0); }}
                                 >
-                                    <option value="">-- Semua LPSE Kategori --</option>
+                                    <option value="">-- Semua Server LPSE --</option>
                                     {lpseInstances
                                         .filter(inst => explorerFilterJenisInstansi ? inst.jenis === explorerFilterJenisInstansi : true)
                                         .map((inst, idx) => (
-                                            <option key={idx} value={inst.slug}>{inst.name}</option>
+                                            <option key={idx} value={inst.slug}>
+                                                {inst.slug === 'nasional' ? 'LPSE Nasional (LKPP)' : inst.name}
+                                            </option>
                                         ))}
                                 </select>
 
@@ -13969,11 +13971,13 @@ function App() {
                                     value={keywordFilterKategori}
                                     onChange={(e) => { setKeywordFilterKategori(e.target.value); setKeywordOffset(0); }}
                                 >
-                                    <option value="">-- Semua LPSE Kategori --</option>
+                                    <option value="">-- Semua Server LPSE --</option>
                                     {lpseInstances
                                         .filter(inst => keywordFilterJenisInstansi ? inst.jenis === keywordFilterJenisInstansi : true)
                                         .map((inst, idx) => (
-                                            <option key={idx} value={inst.slug}>{inst.name}</option>
+                                            <option key={idx} value={inst.slug}>
+                                                {inst.slug === 'nasional' ? 'LPSE Nasional (LKPP)' : inst.name}
+                                            </option>
                                         ))}
                                 </select>
 

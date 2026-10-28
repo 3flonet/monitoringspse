@@ -860,7 +860,7 @@ def list_tenders(
         elif j_low in ['kabupaten', 'kab']:
             text_patterns.append("(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')")
         elif j_low in ['lembaga', 'badan']:
-            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%')")
+            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')")
 
         combined_conditions = []
         if slug_condition:
@@ -2403,7 +2403,7 @@ def list_user_keyword_tenders(
         elif j_low in ['kabupaten', 'kab']:
             text_patterns.append("(instansi LIKE 'Kab.%' OR instansi LIKE 'Kabupaten%' OR instansi LIKE 'Pemerintah Kab%')")
         elif j_low in ['lembaga', 'badan']:
-            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%')")
+            text_patterns.append("(instansi LIKE 'Badan%' OR instansi LIKE 'Otorita%' OR instansi LIKE 'Sekretariat%' OR instansi LIKE 'Dewan%' OR instansi LIKE 'Komisi%' OR instansi LIKE 'Lembaga%' OR instansi LIKE 'Setjen%' OR instansi LIKE 'PDAM%' OR instansi LIKE 'LKPP%' OR instansi LIKE 'Mahkamah%' OR instansi LIKE 'Kejaksaan%' OR instansi LIKE 'Kepolisian%' OR instansi LIKE 'Polri%' OR instansi LIKE 'Perpustakaan%' OR instansi LIKE 'Arsip%' OR instansi LIKE 'Pusat%' OR instansi LIKE 'Satuan Kerja%' OR instansi LIKE 'Universitas%' OR instansi LIKE 'Institut%' OR instansi LIKE 'Politeknik%' OR instansi LIKE 'Akademi%' OR instansi LIKE 'BPK%' OR instansi LIKE 'BPKP%' OR instansi LIKE 'BRIN%' OR instansi LIKE 'BMKG%' OR instansi LIKE 'BPS%' OR instansi LIKE 'BNPB%' OR instansi LIKE 'BNN%' OR instansi LIKE 'BSSN%' OR instansi LIKE 'BPOM%' OR instansi LIKE 'BKN%' OR instansi LIKE 'PPATK%' OR instansi LIKE 'BIN%' OR instansi LIKE 'BSN%' OR instansi LIKE 'TVRI%' OR instansi LIKE 'RRI%' OR instansi LIKE 'LPP %')")
 
         combined_conditions = []
         if slug_condition:
@@ -4817,4 +4817,4 @@ def admin_export_company_leads(
             content=stream.getvalue(),
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=daftar_prospek_perusahaan.xlsx"}
-        )
+        )
