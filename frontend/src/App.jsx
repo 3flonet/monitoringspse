@@ -3517,6 +3517,16 @@ const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNav
                                 <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '4px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '700' }}>
                                     {tender.tipe || 'Tender'}
                                 </span>
+                                {tender.jenis_pengadaan && (
+                                    <span style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '4px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                        🏷️ {tender.jenis_pengadaan}
+                                    </span>
+                                )}
+                                {tender.metode && (
+                                    <span style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)', padding: '4px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>
+                                        📋 {tender.metode}
+                                    </span>
+                                )}
                             </div>
 
                             <h1 style={{ fontSize: '24px', color: '#ffffff', lineHeight: '1.45', margin: '0 0 24px 0', fontWeight: '800', letterSpacing: '-0.01em' }}>
@@ -14082,10 +14092,10 @@ function App() {
                                                             <td data-label="Instansi">{tender.instansi}</td>
                                                             <td data-label="Jenis/Tipe">
                                                                 <span className={`badge ${tender.tipe === 'tender' ? 'badge-tender' : 'badge-nontender'}`}>
-                                                                    {tender.tipe}
+                                                                    {tender.tipe ? tender.tipe.toUpperCase() : 'TENDER'}
                                                                 </span>
-                                                                <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-                                                                    {tender.kategori}
+                                                                <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', fontWeight: '500' }}>
+                                                                    {tender.jenis_pengadaan ? tender.jenis_pengadaan.replace(/\s*-\s*TA\s*\d{4}.*/gi, '') : (tender.kategori || '-')}
                                                                 </div>
                                                             </td>
                                                             <td data-label="Pagu"><span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{tender.pagu}</span></td>

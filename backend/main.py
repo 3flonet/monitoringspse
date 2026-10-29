@@ -940,7 +940,7 @@ def get_tender_detail(nomor: str):
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, tahun, scraped_at, tanggal_mulai_tender, akhir_penawaran
+        SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, metode, jenis_pengadaan, tahun, scraped_at, tanggal_mulai_tender, akhir_penawaran
         FROM tenders WHERE nomor_pengadaan = ?
     """, (nomor,))
     tender_row = cursor.fetchone()
@@ -1102,7 +1102,7 @@ def list_bookmarks(current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.tahap, t.pagu, t.pagu_val, t.kategori, t.tipe, t.tahun, b.bookmarked_at
+        SELECT t.nomor_pengadaan, t.nama_tender, t.instansi, t.tahap, t.pagu, t.pagu_val, t.kategori, t.tipe, t.metode, t.jenis_pengadaan, t.tahun, b.bookmarked_at
         FROM bookmarks b
         JOIN tenders t ON b.nomor_pengadaan = t.nomor_pengadaan
         WHERE b.user_id = ?
@@ -1489,7 +1489,7 @@ def process_new_alert_background(alert_id: int, user_id: int, keyword: str, inst
             where_sql = kw_sql
 
         cursor.execute(f"""
-            SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, tahun, scraped_at
+            SELECT nomor_pengadaan, nama_tender, instansi, tahap, pagu, pagu_val, kategori, tipe, metode, jenis_pengadaan, tahun, scraped_at
             FROM tenders
             WHERE {where_sql}
             ORDER BY scraped_at DESC
