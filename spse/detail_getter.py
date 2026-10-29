@@ -72,28 +72,47 @@ class SPSEDetailGetter:
         Returns:
             str: Plain text with newlines for better readability
         """
-        # Parse with BeautifulSoup
         soup = BeautifulSoup(html_text, 'html.parser')
+        
+        # Format nested tables nicely before flattening
+        for table in soup.find_all('table'):
+            for tr in table.find_all('tr'):
+                tds = [td.get_text(strip=True).replace('\xa0', ' ') for td in tr.find_all(['td', 'th'])]
+                tds = [t for t in tds if t]
+                if len(tds) == 2:
+                    tr.replace_with(f"\n• {tds[0]}: {tds[1]}\n")
+                elif len(tds) > 2:
+                    tr.replace_with(f"\n{' | '.join(tds)}\n")
         
         # Replace <br> tags with newline
         for br in soup.find_all('br'):
             br.replace_with('\n')
         
         # Replace block elements with newline
-        for tag in soup.find_all(['p', 'div', 'li', 'tr']):
+        for tag in soup.find_all(['p', 'div', 'li', 'tr', 'h1', 'h2', 'h3', 'h4', 'strong']):
+            tag.insert_before('\n')
             tag.insert_after('\n')
         
         # Get text
-        text = soup.get_text(separator=' ')
+        text = soup.get_text()
         
         # Clean up excessive whitespace but preserve newlines
         lines = text.split('\n')
-        cleaned_lines = [re.sub(r'\s+', ' ', line.strip()) for line in lines]
+        cleaned_lines = [re.sub(r'[ \t]+', ' ', line.strip()) for line in lines]
         
-        # Remove empty lines and join
-        text = '\n'.join(line for line in cleaned_lines if line)
-        
-        return text
+        # Remove consecutive empty lines and join
+        cleaned = []
+        prev_empty = False
+        for line in cleaned_lines:
+            if not line:
+                if not prev_empty:
+                    cleaned.append('')
+                    prev_empty = True
+            else:
+                cleaned.append(line)
+                prev_empty = False
+                
+        return '\n'.join(cleaned).strip()
     
     def get_detail_data(self, nomor_pengadaan, endpoint_type='tender'):
         """

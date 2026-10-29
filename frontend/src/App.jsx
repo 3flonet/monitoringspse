@@ -3290,6 +3290,8 @@ const CopyButton = ({ text }) => {
 const formatSyaratTextToSections = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return [];
 
+    const text = rawText.trim();
+
     const sectionDefs = [
         { name: "Persyaratan Kualifikasi Administrasi/Legalitas", icon: "📜", label: "Syarat Administrasi & Legalitas" },
         { name: "Persyaratan Kualifikasi Administrasi / Legalitas", icon: "📜", label: "Syarat Administrasi & Legalitas" },
@@ -3305,18 +3307,18 @@ const formatSyaratTextToSections = (rawText) => {
 
     const matches = [];
     let match;
-    while ((match = pattern.exec(rawText)) !== null) {
+    while ((match = pattern.exec(text)) !== null) {
         matches.push({ title: match[1], index: match.index });
     }
 
     const rawSections = [];
     if (matches.length === 0) {
-        rawSections.push({ title: "Persyaratan Kualifikasi", icon: "📋", content: rawText });
+        rawSections.push({ title: "Persyaratan Kualifikasi", icon: "📋", content: text });
     } else {
         for (let i = 0; i < matches.length; i++) {
             const start = matches[i].index + matches[i].title.length;
-            const end = i < matches.length - 1 ? matches[i + 1].index : rawText.length;
-            const content = rawText.substring(start, end).trim();
+            const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
+            const content = text.substring(start, end).trim();
             const matchedDef = sectionDefs.find(s => s.name.toLowerCase() === matches[i].title.toLowerCase());
             rawSections.push({
                 title: matchedDef?.label || matches[i].title,
@@ -3327,32 +3329,547 @@ const formatSyaratTextToSections = (rawText) => {
     }
 
     return rawSections.map(sec => {
-        let content = sec.content;
-        
-        // Add newlines before isolated bullet points a) b) c) d) 1) 2)
-        content = content.replace(/(\s+|^)([a-h1-9]\))\s+/gi, '\n$2 ');
-        
-        // Add newlines before major sentence starters
-        content = content.replace(/(\s+|^)(Memenuhi|Jenis Izin|Mempunyai|Secara hukum|Menyetujui|Memiliki|Tabel Data|Nilai kinerja)/gi, '\n$2');
+        const sText = sec.content;
+        const blocks = [];
+        const isLegacyAdmin = sec.title.toLowerCase().includes("administrasi") || sec.title.toLowerCase().includes("legalitas");
 
-        let lines = content.split('\n').map(l => l.trim()).filter(Boolean);
-        let items = [];
+        if (isLegacyAdmin) {
+            const anchors = [
+                { key: "izin", regex: /(Memenuhi ketentuan peraturan perundang-undangan[^\.]*\.)/i },
+                { key: "pajak", regex: /(Mempunyai status valid keterangan Wajib Pajak[^\.]*\.)/i },
+                { key: "hukum", regex: /(Secara hukum mempunyai kapasitas[^\:]*\:)/i },
+                { key: "pakta", regex: /(Menyetujui Pernyataan Pakta Integritas[^\.]*\.)/i },
+                { key: "pernyataan", regex: /(Menyetujui Surat pernyataan Peserta[^\:]*\:)/i },
+                { key: "kso", regex: /(Dalam hal Peserta akan melakukan konsorsium[^\:]*\:)/i }
+            ];
 
-        lines.forEach(line => {
-            if (line.length > 250 && line.includes('; ')) {
-                const subParts = line.split('; ').map(s => s.trim()).filter(Boolean);
-                items.push(...subParts);
-            } else {
-                items.push(line);
+            const foundAnchors = [];
+            anchors.forEach(a => {
+                const m = sText.match(a.regex);
+                if (m && m.index !== undefined) {
+                    foundAnchors.push({ key: a.key, start: m.index, end: m.index + m[0].length, match: m[0] });
+                }
+            });
+
+            foundAnchors.sort((a, b) => a.start - b.start);
+
+            if (foundAnchors.length > 0) {
+                const prefix = sText.substring(0, foundAnchors[0].start).trim();
+                if (prefix && prefix.length > 10) {
+                    blocks.push({ type: "standard", title: prefix, subitems: [] });
+                }
+
+                for (let i = 0; i < foundAnchors.length; i++) {
+                    const fa = foundAnchors[i];
+                    const cStart = fa.end;
+                    const cEnd = i + 1 < foundAnchors.length ? foundAnchors[i + 1].start : sText.length;
+                    const chunk = sText.substring(cStart, cEnd).trim();
+
+                    if (fa.key === "izin") {
+                        const licPattern = /\b(Sertifikat Badan Usaha SBU|Sertifikat Badan Usaha|SBU|Nomor Induk Berusaha NIB|Nomor Induk Berusaha|NIB|Izin Usaha Jasa Konstruksi IUJK|IUJK|SIUP|Sertifikat Standar|Jenis Izin)\b/gi;
+                        const licMatches = [];
+                        let lm;
+                        while ((lm = licPattern.exec(chunk)) !== null) {
+                            licMatches.push({ label: lm[0], index: lm.index, end: lm.index + lm[0].length });
+                        }
+
+                        const licenses = [];
+                        let introDesc = chunk;
+                        if (licMatches.length > 0) {
+                            introDesc = chunk.substring(0, licMatches[0].index).trim();
+                            for (let j = 0; j < licMatches.length; j++) {
+                                const cur = licMatches[j];
+                                const nextIndex = j + 1 < licMatches.length ? licMatches[j + 1].index : chunk.length;
+                                let val = chunk.substring(cur.end, nextIndex).trim();
+                                val = val.replace(/^(Bidang Usaha\/Sub Bidang Usaha\/Klasifikasi\/Sub Klasifikasi|Kualifikasi Badan Usaha)\s*/i, '').trim();
+                                if (val) {
+                                    licenses.push({ label: cur.label, value: val });
+                                }
+                            }
+                        }
+
+                        blocks.push({
+                            type: "license_table",
+                            title: "Izin Usaha & Sertifikasi Badan Usaha",
+                            lead: fa.match,
+                            intro: introDesc,
+                            licenses: licenses,
+                            rawContent: licenses.length === 0 ? chunk : ""
+                        });
+                    } else if (fa.key === "hukum" || fa.key === "pernyataan" || fa.key === "kso") {
+                        const numPattern = /(?<!huruf\s)(?<!butir\s)(?<!angka\s)(?<!poin\s)\b([0-9]+\))\s+/gi;
+                        const subMatches = [];
+                        let sm;
+                        while ((sm = numPattern.exec(chunk)) !== null) {
+                            subMatches.push({ marker: sm[1], index: sm.index, end: sm.index + sm[0].length });
+                        }
+
+                        const subitems = [];
+                        if (subMatches.length > 0) {
+                            for (let k = 0; k < subMatches.length; k++) {
+                                const cur = subMatches[k];
+                                const nextIdx = k + 1 < subMatches.length ? subMatches[k + 1].index : chunk.length;
+                                const body = chunk.substring(cur.end, nextIdx).trim().replace(/;$/, '').trim();
+                                subitems.push(`${cur.marker} ${body}`);
+                            }
+                        } else if (chunk.includes(';')) {
+                            chunk.split(';').map(s => s.trim()).filter(Boolean).forEach(s => subitems.push(s));
+                        } else if (chunk) {
+                            subitems.push(chunk);
+                        }
+
+                        blocks.push({
+                            type: "with_subitems",
+                            title: fa.match,
+                            subitems: subitems
+                        });
+                    } else {
+                        let fullTitle = fa.match;
+                        if (chunk && chunk.length > 2) {
+                            fullTitle += " " + chunk;
+                        }
+                        blocks.push({
+                            type: "standard",
+                            title: fullTitle,
+                            subitems: []
+                        });
+                    }
+                }
+
+                return {
+                    title: sec.title,
+                    icon: sec.icon,
+                    blocks: blocks,
+                    items: blocks.map(b => b.title)
+                };
             }
-        });
+        }
+
+        // Teknis / Non-admin or fallback
+        const bulletPat = /(?<!huruf\s)(?<!butir\s)(?<!angka\s)(?<!poin\s)(?<!pasal\s)(?<!ayat\s)(?<!nomor\s)\b([a-h]\))\s+/gi;
+        const bMatches = [];
+        let bm;
+        while ((bm = bulletPat.exec(sText)) !== null) {
+            bMatches.push({ marker: bm[1], index: bm.index, end: bm.index + bm[0].length });
+        }
+
+        if (bMatches.length > 0) {
+            const prefix = sText.substring(0, bMatches[0].index).trim();
+            if (prefix) {
+                blocks.push({ type: "standard", title: prefix, subitems: [] });
+            }
+            for (let k = 0; k < bMatches.length; k++) {
+                const cur = bMatches[k];
+                const nextIdx = k + 1 < bMatches.length ? bMatches[k + 1].index : sText.length;
+                const content = sText.substring(cur.end, nextIdx).trim();
+
+                const subPat = /(?=\([0-9]+\)\s+)/gi;
+                const subParts = content.split(subPat).map(s => s.trim()).filter(Boolean);
+                if (subParts.length > 1) {
+                    blocks.push({
+                        type: "with_subitems",
+                        title: `${cur.marker} ${subParts[0]}`,
+                        subitems: subParts.slice(1)
+                    });
+                } else {
+                    blocks.push({
+                        type: "standard",
+                        title: `${cur.marker} ${content}`,
+                        subitems: []
+                    });
+                }
+            }
+        } else {
+            const lines = sText.split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines.length > 1) {
+                lines.forEach(l => blocks.push({ type: "standard", title: l, subitems: [] }));
+            } else if (sText) {
+                blocks.push({ type: "standard", title: sText, subitems: [] });
+            }
+        }
 
         return {
             title: sec.title,
             icon: sec.icon,
-            items
+            blocks: blocks,
+            items: blocks.map(b => b.title)
         };
     });
+};
+
+const SyaratKualifikasiViewer = ({ rawText }) => {
+    const [copied, setCopied] = useState(false);
+    const [expandedBlocks, setExpandedBlocks] = useState({});
+
+    if (!rawText || typeof rawText !== 'string' || !rawText.trim()) {
+        return (
+            <p style={{ color: '#6b7280', fontStyle: 'italic', fontSize: '13px', margin: '8px 0' }}>
+                Detail kualifikasi belum ditarik / tidak tersedia untuk tender ini.
+            </p>
+        );
+    }
+
+    const sections = formatSyaratTextToSections(rawText);
+
+    if (!sections || sections.length === 0) {
+        return (
+            <div className="detail-section quote" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '13px' }}>
+                {rawText}
+            </div>
+        );
+    }
+
+    const handleCopyAll = () => {
+        try {
+            navigator.clipboard.writeText(rawText);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+            console.error("Failed to copy syarat", e);
+        }
+    };
+
+    const toggleExpand = (key) => {
+        setExpandedBlocks(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '12px' }}>
+            {/* Quick Actions Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '4px' }}>
+                <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>
+                    Terbagi dalam {sections.length} kelompok persyaratan kualifikasi
+                </span>
+                <button
+                    onClick={handleCopyAll}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: copied ? 'rgba(34, 197, 94, 0.2)' : 'rgba(99, 102, 241, 0.15)',
+                        color: copied ? '#4ade80' : '#a5b4fc',
+                        border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.4)' : 'rgba(99, 102, 241, 0.3)'}`,
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    {copied ? '✓ Syarat Tersalin!' : '📋 Salin Seluruh Syarat'}
+                </button>
+            </div>
+
+            {sections.map((sec, secIdx) => {
+                const totalBlocks = sec.blocks ? sec.blocks.length : (sec.items?.length || 0);
+                return (
+                    <div
+                        key={secIdx}
+                        style={{
+                            background: 'rgba(30, 41, 59, 0.45)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '16px',
+                            padding: '18px 20px',
+                            backdropFilter: 'blur(8px)',
+                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
+                        }}
+                    >
+                        {/* Section Header */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '14px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                            paddingBottom: '10px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '20px' }}>{sec.icon}</span>
+                                <h3 style={{ fontSize: '14.5px', color: '#93c5fd', margin: 0, fontWeight: '700' }}>
+                                    {sec.title}
+                                </h3>
+                            </div>
+                            <span style={{
+                                fontSize: '11px',
+                                color: '#94a3b8',
+                                background: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.06)',
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                fontWeight: '600'
+                            }}>
+                                {totalBlocks} Butir Ketentuan
+                            </span>
+                        </div>
+
+                        {/* Section Blocks */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {sec.blocks && sec.blocks.length > 0 ? (
+                                sec.blocks.map((block, bIdx) => {
+                                    const blockKey = `${secIdx}-${bIdx}`;
+                                    const isExpanded = !!expandedBlocks[blockKey];
+
+                                    // 1. License Table Block (SBU / NIB / SIUP / IUJK)
+                                    if (block.type === 'license_table') {
+                                        return (
+                                            <div
+                                                key={bIdx}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                                                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                                                    borderRadius: '12px',
+                                                    padding: '16px',
+                                                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ fontSize: '18px' }}>🏢</span>
+                                                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#c7d2fe', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                                            {block.title}
+                                                        </span>
+                                                    </div>
+                                                    <span style={{
+                                                        fontSize: '11px',
+                                                        background: 'rgba(34, 197, 94, 0.15)',
+                                                        color: '#4ade80',
+                                                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '6px',
+                                                        fontWeight: '700'
+                                                    }}>
+                                                        Legalitas Wajib
+                                                    </span>
+                                                </div>
+
+                                                {block.lead && (
+                                                    <p style={{ fontSize: '12.5px', color: '#94a3b8', margin: '0 0 12px 0', lineHeight: '1.5' }}>
+                                                        {block.lead}
+                                                    </p>
+                                                )}
+
+                                                {block.licenses && block.licenses.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                        {block.licenses.map((lic, lIdx) => (
+                                                            <div
+                                                                key={lIdx}
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    flexWrap: 'wrap',
+                                                                    alignItems: 'baseline',
+                                                                    gap: '10px',
+                                                                    background: 'rgba(15, 23, 42, 0.7)',
+                                                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                    padding: '10px 12px',
+                                                                    borderRadius: '8px'
+                                                                }}
+                                                            >
+                                                                <span style={{
+                                                                    background: 'rgba(99, 102, 241, 0.2)',
+                                                                    color: '#a5b4fc',
+                                                                    border: '1px solid rgba(99, 102, 241, 0.4)',
+                                                                    padding: '3px 8px',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '11px',
+                                                                    fontWeight: '700',
+                                                                    letterSpacing: '0.03em',
+                                                                    flexShrink: 0
+                                                                }}>
+                                                                    {lic.label}
+                                                                </span>
+                                                                <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '600', lineHeight: '1.45', flex: 1, minWidth: '200px' }}>
+                                                                    {lic.value}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : block.rawContent ? (
+                                                    <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.5', background: 'rgba(15, 23, 42, 0.5)', padding: '10px 12px', borderRadius: '8px' }}>
+                                                        {block.rawContent}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        );
+                                    }
+
+                                    // 2. Block with Subitems (Kapasitas Hukum, Pernyataan Peserta, KSO, Teknis sejenis)
+                                    if (block.type === 'with_subitems') {
+                                        const subList = block.subitems || [];
+                                        const visibleSubs = isExpanded || subList.length <= 4 ? subList : subList.slice(0, 3);
+
+                                        return (
+                                            <div
+                                                key={bIdx}
+                                                style={{
+                                                    background: 'rgba(15, 23, 42, 0.5)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                                    borderRadius: '10px',
+                                                    padding: '14px 16px'
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                                    <span style={{
+                                                        background: 'rgba(34, 197, 94, 0.15)',
+                                                        color: '#4ade80',
+                                                        borderRadius: '50%',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '11px',
+                                                        fontWeight: '800',
+                                                        flexShrink: 0,
+                                                        marginTop: '2px'
+                                                    }}>
+                                                        ✓
+                                                    </span>
+                                                    <div style={{ flex: 1, fontSize: '13px', fontWeight: '700', color: '#ffffff', lineHeight: '1.5' }}>
+                                                        {block.title}
+                                                    </div>
+                                                </div>
+
+                                                {subList.length > 0 && (
+                                                    <div style={{
+                                                        marginTop: '10px',
+                                                        marginLeft: '10px',
+                                                        paddingLeft: '14px',
+                                                        borderLeft: '2px solid rgba(99, 102, 241, 0.3)',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '8px'
+                                                    }}>
+                                                        {visibleSubs.map((sub, sIdx) => (
+                                                            <div
+                                                                key={sIdx}
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'flex-start',
+                                                                    gap: '8px',
+                                                                    fontSize: '12.5px',
+                                                                    color: '#cbd5e1',
+                                                                    lineHeight: '1.5',
+                                                                    background: 'rgba(15, 23, 42, 0.4)',
+                                                                    padding: '8px 10px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid rgba(255, 255, 255, 0.03)'
+                                                                }}
+                                                            >
+                                                                <span style={{ color: '#818cf8', fontWeight: '700', flexShrink: 0, marginTop: '1px' }}>•</span>
+                                                                <span style={{ flex: 1 }}>{sub}</span>
+                                                            </div>
+                                                        ))}
+
+                                                        {subList.length > 4 && (
+                                                            <button
+                                                                onClick={() => toggleExpand(blockKey)}
+                                                                style={{
+                                                                    background: 'none',
+                                                                    border: 'none',
+                                                                    color: '#93c5fd',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '600',
+                                                                    cursor: 'pointer',
+                                                                    padding: '4px 0',
+                                                                    textAlign: 'left',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '6px',
+                                                                    marginTop: '2px'
+                                                                }}
+                                                            >
+                                                                {isExpanded
+                                                                    ? '☝️ Sembunyikan rincian'
+                                                                    : `👇 Lihat semua ${subList.length} butir (+${subList.length - 3} lainnya)`}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    // 3. Standard Single Requirement Block
+                                    return (
+                                        <div
+                                            key={bIdx}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: '10px',
+                                                background: 'rgba(15, 23, 42, 0.5)',
+                                                border: '1px solid rgba(255, 255, 255, 0.04)',
+                                                padding: '12px 14px',
+                                                borderRadius: '8px',
+                                                fontSize: '13px',
+                                                lineHeight: '1.6',
+                                                color: '#e5e7eb'
+                                            }}
+                                        >
+                                            <span style={{
+                                                background: 'rgba(34, 197, 94, 0.15)',
+                                                color: '#4ade80',
+                                                borderRadius: '50%',
+                                                width: '20px',
+                                                height: '20px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '11px',
+                                                fontWeight: '800',
+                                                flexShrink: 0,
+                                                marginTop: '2px'
+                                            }}>
+                                                ✓
+                                            </span>
+                                            <div style={{ flex: 1 }}>{block.title}</div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                (sec.items || []).map((item, itemIdx) => (
+                                    <div
+                                        key={itemIdx}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '10px',
+                                            background: 'rgba(15, 23, 42, 0.5)',
+                                            border: '1px solid rgba(255, 255, 255, 0.04)',
+                                            padding: '12px 14px',
+                                            borderRadius: '8px',
+                                            fontSize: '13px',
+                                            lineHeight: '1.6',
+                                            color: '#e5e7eb'
+                                        }}
+                                    >
+                                        <span style={{
+                                            background: 'rgba(34, 197, 94, 0.15)',
+                                            color: '#4ade80',
+                                            borderRadius: '50%',
+                                            width: '20px',
+                                            height: '20px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '11px',
+                                            fontWeight: '800',
+                                            flexShrink: 0,
+                                            marginTop: '2px'
+                                        }}>
+                                            ✓
+                                        </span>
+                                        <div style={{ flex: 1 }}>{item}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
 };
 
 const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNavigate, userToken }) => {
@@ -3700,65 +4217,12 @@ const PublicTenderDetailPage = ({ adminSettings, tender, isLoading, error, onNav
                         </div>
 
                         {/* Structured Syarat Kualifikasi Cards */}
-                        {formattedSections.length > 0 && (
+                        {tender?.syarat_kualifikasi && (
                             <div style={{ marginBottom: '28px' }}>
                                 <h2 style={{ fontSize: '18px', color: '#fff', margin: '0 0 16px 0', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span>📋 Syarat Kualifikasi & Ketentuan Paket</span>
                                 </h2>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    {formattedSections.map((sec, idx) => (
-                                        <div key={idx} style={{
-                                            background: 'rgba(30, 41, 59, 0.5)',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                                            borderRadius: '16px',
-                                            padding: '24px',
-                                            backdropFilter: 'blur(8px)'
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px' }}>
-                                                <span style={{ fontSize: '20px' }}>{sec.icon}</span>
-                                                <h3 style={{ fontSize: '15px', color: '#93c5fd', margin: 0, fontWeight: '700' }}>
-                                                    {sec.title}
-                                                </h3>
-                                            </div>
-
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                {sec.items.map((item, itemIdx) => (
-                                                    <div key={itemIdx} style={{
-                                                        display: 'flex',
-                                                        alignItems: 'flex-start',
-                                                        gap: '12px',
-                                                        background: 'rgba(15, 23, 42, 0.5)',
-                                                        border: '1px solid rgba(255, 255, 255, 0.04)',
-                                                        padding: '14px 16px',
-                                                        borderRadius: '10px',
-                                                        fontSize: '13.5px',
-                                                        lineHeight: '1.6',
-                                                        color: '#e5e7eb'
-                                                    }}>
-                                                        <span style={{
-                                                            background: 'rgba(34, 197, 94, 0.15)',
-                                                            color: '#4ade80',
-                                                            borderRadius: '50%',
-                                                            width: '22px',
-                                                            height: '22px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '12px',
-                                                            fontWeight: '800',
-                                                            flexShrink: 0,
-                                                            marginTop: '2px'
-                                                        }}>
-                                                            ✓
-                                                        </span>
-                                                        <div style={{ flex: 1 }}>{item}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <SyaratKualifikasiViewer rawText={tender.syarat_kualifikasi} />
                             </div>
                         )}
 
@@ -20482,77 +20946,10 @@ function App() {
                             </div>
 
                             <div className="detail-section">
-                                <label style={{ fontSize: '14px', color: '#93c5fd', fontWeight: '700', marginBottom: '12px', display: 'block' }}>
+                                <label style={{ fontSize: '14px', color: '#93c5fd', fontWeight: '700', marginBottom: '8px', display: 'block' }}>
                                     📋 Syarat Kualifikasi Administrasi &amp; Teknis
                                 </label>
-                                {selectedTender.syarat_kualifikasi ? (() => {
-                                    const sections = formatSyaratTextToSections(selectedTender.syarat_kualifikasi);
-                                    if (!sections || sections.length === 0) {
-                                        return (
-                                            <div className="detail-section quote" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                                                {selectedTender.syarat_kualifikasi}
-                                            </div>
-                                        );
-                                    }
-                                    return (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
-                                            {sections.map((sec, idx) => (
-                                                <div key={idx} style={{
-                                                    background: 'rgba(30, 41, 59, 0.5)',
-                                                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                                                    borderRadius: '14px',
-                                                    padding: '18px 20px'
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
-                                                        <span style={{ fontSize: '18px' }}>{sec.icon}</span>
-                                                        <h4 style={{ fontSize: '14px', color: '#93c5fd', margin: 0, fontWeight: '700' }}>
-                                                            {sec.title}
-                                                        </h4>
-                                                    </div>
-
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                                        {sec.items.map((item, itemIdx) => (
-                                                            <div key={itemIdx} style={{
-                                                                display: 'flex',
-                                                                alignItems: 'flex-start',
-                                                                gap: '10px',
-                                                                background: 'rgba(15, 23, 42, 0.5)',
-                                                                border: '1px solid rgba(255, 255, 255, 0.04)',
-                                                                padding: '12px 14px',
-                                                                borderRadius: '8px',
-                                                                fontSize: '13px',
-                                                                lineHeight: '1.6',
-                                                                color: '#e5e7eb'
-                                                            }}>
-                                                                <span style={{
-                                                                    background: 'rgba(34, 197, 94, 0.15)',
-                                                                    color: '#4ade80',
-                                                                    borderRadius: '50%',
-                                                                    width: '20px',
-                                                                    height: '20px',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    fontSize: '11px',
-                                                                    fontWeight: '800',
-                                                                    flexShrink: 0,
-                                                                    marginTop: '2px'
-                                                                }}>
-                                                                    ✓
-                                                                </span>
-                                                                <div style={{ flex: 1 }}>{item}</div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })() : (
-                                    <p style={{ color: '#6b7280', fontStyle: 'italic' }}>
-                                        Detail kualifikasi belum ditarik / tidak tersedia untuk tender ini.
-                                    </p>
-                                )}
+                                <SyaratKualifikasiViewer rawText={selectedTender.syarat_kualifikasi} />
                             </div>
 
                             {/* Early Warning Radar Section */}
