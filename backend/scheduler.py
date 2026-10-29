@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from backend.database import get_db_connection
 from backend.crawl_coordinator import run_crawl
 
