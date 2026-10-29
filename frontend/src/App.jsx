@@ -3366,26 +3366,96 @@ const formatSyaratTextToSections = (rawText) => {
                     const chunk = sText.substring(cStart, cEnd).trim();
 
                     if (fa.key === "izin") {
-                        const licPattern = /\b(Sertifikat Badan Usaha SBU|Sertifikat Badan Usaha|SBU|Nomor Induk Berusaha NIB|Nomor Induk Berusaha|NIB|Izin Usaha Jasa Konstruksi IUJK|IUJK|SIUP|Sertifikat Standar|Jenis Izin)\b/gi;
+                        // 1. Separate jammed words from table flattening (e.g. "HunianNomor" -> "Hunian Nomor")
+                        let cleanChunk = chunk
+                            .replace(/([a-z0-9])(Nomor Induk Berusaha|Sertifikat Badan Usaha|Izin Usaha|NIB|SBU|KBLI)/gi, '$1 $2')
+                            .replace(/([A-Z]+)(KBLI)/g, '$1 $2')
+                            .replace(/([a-z0-9])(KBLI)/gi, '$1 $2');
+
+                        const licPattern = /\b(NIB dan Sertifikat Standar|Sertifikat Badan Usaha SBU|Sertifikat Badan Usaha|Nomor Induk Berusaha NIB|Nomor Induk Berusaha|Izin Usaha Jasa Konstruksi IUJK|Izin Usaha Jasa Konstruksi|Sertifikat Standar|Jenis Izin|SBU|NIB|IUJK|SIUP)\b/gi;
                         const licMatches = [];
                         let lm;
-                        while ((lm = licPattern.exec(chunk)) !== null) {
+                        while ((lm = licPattern.exec(cleanChunk)) !== null) {
                             licMatches.push({ label: lm[0], index: lm.index, end: lm.index + lm[0].length });
                         }
 
-                        const licenses = [];
-                        let introDesc = chunk;
+                        const rawList = [];
+                        let introDesc = cleanChunk;
                         if (licMatches.length > 0) {
-                            introDesc = chunk.substring(0, licMatches[0].index).trim();
+                            introDesc = cleanChunk.substring(0, licMatches[0].index).trim();
                             for (let j = 0; j < licMatches.length; j++) {
                                 const cur = licMatches[j];
-                                const nextIndex = j + 1 < licMatches.length ? licMatches[j + 1].index : chunk.length;
-                                let val = chunk.substring(cur.end, nextIndex).trim();
-                                val = val.replace(/^(Bidang Usaha\/Sub Bidang Usaha\/Klasifikasi\/Sub Klasifikasi|Kualifikasi Badan Usaha)\s*/i, '').trim();
-                                if (val) {
-                                    licenses.push({ label: cur.label, value: val });
+                                const nextIndex = j + 1 < licMatches.length ? licMatches[j + 1].index : cleanChunk.length;
+                                let val = cleanChunk.substring(cur.end, nextIndex).trim();
+                                
+                                val = val.replace(/^[\s:\-|]+/, '').trim();
+                                val = val.replace(/^(Bidang Usaha\/Sub Bidang Usaha\/Klasifikasi\/Sub Klasifikasi|Kualifikasi Badan Usaha)[\s:\-|]*/i, '').trim();
+                                val = val.replace(/[\s|]+$/, '').trim();
+
+                                let cleanLabel = cur.label.trim();
+                                let normType = 'LAIN';
+                                if (/SBU|Sertifikat Badan Usaha/i.test(cleanLabel)) {
+                                    cleanLabel = 'SBU';
+                                    normType = 'SBU';
+                                } else if (/NIB dan Sertifikat Standar/i.test(cleanLabel)) {
+                                    cleanLabel = 'NIB & Sertifikat Standar';
+                                    normType = 'NIB_STANDAR';
+                                } else if (/NIB|Nomor Induk Berusaha/i.test(cleanLabel)) {
+                                    cleanLabel = 'NIB';
+                                    normType = 'NIB';
+                                } else if (/IUJK|Izin Usaha Jasa Konstruksi/i.test(cleanLabel)) {
+                                    cleanLabel = 'IUJK';
+                                    normType = 'IUJK';
+                                } else if (/SIUP/i.test(cleanLabel)) {
+                                    cleanLabel = 'SIUP';
+                                    normType = 'SIUP';
+                                } else if (/Sertifikat Standar/i.test(cleanLabel)) {
+                                    cleanLabel = 'Sertifikat Standar';
+                                    normType = 'STANDAR';
+                                }
+
+                                if (normType === 'SBU') {
+                                    val = val.replace(/^(?:SBU\s*)+/i, '').trim();
+                                } else if (normType === 'NIB') {
+                                    val = val.replace(/^(?:NIB\s*)+/i, '').trim();
+                                }
+
+                                val = val.replace(/\|/g, '').replace(/\s+/g, ' ').trim();
+
+                                const trivialWords = /^(dan|atau|dan\/atau|memiliki|yaitu|adalah|untuk|sesuai|berupa)$/i;
+                                if (val && val.length > 3 && !trivialWords.test(val)) {
+                                    rawList.push({ label: cleanLabel, normType, value: val });
                                 }
                             }
+                        }
+
+                        // Deduplicate by normType: keep the cleanest and most descriptive value
+                        const deduplicated = [];
+                        const seenTypes = new Map();
+
+                        for (const item of rawList) {
+                            let cleanVal = item.value;
+                            if (!cleanVal || cleanVal.length < 3) continue;
+
+                            if (!seenTypes.has(item.normType)) {
+                                seenTypes.set(item.normType, { label: item.label, value: cleanVal });
+                            } else {
+                                const existing = seenTypes.get(item.normType);
+                                const currentHasMashed = /Nomor Induk|NIB|SBU|KBLI/i.test(cleanVal.substring(10));
+                                const existingHasMashed = /Nomor Induk|NIB|SBU|KBLI/i.test(existing.value.substring(10));
+                                
+                                if (existingHasMashed && !currentHasMashed) {
+                                    seenTypes.set(item.normType, { label: item.label, value: cleanVal });
+                                } else if (!existingHasMashed && !currentHasMashed) {
+                                    if (cleanVal.length > existing.value.length) {
+                                        seenTypes.set(item.normType, { label: item.label, value: cleanVal });
+                                    }
+                                }
+                            }
+                        }
+
+                        for (const [_, val] of seenTypes.entries()) {
+                            deduplicated.push(val);
                         }
 
                         blocks.push({
@@ -3393,8 +3463,8 @@ const formatSyaratTextToSections = (rawText) => {
                             title: "Izin Usaha & Sertifikasi Badan Usaha",
                             lead: fa.match,
                             intro: introDesc,
-                            licenses: licenses,
-                            rawContent: licenses.length === 0 ? chunk : ""
+                            licenses: deduplicated,
+                            rawContent: deduplicated.length === 0 ? cleanChunk : ""
                         });
                     } else if (fa.key === "hukum" || fa.key === "pernyataan" || fa.key === "kso") {
                         const numPattern = /(?<!huruf\s)(?<!butir\s)(?<!angka\s)(?<!poin\s)\b([0-9]+\))\s+/gi;

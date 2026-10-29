@@ -74,15 +74,27 @@ class SPSEDetailGetter:
         """
         soup = BeautifulSoup(html_text, 'html.parser')
         
-        # Format nested tables nicely before flattening
-        for table in soup.find_all('table'):
-            for tr in table.find_all('tr'):
-                tds = [td.get_text(strip=True).replace('\xa0', ' ') for td in tr.find_all(['td', 'th'])]
-                tds = [t for t in tds if t]
-                if len(tds) == 2:
-                    tr.replace_with(f"\n• {tds[0]}: {tds[1]}\n")
-                elif len(tds) > 2:
-                    tr.replace_with(f"\n{' | '.join(tds)}\n")
+        # Process leaf tables from innermost to outermost so nested tables don't get extracted twice
+        while True:
+            tables = soup.find_all('table')
+            if not tables:
+                break
+            leaf_tables = [t for t in tables if not t.find('table')]
+            if not leaf_tables:
+                break
+            for table in leaf_tables:
+                rows = []
+                for tr in table.find_all('tr'):
+                    tds = [td.get_text(strip=True).replace('\xa0', ' ') for td in tr.find_all(['td', 'th'])]
+                    tds = [t for t in tds if t]
+                    if len(tds) == 2:
+                        rows.append(f"• {tds[0]}: {tds[1]}")
+                    elif len(tds) == 1:
+                        rows.append(tds[0])
+                    elif len(tds) > 2:
+                        rows.append(" - ".join(tds))
+                replacement = ("\n" + "\n".join(rows) + "\n") if rows else ""
+                table.replace_with(BeautifulSoup(replacement, 'html.parser'))
         
         # Replace <br> tags with newline
         for br in soup.find_all('br'):
