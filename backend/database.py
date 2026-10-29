@@ -302,6 +302,7 @@ def init_db():
             alasan_diulang TEXT,
             scraped_at TEXT,
             jadwal TEXT,
+            metode_pengadaan TEXT,
             FOREIGN KEY (nomor_pengadaan) REFERENCES tenders (nomor_pengadaan) ON DELETE CASCADE
         )
         """)
@@ -561,6 +562,7 @@ def init_db():
             alasan_diulang TEXT,
             scraped_at TEXT,
             jadwal TEXT,
+            metode_pengadaan TEXT,
             FOREIGN KEY (nomor_pengadaan) REFERENCES tenders (nomor_pengadaan) ON DELETE CASCADE
         )
         """)
@@ -820,6 +822,10 @@ def init_db():
             cursor.execute("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS reminder_expired_sent_at TEXT")
         except Exception as e:
             logging.warning(f"PG subscriptions migration warning: {e}")
+        try:
+            cursor.execute("ALTER TABLE tender_details ADD COLUMN IF NOT EXISTS metode_pengadaan TEXT")
+        except Exception as e:
+            logging.warning(f"PG tender_details migration warning: {e}")
     else:
         try:
             cursor.execute("PRAGMA table_info(alerts)")
@@ -866,6 +872,14 @@ def init_db():
                 cursor.execute("ALTER TABLE subscriptions ADD COLUMN reminder_expired_sent_at TEXT")
         except Exception as e:
             logging.warning(f"SQLite subscriptions migration warning: {e}")
+
+        try:
+            cursor.execute("PRAGMA table_info(tender_details)")
+            td_cols = [c[1] for c in cursor.fetchall()]
+            if 'metode_pengadaan' not in td_cols:
+                cursor.execute("ALTER TABLE tender_details ADD COLUMN metode_pengadaan TEXT")
+        except Exception as e:
+            logging.warning(f"SQLite tender_details migration warning: {e}")
         
     # Seed default system settings
     default_settings = {
@@ -1083,21 +1097,34 @@ def save_tender_detail(detail_data):
     
     tanggal_mulai_tender = parse_indonesian_date(detail_data.get("tanggal_mulai_tender"))
     akhir_penawaran = parse_indonesian_date(detail_data.get("akhir_penawaran"))
+    metode_pengadaan = clean_str(detail_data.get("metode_pengadaan") or detail_data.get("metode"))
+    jenis_pengadaan = clean_str(detail_data.get("jenis_pengadaan"))
     
-    if tanggal_mulai_tender or akhir_penawaran:
-        if tanggal_mulai_tender and akhir_penawaran:
-            cursor.execute("UPDATE tenders SET tanggal_mulai_tender=?, akhir_penawaran=? WHERE nomor_pengadaan=?", (tanggal_mulai_tender, akhir_penawaran, nomor_pengadaan))
-        elif tanggal_mulai_tender:
-            cursor.execute("UPDATE tenders SET tanggal_mulai_tender=? WHERE nomor_pengadaan=?", (tanggal_mulai_tender, nomor_pengadaan))
-        elif akhir_penawaran:
-            cursor.execute("UPDATE tenders SET akhir_penawaran=? WHERE nomor_pengadaan=?", (akhir_penawaran, nomor_pengadaan))
+    update_fields = []
+    update_vals = []
+    if tanggal_mulai_tender:
+        update_fields.append("tanggal_mulai_tender=?")
+        update_vals.append(tanggal_mulai_tender)
+    if akhir_penawaran:
+        update_fields.append("akhir_penawaran=?")
+        update_vals.append(akhir_penawaran)
+    if metode_pengadaan:
+        update_fields.append("metode=?")
+        update_vals.append(metode_pengadaan)
+    if jenis_pengadaan:
+        update_fields.append("jenis_pengadaan=?")
+        update_vals.append(jenis_pengadaan)
+        
+    if update_fields:
+        update_vals.append(nomor_pengadaan)
+        cursor.execute(f"UPDATE tenders SET {', '.join(update_fields)} WHERE nomor_pengadaan=?", tuple(update_vals))
             
     cursor.execute("""
         INSERT INTO tender_details (
             nomor_pengadaan, syarat_kualifikasi, uraian_singkat_pekerjaan,
             satuan_kerja, jenis_kontrak, lokasi_pekerjaan, tanggal_pembuatan,
-            alasan_diulang, scraped_at, jadwal
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            alasan_diulang, scraped_at, jadwal, metode_pengadaan
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(nomor_pengadaan) DO UPDATE SET
             syarat_kualifikasi=excluded.syarat_kualifikasi,
             uraian_singkat_pekerjaan=excluded.uraian_singkat_pekerjaan,
@@ -1107,7 +1134,8 @@ def save_tender_detail(detail_data):
             tanggal_pembuatan=excluded.tanggal_pembuatan,
             alasan_diulang=excluded.alasan_diulang,
             scraped_at=excluded.scraped_at,
-            jadwal=excluded.jadwal
+            jadwal=excluded.jadwal,
+            metode_pengadaan=COALESCE(excluded.metode_pengadaan, tender_details.metode_pengadaan)
     """, (
         nomor_pengadaan,
         clean_str(detail_data.get("syarat_kualifikasi")),
@@ -1118,7 +1146,8 @@ def save_tender_detail(detail_data):
         clean_str(detail_data.get("tanggal_pembuatan")),
         clean_str(detail_data.get("alasan_diulang")),
         datetime.now().isoformat(),
-        detail_data.get("jadwal")
+        detail_data.get("jadwal"),
+        metode_pengadaan
     ))
     conn.commit()
     conn.close()

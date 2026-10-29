@@ -20406,14 +20406,14 @@ function App() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                                 <div className="detail-section">
                                     <label>Jenis Pengadaan</label>
-                                    <p>{selectedTender.jenis_pengadaan || '-'}</p>
+                                    <p style={{ wordBreak: 'break-word', lineHeight: '1.45' }}>{selectedTender.jenis_pengadaan || '-'}</p>
                                 </div>
                                 <div className="detail-section">
                                     <label>Metode Pengadaan</label>
-                                    <p>{selectedTender.metode || '-'}</p>
+                                    <p style={{ wordBreak: 'break-word', lineHeight: '1.45' }}>{selectedTender.metode || selectedTender.metode_pengadaan || '-'}</p>
                                 </div>
                             </div>
 

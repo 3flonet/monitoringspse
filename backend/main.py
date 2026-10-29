@@ -951,12 +951,15 @@ def get_tender_detail(nomor: str):
     tender = dict(tender_row)
     
     cursor.execute("""
-        SELECT syarat_kualifikasi, uraian_singkat_pekerjaan, satuan_kerja, jenis_kontrak, lokasi_pekerjaan, tanggal_pembuatan, alasan_diulang, jadwal
+        SELECT syarat_kualifikasi, uraian_singkat_pekerjaan, satuan_kerja, jenis_kontrak, lokasi_pekerjaan, tanggal_pembuatan, alasan_diulang, jadwal, metode_pengadaan
         FROM tender_details WHERE nomor_pengadaan = ?
     """, (nomor,))
     detail_row = cursor.fetchone()
     if detail_row:
-        tender.update(dict(detail_row))
+        d_dict = dict(detail_row)
+        tender.update(d_dict)
+        if d_dict.get("metode_pengadaan"):
+            tender["metode"] = d_dict["metode_pengadaan"]
     else:
         tender.update({
             "syarat_kualifikasi": None,
@@ -966,8 +969,41 @@ def get_tender_detail(nomor: str):
             "lokasi_pekerjaan": None,
             "tanggal_pembuatan": None,
             "alasan_diulang": None,
-            "jadwal": None
+            "jadwal": None,
+            "metode_pengadaan": None
         })
+
+    # On-demand live fetch if detailed metode or satker is missing
+    curr_metode = tender.get("metode") or ""
+    if (" - " not in curr_metode) or not tender.get("satuan_kerja"):
+        try:
+            from spse.detail_getter import SPSEDetailGetter
+            from spse.cookie_manager import SPSECookieManager
+            try:
+                from backend.database import save_tender_detail
+            except ImportError:
+                from database import save_tender_detail
+
+            kat = tender.get("kategori") or "nasional"
+            cm = SPSECookieManager()
+            getter = SPSEDetailGetter(cm, category=kat)
+            live_detail = getter.get_detail_data(nomor, tender.get("tipe") or "tender")
+            if live_detail:
+                if not tender.get("jadwal"):
+                    live_sched = getter.get_schedule_data(nomor, tender.get("tipe") or "tender")
+                    if live_sched:
+                        live_detail["jadwal"] = json.dumps(live_sched, ensure_ascii=False)
+                save_tender_detail(live_detail)
+                if live_detail.get("metode_pengadaan"):
+                    tender["metode"] = live_detail["metode_pengadaan"]
+                    tender["metode_pengadaan"] = live_detail["metode_pengadaan"]
+                if live_detail.get("jenis_pengadaan") and not tender.get("jenis_pengadaan"):
+                    tender["jenis_pengadaan"] = live_detail["jenis_pengadaan"]
+                for k in ["syarat_kualifikasi", "uraian_singkat_pekerjaan", "satuan_kerja", "jenis_kontrak", "lokasi_pekerjaan", "tanggal_pembuatan", "alasan_diulang", "jadwal"]:
+                    if live_detail.get(k):
+                        tender[k] = live_detail[k]
+        except Exception as ex:
+            logging.warning(f"On-demand live detail retrieval failed for tender {nomor}: {ex}")
         
     cursor.execute("""
         SELECT nama_peserta, npwp, harga_penawaran, harga_terkoreksi
